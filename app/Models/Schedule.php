@@ -32,7 +32,7 @@ class Schedule extends Model
 
     public function seats()
     {
-        return $this->hasMany(Seat::class, 'vehicle_id', 'vehicle_id');
+        return $this->hasMany(Seat::class);
     }
     public function bookings()
     {

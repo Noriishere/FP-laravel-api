@@ -11,13 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('drivers', function (Blueprint $table) {
+        Schema::create('driver_documents', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->enum('status', ['online', 'offline', 'busy'])->default('offline');
-            $table->enum('verification_status', ['pending', 'approved', 'rejected'])
+
+            $table->foreignId('driver_id')->constrained()->cascadeOnDelete();
+
+            $table->enum('type', ['ktp', 'sim', 'selfie']);
+
+            $table->string('file_path');
+
+            $table->enum('status', ['pending', 'approved', 'rejected'])
                 ->default('pending');
+
+            $table->text('note')->nullable(); // alasan reject
+
             $table->timestamps();
+
+            $table->index(['driver_id']);
         });
     }
 
@@ -26,6 +36,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('drivers');
+        //
     }
 };

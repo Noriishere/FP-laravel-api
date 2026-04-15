@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('vehicle_id')->constrained()->cascadeOnDelete();
             $table->foreignId('driver_id')->nullable()->constrained('drivers')->nullOnDelete();
             $table->timestamp('departure_time');
+            $table->decimal('price', 10, 2);
             $table->enum('status', ['scheduled', 'on-going', 'completed'])->default('scheduled');
             $table->timestamps();
         });

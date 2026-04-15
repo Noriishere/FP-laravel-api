@@ -2,12 +2,17 @@
 
 namespace Database\Seeders;
 
+use App\Models\Booking;
+use App\Models\BookingSeat;
 use App\Models\Driver;
 use App\Models\Route;
 use App\Models\Schedule;
+use App\Models\Seat;
 use App\Models\User;
+use App\Models\Vehicle;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -17,14 +22,40 @@ class DatabaseSeeder extends Seeder
      * Seed the application's database.
      */
     public function run(): void
-    {
-        User::factory(10)->create();
-        Driver::factory()->count(5)->create();
-        Schedule::factory()->count(10)->create();
-        Route::factory()->count(5)->create();
-        // User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+{
+    User::factory()->count(5)->create();
+    Driver::factory()->count(3)->create();
+    Vehicle::factory()->count(2)->create();
+    Route::factory()->count(3)->create();
+
+    $schedules = Schedule::factory()->count(5)->create();
+
+    foreach ($schedules as $schedule) {
+        $capacity = $schedule->vehicle->capacity;
+
+        for ($i = 1; $i <= $capacity; $i++) {
+            Seat::create([
+                'schedule_id' => $schedule->id,
+                'seat_number' => $i,
+                'status' => 'available'
+            ]);
+        }
     }
+
+    $bookings = Booking::factory()->count(10)->create();
+
+    foreach ($bookings as $booking) {
+        $seats = Seat::where('schedule_id', $booking->schedule_id)
+            ->inRandomOrder()
+            ->take(rand(1, 3))
+            ->get();
+
+        foreach ($seats as $seat) {
+            DB::table('booking_seats')->insert([
+                'booking_id' => $booking->id,
+                'seat_id' => $seat->id
+            ]);
+        }
+    }
+}
 }

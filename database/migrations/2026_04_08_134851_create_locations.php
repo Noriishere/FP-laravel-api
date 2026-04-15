@@ -9,10 +9,15 @@ return new class extends Migration {
     {
         Schema::create('locations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('trip_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('schedule_id')->constrained()->cascadeOnDelete();
+
             $table->decimal('latitude', 10, 7);
             $table->decimal('longitude', 10, 7);
+
             $table->timestamp('recorded_at')->useCurrent();
+
+            $table->index(['schedule_id']);
+            $table->index(['recorded_at']);
         });
     }
 

@@ -19,5 +19,5 @@ class RouteFactory extends Factory
             'origin' => $origin,
             'destination' => $destination,
         ];
-    }
+    }   
 }

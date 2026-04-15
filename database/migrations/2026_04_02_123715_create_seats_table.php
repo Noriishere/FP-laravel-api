@@ -19,6 +19,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['schedule_id', 'seat_number']);
+            $table->index(['schedule_id', 'status']);
         });
     }
 

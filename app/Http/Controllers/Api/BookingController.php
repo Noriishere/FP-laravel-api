@@ -20,7 +20,7 @@ class BookingController extends Controller
         ]);
         $schedule = Schedule::findOrFail($request->schedule_id);
         $validSeats = \App\Models\Seat::whereIn('id', $request->seat_ids)
-            ->where('vehicle_id', $schedule->vehicle_id)
+            ->where('schedule_id', $request->schedule_id)
             ->count();
 
         if ($validSeats !== count($request->seat_ids)) {
@@ -30,11 +30,15 @@ class BookingController extends Controller
         }
         return DB::transaction(function () use ($request, $schedule) {
 
+            DB::table('seats')
+                ->whereIn('id', $request->seat_ids)
+                ->lockForUpdate()
+                ->get();
+
             $bookedSeats = DB::table('booking_seats')
                 ->join('bookings', 'booking_seats.booking_id', '=', 'bookings.id')
                 ->where('bookings.schedule_id', $request->schedule_id)
                 ->whereIn('booking_seats.seat_id', $request->seat_ids)
-                ->lockForUpdate()
                 ->pluck('seat_id')
                 ->toArray();
 
@@ -45,11 +49,16 @@ class BookingController extends Controller
                 ], 409);
             }
 
+            DB::table('seats')
+                ->whereIn('id', $request->seat_ids)
+                ->update(['status' => 'booked']);
+
             $booking = Booking::create([
                 'user_id' => Auth::id(),
                 'schedule_id' => $request->schedule_id,
+                'total_seat' => count($request->seat_ids),
                 'total_price' => count($request->seat_ids) * $schedule->price,
-                'status' => 'confirmed'
+                'status' => 'booked'
             ]);
 
             foreach ($request->seat_ids as $seatId) {

@@ -11,21 +11,22 @@ class SeatController extends Controller
 {
     public function availability($id)
     {
-        $schedule = Schedule::with(['vehicle.seats'])->findOrFail($id);
+        Schedule::findOrFail($id);
 
-        $seats = $schedule->vehicle->seats;
+        $seats = \App\Models\Seat::where('schedule_id', $id)->get();
 
-        $bookedSeatIds = DB::table('booking_seats')
-            ->join('bookings', 'booking_seats.booking_id', '=', 'bookings.id')
-            ->where('bookings.schedule_id', $id)
-            ->pluck('seat_id')
-            ->toArray();
+        $bookedSeatIds = collect(
+            DB::table('booking_seats')
+                ->join('bookings', 'booking_seats.booking_id', '=', 'bookings.id')
+                ->where('bookings.schedule_id', $id)
+                ->pluck('seat_id')
+        )->flip();
 
         $result = $seats->map(function ($seat) use ($bookedSeatIds) {
             return [
                 'id' => $seat->id,
                 'seat_number' => $seat->seat_number,
-                'status' => in_array($seat->id, $bookedSeatIds) ? 'booked' : 'available'
+                'status' => isset($bookedSeatIds[$seat->id]) ? 'booked' : 'available'
             ];
         });
 

@@ -12,6 +12,7 @@ class DriverFactory extends Factory
         return [
             'user_id' => User::factory(),
             'status' => $this->faker->randomElement(['online', 'offline', 'busy']),
+            'verification_status' => $this->faker->randomElement(['pending', 'approved', 'rejected'])
         ];
     }
 }
