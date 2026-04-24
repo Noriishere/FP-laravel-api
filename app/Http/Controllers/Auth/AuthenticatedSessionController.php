@@ -16,19 +16,22 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(): View
     {
-        return view('pages.auth.login');
+        return view('auth.login');
     }
 
     /**
      * Handle an incoming authentication request.
      */
+
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
 
+        Auth::guard('web')->login(Auth::guard('web')->user()); // 🔥 TAMBAH INI
+
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->route('dashboard');
     }
 
     /**

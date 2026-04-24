@@ -37,15 +37,25 @@ class AuthController extends Controller
     {
         $credentials = $request->only('email', 'password');
 
-        if (!$token = auth()->attempt($credentials)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+        if (!$token = auth('api')->attempt($credentials)) {
+            return response()->json([
+                'message' => 'Invalid credentials',
+                'errors' => [
+                    'email' => ['Email atau password salah']
+                ]
+            ], 401);
         }
 
-        $user = auth()->user();
+        $user = auth('api')->user();
 
         if (!$user->hasVerifiedEmail()) {
-            auth()->logout();
-            return response()->json(['message' => 'Email not verified'], 403);
+            auth('api')->logout();
+            return response()->json([
+                'message' => 'Email not verified',
+                'errors' => [
+                    'email' => ['Silakan verifikasi email terlebih dahulu']
+                ]
+            ], 403);
         }
 
         return $this->respondWithToken($token);
@@ -56,25 +66,25 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 60,
-            'user' => auth()->user()
+            'expires_in' => auth('api')->factory()->getTTL() * 60,
+            'user' => auth('api')->user()
         ]);
     }
 
     public function me()
     {
-        return response()->json(auth()->user());
+        return response()->json(auth('api')->user());
     }
 
     public function logout()
     {
-        auth()->logout();
+        auth('api')->logout();
         return response()->json(['message' => 'Logged out']);
     }
 
     public function refresh()
     {
-        return $this->respondWithToken(auth()->refresh());
+        return $this->respondWithToken(auth('api')->refresh());
     }
 
     public function verify(Request $request, $id, $hash)

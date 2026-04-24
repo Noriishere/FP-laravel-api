@@ -2,101 +2,145 @@
 
 @section('content')
 
-<!-- HERO -->
-<section class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white py-24">
-    <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-10 items-center">
-        
-        <div>
-            <h1 class="text-4xl md:text-5xl font-extrabold leading-tight mb-6">
-                Shuttle Booking Tanpa Ribet 🚐
-            </h1>
-            <p class="text-lg text-blue-100 mb-8">
-                Booking kursi, kelola perjalanan, dan tracking real-time dalam satu sistem terintegrasi.
-            </p>
+<div class="min-h-screen bg-gray-50">
 
-            <div class="flex gap-4">
-                <a href="/register" class="bg-white text-blue-700 px-6 py-3 rounded-lg font-semibold shadow">
-                    Mulai Sekarang
-                </a>
-                <a href="/login" class="border border-white px-6 py-3 rounded-lg">
+    <!-- HEADER -->
+    <section class="bg-[#C00707] text-white py-16">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-semibold">
+                    Shuttle System Administration
+                </h1>
+                <p class="text-red-100 mt-2 text-sm">
+                    Centralized management for schedules, vehicles, drivers, and bookings
+                </p>
+            </div>
+
+            <div>
+                <a href="/login" class="bg-white text-[#C00707] px-5 py-2 rounded-md text-sm font-medium shadow">
                     Login
                 </a>
             </div>
         </div>
+    </section>
 
-        <div class="hidden md:block">
-            <div class="bg-white/10 backdrop-blur p-6 rounded-2xl shadow-lg">
-                <p class="text-sm text-blue-100">Preview Sistem</p>
-                <div class="mt-4 bg-white text-gray-800 p-4 rounded-xl">
-                    <p class="font-semibold">Booking Hari Ini</p>
-                    <p class="text-2xl font-bold">+32</p>
+    <!-- SUMMARY -->
+    <section class="max-w-7xl mx-auto px-6 -mt-10">
+        <div class="grid md:grid-cols-4 gap-6">
+
+            <div class="bg-white p-6 rounded-lg shadow border border-gray-100">
+                <p class="text-sm text-gray-500">Total Bookings</p>
+                <h3 class="text-2xl font-semibold mt-2 text-gray-800">1,284</h3>
+                <p class="text-xs text-green-600 mt-1">+8% from last week</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow border border-gray-100">
+                <p class="text-sm text-gray-500">Active Schedules</p>
+                <h3 class="text-2xl font-semibold mt-2 text-gray-800">42</h3>
+                <p class="text-xs text-gray-400 mt-1">Operational today</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow border border-gray-100">
+                <p class="text-sm text-gray-500">Drivers On Duty</p>
+                <h3 class="text-2xl font-semibold mt-2 text-gray-800">18</h3>
+                <p class="text-xs text-gray-400 mt-1">Verified & active</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow border border-gray-100">
+                <p class="text-sm text-gray-500">Fleet Availability</p>
+                <h3 class="text-2xl font-semibold mt-2 text-gray-800">76%</h3>
+                <p class="text-xs text-gray-400 mt-1">Vehicles ready</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- MODULES -->
+    <section class="max-w-7xl mx-auto px-6 mt-16">
+        <h2 class="text-xl font-semibold text-gray-800 mb-6">
+            System Modules
+        </h2>
+
+        <div class="grid md:grid-cols-3 gap-6">
+
+            <div class="bg-white p-6 rounded-lg border border-gray-200 hover:shadow transition">
+                <h3 class="font-semibold text-gray-800 mb-2">Schedule Management</h3>
+                <p class="text-sm text-gray-600">
+                    Configure routes, departure times, pricing, and availability.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg border border-gray-200 hover:shadow transition">
+                <h3 class="font-semibold text-gray-800 mb-2">Vehicle Management</h3>
+                <p class="text-sm text-gray-600">
+                    Maintain fleet data, capacity, and operational status.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg border border-gray-200 hover:shadow transition">
+                <h3 class="font-semibold text-gray-800 mb-2">Driver Management</h3>
+                <p class="text-sm text-gray-600">
+                    Monitor driver verification, assignments, and performance.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg border border-gray-200 hover:shadow transition">
+                <h3 class="font-semibold text-gray-800 mb-2">Booking Control</h3>
+                <p class="text-sm text-gray-600">
+                    View, validate, and manage all customer reservations.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg border border-gray-200 hover:shadow transition">
+                <h3 class="font-semibold text-gray-800 mb-2">Live Tracking</h3>
+                <p class="text-sm text-gray-600">
+                    Track vehicle locations and trip progress in real-time.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg border border-gray-200 hover:shadow transition">
+                <h3 class="font-semibold text-gray-800 mb-2">Reporting & Analytics</h3>
+                <p class="text-sm text-gray-600">
+                    Generate operational insights and performance reports.
+                </p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ACTIVITY -->
+    <section class="max-w-7xl mx-auto px-6 mt-16 pb-20">
+        <h2 class="text-xl font-semibold text-gray-800 mb-6">
+            Recent Activity
+        </h2>
+
+        <div class="bg-white rounded-lg border border-gray-200 shadow">
+            <div class="divide-y">
+
+                <div class="p-4 flex justify-between text-sm">
+                    <span class="text-gray-600">New booking created</span>
+                    <span class="text-gray-400">2 minutes ago</span>
                 </div>
+
+                <div class="p-4 flex justify-between text-sm">
+                    <span class="text-gray-600">Driver assigned to schedule</span>
+                    <span class="text-gray-400">10 minutes ago</span>
+                </div>
+
+                <div class="p-4 flex justify-between text-sm">
+                    <span class="text-gray-600">Vehicle status updated</span>
+                    <span class="text-gray-400">30 minutes ago</span>
+                </div>
+
+                <div class="p-4 flex justify-between text-sm">
+                    <span class="text-gray-600">Schedule created</span>
+                    <span class="text-gray-400">1 hour ago</span>
+                </div>
+
             </div>
         </div>
+    </section>
 
-    </div>
-</section>
-
-<!-- FEATURES -->
-<section class="py-20 max-w-6xl mx-auto px-6">
-    <h2 class="text-3xl font-bold text-center mb-12">
-        Kenapa Pilih Sistem Ini?
-    </h2>
-
-    <div class="grid md:grid-cols-3 gap-8">
-        <div class="bg-white p-8 rounded-2xl shadow hover:shadow-lg transition">
-            <div class="text-blue-600 text-3xl mb-4">⚡</div>
-            <h3 class="font-bold text-lg mb-2">Booking Cepat</h3>
-            <p class="text-gray-600">Pilih rute dan kursi hanya dalam beberapa detik.</p>
-        </div>
-
-        <div class="bg-white p-8 rounded-2xl shadow hover:shadow-lg transition">
-            <div class="text-blue-600 text-3xl mb-4">📍</div>
-            <h3 class="font-bold text-lg mb-2">Tracking Real-time</h3>
-            <p class="text-gray-600">Pantau posisi shuttle secara langsung.</p>
-        </div>
-
-        <div class="bg-white p-8 rounded-2xl shadow hover:shadow-lg transition">
-            <div class="text-blue-600 text-3xl mb-4">🛠️</div>
-            <h3 class="font-bold text-lg mb-2">Manajemen Lengkap</h3>
-            <p class="text-gray-600">Kelola driver, kendaraan, dan jadwal dengan mudah.</p>
-        </div>
-    </div>
-</section>
-
-<!-- HOW IT WORKS -->
-<section class="py-20 bg-gray-100">
-    <div class="max-w-5xl mx-auto px-6 text-center">
-        <h2 class="text-3xl font-bold mb-12">Cara Kerja</h2>
-
-        <div class="grid md:grid-cols-3 gap-8">
-            <div>
-                <div class="text-4xl mb-4">1️⃣</div>
-                <p class="font-semibold">Pilih Jadwal</p>
-            </div>
-            <div>
-                <div class="text-4xl mb-4">2️⃣</div>
-                <p class="font-semibold">Booking Kursi</p>
-            </div>
-            <div>
-                <div class="text-4xl mb-4">3️⃣</div>
-                <p class="font-semibold">Tracking Perjalanan</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- CTA -->
-<section class="py-24 bg-blue-600 text-white text-center">
-    <h2 class="text-3xl md:text-4xl font-bold mb-6">
-        Siap Mulai Perjalananmu?
-    </h2>
-    <p class="text-blue-100 mb-8">
-        Gunakan shuttle system yang cepat, aman, dan terintegrasi.
-    </p>
-    <a href="/register" class="bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold shadow">
-        Daftar Sekarang
-    </a>
-</section>
+</div>
 
 @endsection

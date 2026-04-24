@@ -13,6 +13,7 @@ use App\Models\Vehicle;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -24,10 +25,16 @@ class DatabaseSeeder extends Seeder
     public function run(): void
 {
     User::factory()->count(5)->create();
+    User::create([
+    'name' => 'Admin',
+    'email' => 'bagasb65nurdiansyah777@gmail.com',
+    'password' => 'admin123',
+    'role' => 'admin',
+    'email_verified_at' => now()
+    ]);
     Driver::factory()->count(3)->create();
     Vehicle::factory()->count(2)->create();
     Route::factory()->count(3)->create();
-
     $schedules = Schedule::factory()->count(5)->create();
 
     foreach ($schedules as $schedule) {
