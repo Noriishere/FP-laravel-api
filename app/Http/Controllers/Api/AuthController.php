@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 class AuthController extends Controller
 {
@@ -24,6 +23,7 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => 'customer'
         ]);
 
         event(new Registered($user));
@@ -35,27 +35,46 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required'
-        ]);
+        $credentials = $request->only('email', 'password');
 
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (!$token = auth()->attempt($credentials)) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
+        $user = auth()->user();
+
         if (!$user->hasVerifiedEmail()) {
+            auth()->logout();
             return response()->json(['message' => 'Email not verified'], 403);
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        return $this->respondWithToken($token);
+    }
 
+    protected function respondWithToken($token)
+    {
         return response()->json([
-            'token' => $token,
-            'user' => $user
+            'access_token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => auth()->factory()->getTTL() * 60,
+            'user' => auth()->user()
         ]);
+    }
+
+    public function me()
+    {
+        return response()->json(auth()->user());
+    }
+
+    public function logout()
+    {
+        auth()->logout();
+        return response()->json(['message' => 'Logged out']);
+    }
+
+    public function refresh()
+    {
+        return $this->respondWithToken(auth()->refresh());
     }
 
     public function verify(Request $request, $id, $hash)
@@ -79,19 +98,5 @@ class AuthController extends Controller
         event(new Verified($user));
 
         return response()->json(['message' => 'Email verified']);
-    }
-    public function resend(Request $request)
-    {
-        $user = $request->user();
-
-        if ($user->hasVerifiedEmail()) {
-            return response()->json(['message' => 'Already verified'], 400);
-        }
-
-        $user->sendEmailVerificationNotification();
-
-        return response()->json([
-            'message' => 'Verification email sent'
-        ]);
     }
 }
