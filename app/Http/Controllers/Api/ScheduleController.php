@@ -70,7 +70,7 @@ class ScheduleController extends Controller
                     'polyline' => json_decode($schedule->route->polyline),
                 ],
                 'driver' => [
-                    'name' => $schedule->driver->name,
+                    'name' => $schedule->driver?->user?->name,
                 ]
             ]
         ]);
