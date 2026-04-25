@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('routes', function (Blueprint $table) {
-            $table->id();
-            $table->string('origin_name');
-            $table->string('destination_name');
-            $table->decimal('distance', 8, 2)->nullable();
-            $table->timestamps();
+        Schema::table('locations', function (Blueprint $table) {
+            $table->decimal('speed', 5, 2)->nullable()->after('longitude');
+            $table->decimal('heading', 5, 2)->nullable()->after('speed');
+
+            $table->index(['schedule_id', 'recorded_at']);
         });
     }
 
@@ -25,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('routes');
+        //
     }
 };

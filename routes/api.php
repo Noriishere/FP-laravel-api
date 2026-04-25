@@ -21,13 +21,22 @@ Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
 Route::get('/schedules', [ScheduleController::class, 'index']);
 Route::get('/schedules/{id}', [ScheduleController::class, 'show']);
 Route::get('/schedules/{id}/seats', [SeatController::class, 'availability']);
+Route::get('/schedules/{id}/map', [ScheduleController::class, 'map']);
 
+Route::middleware(['auth:api', 'role:customer'])
+    ->group(function () {
+        Route::get('/me/bookings', [UserController::class, 'myBookings']);
+    });
+
+Route::middleware(['auth:api', 'role:driver'])
+    ->prefix('driver')
+    ->group(function () {
+        Route::get('/me/schedules', [UserController::class, 'schedules']);
+    });
 
 Route::middleware(['auth:api'])->group(function () {
 
     Route::get('/me', [AuthController::class, 'me']);
-    Route::get('/me/bookings', [UserController::class, 'myBookings']);
-    Route::get('/me/schedules', [UserController::class, 'mySchedules']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
 

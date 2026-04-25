@@ -27,7 +27,15 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
-        Auth::guard('web')->login(Auth::guard('web')->user()); // 🔥 TAMBAH INI
+        $user = Auth::guard('web')->user();
+
+        if ($user->role !== 'admin') {
+            Auth::guard('web')->logout();
+
+            return back()->withErrors([
+                'email' => 'Akses hanya untuk admin.'
+            ]);
+        }
 
         $request->session()->regenerate();
 

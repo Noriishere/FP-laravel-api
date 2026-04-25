@@ -38,4 +38,12 @@ class Schedule extends Model
     {
         return $this->hasMany(Booking::class);
     }
+    public function locations()
+    {
+        return $this->hasMany(Location::class);
+    }
+    public function latestLocation()
+    {
+        return $this->hasOne(Location::class)->latest('recorded_at');
+    }
 }
