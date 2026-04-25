@@ -1,6 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
+    <div class="bg-white rounded-xl shadow p-5 mb-6">
+        <h3 class="text-sm font-semibold text-gray-700 mb-4">
+            Grafik Pemesanan (30 Hari)
+        </h3>
+
+        <canvas id="bookingChart" height="100"></canvas>
+    </div>
     {{-- STAT --}}
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
 
@@ -204,5 +211,31 @@
 
             });
         </script>
+        @push('scripts')
+            <script>
+                const ctx = document.getElementById('bookingChart');
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: {!! json_encode($labels) !!},
+                        datasets: [{
+                            label: 'Total Booking',
+                            data: {!! json_encode($data) !!},
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            </script>
+        @endpush
     @endif
 @endsection

@@ -6,11 +6,24 @@ use App\Models\User;
 use App\Models\Booking;
 use App\Models\Schedule;
 use App\Models\Vehicle;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function index()
     {
+
+        $bookingStats = DB::table('bookings')
+            ->select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('COUNT(*) as total')
+            )
+            ->where('created_at', '>=', now()->subDays(30))
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+        $labels = $bookingStats->pluck('date');
+        $data = $bookingStats->pluck('total');
         $totalUsers = User::count();
         $totalBookings = Booking::count();
         $activeSchedules = Schedule::where('status', 'on-going')->count();
@@ -35,7 +48,9 @@ class DashboardController extends Controller
             'activeVehicles',
             'latestBookings',
             'vehicles',
-            'nextSchedule'
+            'nextSchedule',
+            'labels',
+            'data'
         ));
     }
 }
