@@ -56,7 +56,7 @@ class DashboardController extends Controller
 
         $todayRevenue = Booking::whereDate('created_at', today())
             ->sum('total_price');
-
+        $title = 'Dashboard';
         $nextSchedule = Schedule::with(['route.stops'])
             ->where('departure_time', '>=', now())
             ->orderBy('departure_time')
@@ -74,7 +74,8 @@ class DashboardController extends Controller
             'todayBookings',
             'todayRevenue',
             'onlineDrivers',
-            'pendingDrivers'
+            'pendingDrivers',
+            'title'
         ));
     }
 }
