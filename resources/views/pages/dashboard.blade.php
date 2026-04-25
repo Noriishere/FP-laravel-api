@@ -70,9 +70,9 @@
                         <tr class="border-b">
                             <td class="py-2">{{ $booking->user->name ?? '-' }}</td>
                             <td class="py-2">
-                                {{ $booking->schedule->route->start ?? '-' }}
+                                {{ $booking->schedule->route->origin_name ?? '-' }}
                                 →
-                                {{ $booking->schedule->route->end ?? '-' }}
+                                {{ $booking->schedule->route->destination_name ?? '-' }}
                             </td>
                             <td class="py-2">
                                 {{ $booking->created_at->format('d M Y') }}
