@@ -47,7 +47,7 @@
     </div>
     <div class="bg-white rounded-xl shadow p-5 mb-6">
         <h3 class="text-sm font-semibold text-gray-700 mb-3">
-            Rute Terdekat
+            Schedule Berikutnya
         </h3>
 
         @if ($nextSchedule && $nextSchedule->route)
