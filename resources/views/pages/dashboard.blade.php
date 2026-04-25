@@ -45,7 +45,22 @@
         </div>
 
     </div>
+    <div class="bg-white rounded-xl shadow p-5 mb-6">
+        <h3 class="text-sm font-semibold text-gray-700 mb-3">
+            Rute Terdekat
+        </h3>
 
+        @if ($nextSchedule && $nextSchedule->route)
+            <div id="map" class="w-full h-64 rounded-lg"></div>
+
+            <p class="text-xs text-gray-500 mt-2">
+                {{ $nextSchedule->route->origin_name }} →
+                {{ $nextSchedule->route->destination_name }}
+            </p>
+        @else
+            <p class="text-gray-400 text-sm">Tidak ada jadwal</p>
+        @endif
+    </div>
     {{-- TABLE --}}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -159,4 +174,35 @@
             location.reload();
         }, 30000); // refresh tiap 30 detik
     </script>
+    @if ($nextSchedule && $nextSchedule->route)
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+
+                if (typeof L === 'undefined') {
+                    console.error('Leaflet belum ke-load');
+                    return;
+                }
+
+                const map = L.map('map').setView([
+                    {{ $nextSchedule->route->origin_lat }},
+                    {{ $nextSchedule->route->origin_lng }}
+                ], 7);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+                const polyline = {!! $nextSchedule->route->polyline !!};
+
+                L.polyline(polyline, {
+                    color: 'blue'
+                }).addTo(map);
+
+                L.marker([{{ $nextSchedule->route->origin_lat }}, {{ $nextSchedule->route->origin_lng }}]).addTo(map);
+                L.marker([{{ $nextSchedule->route->destination_lat }}, {{ $nextSchedule->route->destination_lng }}])
+                    .addTo(map);
+
+                map.fitBounds(polyline);
+
+            });
+        </script>
+    @endif
 @endsection

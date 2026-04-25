@@ -24,13 +24,18 @@ class DashboardController extends Controller
         $vehicles = Vehicle::with('schedules')->latest()->take(5)->get();
         $todayBookings = Booking::whereDate('created_at', today())->count();
         $todayRevenue = Booking::sum('total_price');
+        $nextSchedule = Schedule::with('route')
+            ->where('departure_time', '>=', now())
+            ->orderBy('departure_time')
+            ->first();
         return view('pages.dashboard', compact(
             'totalUsers',
             'totalBookings',
             'activeSchedules',
             'activeVehicles',
             'latestBookings',
-            'vehicles'
+            'vehicles',
+            'nextSchedule'
         ));
     }
 }

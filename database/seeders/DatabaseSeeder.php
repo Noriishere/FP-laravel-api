@@ -23,53 +23,62 @@ class DatabaseSeeder extends Seeder
      * Seed the application's database.
      */
     public function run(): void
-{
-    User::factory()->count(5)->create();
-    User::create([
-    'name' => 'Admin',
-    'email' => 'bagasb65nurdiansyah777@gmail.com',
-    'password' => 'admin123',
-    'role' => 'admin',
-    'email_verified_at' => now()
-    ]);
-    User::create([
-    'name' => 'Akmal',
-    'email' => 'miawaugch@gmail.com',
-    'password' => 'admin123',
-    'role' => 'customer',
-    'email_verified_at' => now()
-    ]);
-    Driver::factory()->count(3)->create();
-    Vehicle::factory()->count(2)->create();
-    Route::factory()->count(3)->create();
-    $schedules = Schedule::factory()->count(5)->create();
+    {
+        User::factory()->count(5)->create();
+        $drivers = User::factory()->count(3)->create([
+            'role' => 'driver'
+        ]);
 
-    foreach ($schedules as $schedule) {
-        $capacity = $schedule->vehicle->capacity;
-
-        for ($i = 1; $i <= $capacity; $i++) {
-            Seat::create([
-                'schedule_id' => $schedule->id,
-                'seat_number' => $i,
-                'status' => 'available'
+        foreach ($drivers as $user) {
+            Driver::create([
+                'user_id' => $user->id
             ]);
         }
-    }
+        User::create([
+            'name' => 'Admin',
+            'email' => 'bagasb65nurdiansyah777@gmail.com',
+            'password' => 'admin123',
+            'role' => 'admin',
+            'email_verified_at' => now()
+        ]);
+        User::create([
+            'name' => 'Akmal',
+            'email' => 'miawaugch@gmail.com',
+            'password' => 'admin123',
+            'role' => 'customer',
+            'email_verified_at' => now()
+        ]);
+        Driver::factory()->count(3)->create();
+        Vehicle::factory()->count(2)->create();
+        Route::factory()->count(3)->create();
+        $schedules = Schedule::factory()->count(5)->create();
 
-    $bookings = Booking::factory()->count(10)->create();
+        foreach ($schedules as $schedule) {
+            $capacity = $schedule->vehicle->capacity;
 
-    foreach ($bookings as $booking) {
-        $seats = Seat::where('schedule_id', $booking->schedule_id)
-            ->inRandomOrder()
-            ->take(rand(1, 3))
-            ->get();
+            for ($i = 1; $i <= $capacity; $i++) {
+                Seat::create([
+                    'schedule_id' => $schedule->id,
+                    'seat_number' => $i,
+                    'status' => 'available'
+                ]);
+            }
+        }
 
-        foreach ($seats as $seat) {
-            DB::table('booking_seats')->insert([
-                'booking_id' => $booking->id,
-                'seat_id' => $seat->id
-            ]);
+        $bookings = Booking::factory()->count(10)->create();
+
+        foreach ($bookings as $booking) {
+            $seats = Seat::where('schedule_id', $booking->schedule_id)
+                ->inRandomOrder()
+                ->take(rand(1, 3))
+                ->get();
+
+            foreach ($seats as $seat) {
+                DB::table('booking_seats')->insert([
+                    'booking_id' => $booking->id,
+                    'seat_id' => $seat->id
+                ]);
+            }
         }
     }
-}
 }

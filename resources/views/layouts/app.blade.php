@@ -10,6 +10,7 @@
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script>
         tailwind.config = {
             theme: {
@@ -48,5 +49,6 @@
 
 </div>
 
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </body>
 </html>
