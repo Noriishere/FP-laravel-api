@@ -12,6 +12,10 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        $period = collect(range(0, 29))->map(
+            fn($i) =>
+            now()->subDays($i)->format('Y-m-d')
+        )->reverse();
 
         $bookingStats = DB::table('bookings')
             ->select(
@@ -20,14 +24,19 @@ class DashboardController extends Controller
             )
             ->where('created_at', '>=', now()->subDays(30))
             ->groupBy('date')
-            ->orderBy('date')
-            ->get();
-        $labels = $bookingStats->pluck('date');
-        $data = $bookingStats->pluck('total');
+            ->pluck('total', 'date');
+
+        $labels = $period;
+        $data = $period->map(fn($date) => $bookingStats[$date] ?? 0);
+        $labels = $labels->values()->toArray();
+        $data = $data->values()->toArray();
         $totalUsers = User::count();
         $totalBookings = Booking::count();
         $activeSchedules = Schedule::where('status', 'on-going')->count();
-        $activeVehicles = Vehicle::count();
+
+        $activeVehicles = Vehicle::whereHas('schedules', function ($q) {
+            $q->where('status', 'on-going');
+        })->count();
 
         $latestBookings = Booking::with(['user', 'schedule.route'])
             ->latest()
@@ -35,9 +44,13 @@ class DashboardController extends Controller
             ->get();
 
         $vehicles = Vehicle::with('schedules')->latest()->take(5)->get();
+
         $todayBookings = Booking::whereDate('created_at', today())->count();
-        $todayRevenue = Booking::sum('total_price');
-        $nextSchedule = Schedule::with('route')
+
+        $todayRevenue = Booking::whereDate('created_at', today())
+            ->sum('total_price');
+
+        $nextSchedule = Schedule::with(['route.stops'])
             ->where('departure_time', '>=', now())
             ->orderBy('departure_time')
             ->first();
@@ -50,7 +63,9 @@ class DashboardController extends Controller
             'vehicles',
             'nextSchedule',
             'labels',
-            'data'
+            'data',
+            'todayBookings',
+            'todayRevenue'
         ));
     }
 }

@@ -184,58 +184,111 @@
     @if ($nextSchedule && $nextSchedule->route)
         <script>
             document.addEventListener("DOMContentLoaded", function() {
-
-                if (typeof L === 'undefined') {
-                    console.error('Leaflet belum ke-load');
-                    return;
-                }
-
                 const map = L.map('map').setView([
                     {{ $nextSchedule->route->origin_lat }},
                     {{ $nextSchedule->route->origin_lng }}
-                ], 7);
+                ], 6);
 
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
                 const polyline = {!! $nextSchedule->route->polyline !!};
+                const stops = @json($nextSchedule->route->stops ?? []);
+
+                console.log("Stops:", stops);
+                console.log(stops);
+                const colors = ['#2563eb', '#16a34a', '#dc2626', '#9333ea', '#f59e0b'];
+
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
 
                 L.polyline(polyline, {
-                    color: 'blue'
+                    color: randomColor,
+                    weight: 4
                 }).addTo(map);
+                const startIcon = L.icon({
+                    iconUrl: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
+                    iconSize: [30, 30]
+                });
 
-                L.marker([{{ $nextSchedule->route->origin_lat }}, {{ $nextSchedule->route->origin_lng }}]).addTo(map);
-                L.marker([{{ $nextSchedule->route->destination_lat }}, {{ $nextSchedule->route->destination_lng }}])
-                    .addTo(map);
+                const midIcon = L.icon({
+                    iconUrl: 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png',
+                    iconSize: [30, 30]
+                });
+
+                const endIcon = L.icon({
+                    iconUrl: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                    iconSize: [30, 30]
+                });
+                if (stops.length > 0) {
+                    stops.forEach((stop, index) => {
+
+                        const isStart = index === 0;
+                        const isEnd = index === stops.length - 1;
+
+                        let bg = '#3b82f6'; // default biru
+                        if (isStart) bg = '#16a34a'; // hijau
+                        if (isEnd) bg = '#dc2626'; // merah
+
+                        const icon = L.divIcon({
+                            className: '',
+                            html: `
+                <div style="
+                    background:${bg};
+                    color:white;
+                    border-radius:50%;
+                    width:28px;
+                    height:28px;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:12px;
+                    font-weight:bold;
+                    border:2px solid white;
+                    box-shadow:0 2px 6px rgba(0,0,0,0.3);
+                ">
+                    ${index + 1}
+                </div>
+            `,
+                            iconSize: [28, 28],
+                            iconAnchor: [14, 14]
+                        });
+
+                        L.marker([stop.lat, stop.lng], {
+                                icon
+                            })
+                            .addTo(map)
+                            .bindPopup(stop.name);
+                    });
+                }
 
                 map.fitBounds(polyline);
-
+            
             });
         </script>
-        @push('scripts')
-            <script>
-                const ctx = document.getElementById('bookingChart');
+    @endif
+    @push('scripts')
+        <script>
+            const ctx = document.getElementById('bookingChart');
 
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: {!! json_encode($labels) !!},
-                        datasets: [{
-                            label: 'Total Booking',
-                            data: {!! json_encode($data) !!},
-                            tension: 0.4,
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: {!! json_encode($labels) !!},
+                    datasets: [{
+                        label: 'Total Booking',
+                        data: {!! json_encode($data) !!},
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
                         }
                     }
-                });
-            </script>
-        @endpush
-    @endif
+                }
+            });
+        </script>
+    @endpush
 @endsection

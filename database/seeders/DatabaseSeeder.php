@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\Booking;
 use App\Models\BookingSeat;
 use App\Models\Driver;
-use App\Models\Route;
 use App\Models\Schedule;
 use App\Models\Seat;
 use App\Models\User;
@@ -13,7 +12,8 @@ use App\Models\Vehicle;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
+use App\Models\Route;
+use App\Models\RouteStop;
 
 class DatabaseSeeder extends Seeder
 {
@@ -24,6 +24,43 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        Route::factory()->count(3)->create()->each(function ($route) {
+
+            $polyline = json_decode($route->polyline, true);
+
+            if (!$polyline || count($polyline) < 3) return;
+
+            $midIndex = floor(count($polyline) / 2);
+            $midPoint = $polyline[$midIndex];
+
+            $points = [
+                [
+                    'name' => $route->origin_name,
+                    'lat' => $route->origin_lat,
+                    'lng' => $route->origin_lng,
+                ],
+                [
+                    'name' => 'Stop Tengah',
+                    'lat' => $midPoint[0],
+                    'lng' => $midPoint[1],
+                ],
+                [
+                    'name' => $route->destination_name,
+                    'lat' => $route->destination_lat,
+                    'lng' => $route->destination_lng,
+                ],
+            ];
+
+            foreach ($points as $index => $point) {
+                RouteStop::create([
+                    'route_id' => $route->id,
+                    'name' => $point['name'],
+                    'lat' => $point['lat'],
+                    'lng' => $point['lng'],
+                    'order' => $index
+                ]);
+            }
+        });
         User::factory()->count(5)->create();
         $drivers = User::factory()->count(3)->create([
             'role' => 'driver'
@@ -50,13 +87,13 @@ class DatabaseSeeder extends Seeder
         ]);
         Driver::factory()->count(3)->create();
         Vehicle::factory()->count(2)->create();
-        Route::factory()->count(3)->create();
-        $schedules = Schedule::factory()->count(5)->create();
+        $routeIds = Route::has('stops')->pluck('id');
 
+        $schedules = Schedule::factory()->count(5)->create([
+            'route_id' => $routeIds->random()
+        ]);
         foreach ($schedules as $schedule) {
-            $capacity = $schedule->vehicle->capacity;
-
-            for ($i = 1; $i <= $capacity; $i++) {
+            for ($i = 1; $i <= $schedule->vehicle->capacity; $i++) {
                 Seat::create([
                     'schedule_id' => $schedule->id,
                     'seat_number' => $i,
@@ -64,7 +101,6 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
         }
-
         $bookings = Booking::factory()->count(10)->create();
 
         foreach ($bookings as $booking) {

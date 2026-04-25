@@ -8,43 +8,52 @@ use Illuminate\Http\Request;
 
 class LocationController extends Controller
 {
-    // 🔹 Driver kirim lokasi
     public function update(Request $request)
-    {
-        $request->validate([
-            'schedule_id' => 'required|exists:schedules,id',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-            'speed' => 'nullable|numeric',
-            'heading' => 'nullable|numeric',
-        ]);
+{
+    $request->validate([
+        'schedule_id' => 'required|exists:schedules,id',
+        'latitude' => 'required|numeric',
+        'longitude' => 'required|numeric',
+        'speed' => 'nullable|numeric',
+        'heading' => 'nullable|numeric',
+    ]);
 
-        $location = Location::create([
-            'schedule_id' => $request->schedule_id,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'speed' => $request->speed,
-            'heading' => $request->heading,
-            'recorded_at' => now(),
-        ]);
+    $last = Location::where('schedule_id', $request->schedule_id)
+        ->latest('recorded_at')
+        ->first();
 
+    // 🔥 prevent spam (min 5 detik)
+    if ($last && now()->diffInSeconds($last->recorded_at) < 5) {
         return response()->json([
-            'success' => true,
-            'message' => 'Location updated',
-            'data' => $location
-        ]);
+            'success' => false,
+            'message' => 'Too fast update'
+        ], 429);
     }
 
-    // 🔹 Ambil tracking (customer / map)
+    $location = Location::create([
+        'schedule_id' => $request->schedule_id,
+        'latitude' => $request->latitude,
+        'longitude' => $request->longitude,
+        'speed' => $request->speed,
+        'heading' => $request->heading,
+        'recorded_at' => now(),
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'data' => $location
+    ]);
+}
+
     public function tracking($scheduleId)
     {
-        $locations = Location::where('schedule_id', $scheduleId)
-            ->orderBy('recorded_at')
-            ->get(['latitude', 'longitude']);
+        $location = Location::where('schedule_id', $scheduleId)
+            ->latest('recorded_at')
+            ->first();
 
         return response()->json([
             'success' => true,
-            'data' => $locations
+            'data' => $location
         ]);
     }
 }

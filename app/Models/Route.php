@@ -13,7 +13,10 @@ class Route extends Model
         'origin',
         'destination'
     ];
-
+    public function stops()
+    {
+        return $this->hasMany(RouteStop::class);
+    }
     public function schedules()
     {
         return $this->hasMany(Schedule::class);
