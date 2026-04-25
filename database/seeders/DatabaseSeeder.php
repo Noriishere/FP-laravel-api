@@ -32,6 +32,13 @@ class DatabaseSeeder extends Seeder
     'role' => 'admin',
     'email_verified_at' => now()
     ]);
+    User::create([
+    'name' => 'Akmal',
+    'email' => 'miawaugch@gmail.com',
+    'password' => 'admin123',
+    'role' => 'customer',
+    'email_verified_at' => now()
+    ]);
     Driver::factory()->count(3)->create();
     Vehicle::factory()->count(2)->create();
     Route::factory()->count(3)->create();
