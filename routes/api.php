@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\Driver\AuthController as DriverAuthController;
+use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\ScheduleController;
 use App\Http\Controllers\Api\SeatController;
 use App\Http\Controllers\UserController;
@@ -26,12 +27,14 @@ Route::get('/schedules/{id}/map', [ScheduleController::class, 'map']);
 Route::middleware(['auth:api', 'role:customer'])
     ->group(function () {
         Route::get('/me/bookings', [UserController::class, 'myBookings']);
+        Route::get('/schedules/{id}/tracking', [LocationController::class, 'tracking']);
     });
 
 Route::middleware(['auth:api', 'role:driver'])
     ->prefix('driver')
     ->group(function () {
         Route::get('/me/schedules', [UserController::class, 'schedules']);
+        Route::post('/location', [LocationController::class, 'update']);
     });
 
 Route::middleware(['auth:api'])->group(function () {
