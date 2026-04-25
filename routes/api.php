@@ -28,6 +28,7 @@ Route::middleware(['auth:api', 'role:customer'])
     ->group(function () {
         Route::get('/me/bookings', [UserController::class, 'myBookings']);
         Route::get('/schedules/{id}/tracking', [LocationController::class, 'tracking']);
+        Route::get('/schedules/{id}/route', [ScheduleController::class, 'map']);
     });
 
 Route::middleware(['auth:api', 'role:driver'])
