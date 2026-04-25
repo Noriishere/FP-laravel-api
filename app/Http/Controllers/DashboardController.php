@@ -21,8 +21,9 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        $vehicles = Vehicle::latest()->take(5)->get();
-
+        $vehicles = Vehicle::with('schedules')->latest()->take(5)->get();
+        $todayBookings = Booking::whereDate('created_at', today())->count();
+        $todayRevenue = Booking::sum('total_price');
         return view('pages.dashboard', compact(
             'totalUsers',
             'totalBookings',

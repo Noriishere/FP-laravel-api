@@ -17,4 +17,8 @@ class Vehicle extends Model
     {
         return $this->hasMany(Seat::class);
     }
+    public function schedules()
+    {
+        return $this->hasMany(Schedule::class);
+    }
 }
