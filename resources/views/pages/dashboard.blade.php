@@ -8,6 +8,10 @@
 
         <canvas id="bookingChart" height="100"></canvas>
     </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+
+    </div>
     {{-- STAT --}}
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
 
@@ -69,6 +73,45 @@
         @endif
     </div>
     {{-- TABLE --}}
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+
+        {{-- DRIVER ONLINE --}}
+        <div class="bg-white rounded-lg shadow p-5">
+            <h3 class="text-sm font-semibold text-gray-700 mb-4">
+                Driver Online
+            </h3>
+
+            @forelse ($onlineDrivers as $driver)
+                <div class="flex justify-between items-center border-b py-2">
+                    <span>{{ $driver->user->name }}</span>
+                    <span class="text-green-600 text-xs">
+                        ● Online
+                    </span>
+                </div>
+            @empty
+                <p class="text-gray-400 text-sm">Tidak ada driver online</p>
+            @endforelse
+        </div>
+
+        {{-- DRIVER PENDING --}}
+        <div class="bg-white rounded-lg shadow p-5">
+            <h3 class="text-sm font-semibold text-gray-700 mb-4">
+                Driver Belum Disetujui
+            </h3>
+
+            @forelse ($pendingDrivers as $driver)
+                <div class="flex justify-between items-center border-b py-2">
+                    <span>{{ $driver->user->name }}</span>
+                    <span class="text-yellow-600 text-xs">
+                        ● Pending
+                    </span>
+                </div>
+            @empty
+                <p class="text-gray-400 text-sm">Semua driver sudah approved</p>
+            @endforelse
+        </div>
+
+    </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         {{-- PEMESANAN TERBARU --}}
@@ -261,7 +304,7 @@
                 }
 
                 map.fitBounds(polyline);
-            
+
             });
         </script>
     @endif

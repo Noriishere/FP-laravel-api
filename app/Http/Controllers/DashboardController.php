@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Booking;
+use App\Models\Driver;
 use App\Models\Schedule;
 use App\Models\Vehicle;
 use Illuminate\Support\Facades\DB;
@@ -42,7 +43,13 @@ class DashboardController extends Controller
             ->latest()
             ->take(5)
             ->get();
+        $onlineDrivers = Driver::with('user')
+            ->where('status', 'online')
+            ->get();
 
+        $pendingDrivers = Driver::with('user')
+            ->where('status', 'pending')
+            ->get();
         $vehicles = Vehicle::with('schedules')->latest()->take(5)->get();
 
         $todayBookings = Booking::whereDate('created_at', today())->count();
@@ -65,7 +72,9 @@ class DashboardController extends Controller
             'labels',
             'data',
             'todayBookings',
-            'todayRevenue'
+            'todayRevenue',
+            'onlineDrivers',
+            'pendingDrivers'
         ));
     }
 }
