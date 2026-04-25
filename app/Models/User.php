@@ -40,6 +40,10 @@ class User extends Authenticatable implements MustVerifyEmail, JWTSubject
         return $this->hasMany(Booking::class);
     }
 
+    public function driver()
+    {
+        return $this->hasOne(Driver::class);
+    }
     public function getJWTIdentifier()
     {
         return $this->getKey();
