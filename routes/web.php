@@ -3,6 +3,7 @@
 use App\Http\Controllers\Dashboard\DriverController;
 use App\Http\Controllers\Dashboard\DriverDocumentController;
 use App\Http\Controllers\Dashboard\UsersController;
+use App\Http\Controllers\Dashboard\VehicleController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ProfileController;
@@ -13,6 +14,8 @@ Route::get('/admin/', function () {
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
+    
+    Route::resource('admin/vehicles', VehicleController::class);
 
     Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 

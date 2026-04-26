@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Driver\DriverController;
 use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\ScheduleController;
 use App\Http\Controllers\Api\SeatController;
+use App\Http\Controllers\Api\VehicleController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -51,4 +52,9 @@ Route::middleware(['auth:api'])->group(function () {
     Route::post('/refresh', [AuthController::class, 'refresh']);
 
     Route::post('/bookings', [BookingController::class, 'store']);
+});
+
+Route::middleware(['auth:api', 'role:customer'])->group(function () {
+    Route::get('/vehicles', [VehicleController::class, 'index']);
+    Route::get('/vehicles/{id}', [VehicleController::class, 'show']);
 });
