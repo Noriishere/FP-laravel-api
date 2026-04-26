@@ -8,6 +8,7 @@ use App\Models\Driver;
 use App\Models\Schedule;
 use App\Models\Vehicle;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\Request;
 
 class DashboardController extends Controller
 {
@@ -78,10 +79,21 @@ class DashboardController extends Controller
             'title'
         ));
     }
-    public function users(){
-        return view('pages.users', [
-            'users' => User::latest()->get(),
-            'title' => 'Users'
-        ]);
+    public function users(Request $request)
+    {
+        $query = User::query();
+
+        if ($request->search) {
+            $query->where('name', 'like', '%' . $request->search . '%')
+                ->orWhere('email', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->role) {
+            $query->where('role', $request->role);
+        }
+
+        $users = $query->latest()->paginate(10);
+
+        return view('pages.users', compact('users'));
     }
 }
