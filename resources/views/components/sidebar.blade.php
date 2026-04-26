@@ -8,33 +8,33 @@
 
     <nav class="flex-1 px-4 py-6 space-y-2 text-sm">
 
-        <a href="/dashboard"
-           class="block px-4 py-2 rounded-md {{ request()->is('dashboard') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
+        <a href="/admin/dashboard"
+           class="block px-4 py-2 rounded-md {{ request()->is('admin/dashboard') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
             Dashboard
         </a>
 
-        <a href="/users"
-           class="block px-4 py-2 rounded-md {{ request()->is('users') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
+        <a href="/admin/users"
+           class="block px-4 py-2 rounded-md {{ request()->is('admin/users') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
             Users
         </a>
 
-        <a href="/drivers"
-           class="block px-4 py-2 rounded-md {{ request()->is('drivers') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
+        <a href="/admin/drivers"
+           class="block px-4 py-2 rounded-md {{ request()->is('admin/drivers') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
             Drivers
         </a>
 
-        <a href="/vehicles"
-           class="block px-4 py-2 rounded-md {{ request()->is('vehicles') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
+        <a href="/admin/vehicles"
+           class="block px-4 py-2 rounded-md {{ request()->is('admin/vehicles') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
             Vehicles
         </a>
 
-        <a href="/schedules"
-           class="block px-4 py-2 rounded-md {{ request()->is('schedules') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
+        <a href="/admin/schedules"
+           class="block px-4 py-2 rounded-md {{ request()->is('admin/schedules') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
             Schedules
         </a>
 
-        <a href="/bookings"
-           class="block px-4 py-2 rounded-md {{ request()->is('bookings') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
+        <a href="/admin/bookings"
+           class="block px-4 py-2 rounded-md {{ request()->is('admin/bookings') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
             Bookings
         </a>
 
