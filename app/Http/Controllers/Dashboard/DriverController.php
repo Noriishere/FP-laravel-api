@@ -37,10 +37,16 @@ class DriverController extends Controller
             $driver->update(['verification_status' => 'pending']);
         }
         $drivers = Driver::with('user')
-            ->withCount('documents') // 🔥 ini penting
+            ->withCount('documents')
             ->latest()
             ->paginate(10);
 
+        if (request()->ajax()) {
+            return response()->json([
+                'data' => $drivers->items(),
+                'links' => $drivers->linkCollection()
+            ]);
+        }
         return view('pages.drivers.index', compact('title', 'navtitle', 'drivers'));
     }
 }

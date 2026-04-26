@@ -55,6 +55,13 @@ class VehicleController extends Controller
         $title = 'Edit Vehicle';
         $vehicle = Vehicle::findOrFail($id);
 
+        // 🔥 pecah plat
+        $parts = explode(' ', $vehicle->plate_number);
+
+        $vehicle->plate_prefix = $parts[0] ?? '';
+        $vehicle->plate_number_main = $parts[1] ?? '';
+        $vehicle->plate_suffix = $parts[2] ?? '';
+
         return view('pages.vehicles.edit', compact('title', 'vehicle'));
     }
 
