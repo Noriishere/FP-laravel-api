@@ -79,21 +79,4 @@ class DashboardController extends Controller
             'title'
         ));
     }
-    public function users(Request $request)
-    {
-        $query = User::query();
-
-        if ($request->search) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                ->orWhere('email', 'like', '%' . $request->search . '%');
-        }
-
-        if ($request->role) {
-            $query->where('role', $request->role);
-        }
-
-        $users = $query->latest()->paginate(10);
-
-        return view('pages.users', compact('users'));
-    }
 }
