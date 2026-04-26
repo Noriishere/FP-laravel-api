@@ -8,7 +8,7 @@ use App\Models\User;
 
 use Illuminate\Support\Facades\Hash;
 
-class UserController extends Controller
+class UsersController extends Controller
 {
     public function index(Request $request)
     {
@@ -49,7 +49,7 @@ class UserController extends Controller
             'role' => $request->role
         ]);
 
-        return redirect()->route('users')->with('success', 'User created');
+        return redirect()->route('users.index')->with('success', 'User created');
     }
 
     public function edit(User $user)
@@ -67,7 +67,7 @@ class UserController extends Controller
 
         $user->update($request->only('name', 'email', 'role'));
 
-        return redirect()->route('users')->with('success', 'User updated');
+        return redirect()->route('users.index')->with('success', 'User updated');
     }
 
     public function destroy(User $user)
