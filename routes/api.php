@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\Driver\AuthController as DriverAuthController;
+use App\Http\Controllers\Api\Driver\DriverController;
 use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\ScheduleController;
 use App\Http\Controllers\Api\SeatController;
@@ -12,8 +13,8 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::post('/register/driver', [DriverAuthController::class, 'register']);
-Route::post('/login/driver', [DriverAuthController::class, 'login']);
+Route::post('/driver/register', [DriverAuthController::class, 'register']);
+Route::post('/driver/login', [DriverAuthController::class, 'login']);
 
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
     ->middleware(['signed'])
@@ -30,6 +31,11 @@ Route::middleware(['auth:api', 'role:customer'])
         Route::get('/schedules/{id}/tracking', [LocationController::class, 'tracking']);
         Route::get('/schedules/{id}/route', [ScheduleController::class, 'map']);
     });
+
+Route::middleware(['auth:api', 'role:driver'])->group(function () {
+    Route::post('/driver/create', [DriverController::class, 'create']);
+    Route::post('/driver/{id}/documents', [DriverController::class, 'uploadDocument']);
+});
 
 Route::middleware(['auth:api', 'role:driver'])
     ->prefix('driver')

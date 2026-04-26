@@ -35,7 +35,7 @@
 
         {{-- IMAGE --}}
         <div class="mt-5">
-            <img src="{{ asset($document->file_path) }}" 
+            <img src="{{ asset('storage/' . $document->file_path) }}" alt="Document Image"
                  class="w-full rounded-xl border object-cover max-h-[400px]">
         </div>
 
@@ -90,7 +90,7 @@
 @if (session('success'))
 <script>
     setTimeout(() => {
-        window.history.back();
+        window.location.href = "{{ route('driver-documents.index') }}";
     }, 700);
 </script>
 @endif
