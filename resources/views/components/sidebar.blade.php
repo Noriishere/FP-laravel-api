@@ -2,7 +2,7 @@
 
     <div class="px-6 py-4 border-b">
         <h2 class="text-lg font-bold text-primary">
-            Shuttle Admin
+            Admin <i>Gassin!</i>
         </h2>
     </div>
 
