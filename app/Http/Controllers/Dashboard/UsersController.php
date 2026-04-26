@@ -22,15 +22,18 @@ class UsersController extends Controller
         if ($request->role) {
             $query->where('role', $request->role);
         }
-
+        $title = 'Users || Admin Gassin!';
+        $navtitle = 'Users';
         $users = $query->latest()->paginate(10);
 
-        return view('pages.users', compact('users'));
+        return view('pages.users', compact('users', 'title', 'navtitle'));
     }
 
     public function create()
     {
-        return view('pages.users.create');
+        $title = 'Create User || Admin Gassin!';
+        $navtitle = 'Create User';
+        return view('pages.users.create', compact('title', 'navtitle'));
     }
 
     public function store(Request $request)
@@ -54,7 +57,9 @@ class UsersController extends Controller
 
     public function edit(User $user)
     {
-        return view('pages.users.edit', compact('user'));
+        $title = 'Edit User || Admin Gassin!';
+        $navtitle = 'Edit User';
+        return view('pages.users.edit', compact('user', 'title', 'navtitle'));
     }
 
     public function update(Request $request, User $user)
