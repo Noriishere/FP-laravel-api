@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Dashboard\DriverController;
+use App\Http\Controllers\Dashboard\DriverDocumentController;
 use App\Http\Controllers\Dashboard\UsersController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PasswordController;
@@ -21,6 +23,12 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('/admin/password', [PasswordController::class, 'update'])->name('password.update');
 
     Route::resource('admin/users', UsersController::class);
+    Route::get('/admin/driver-documents', [DriverDocumentController::class, 'index'])->name('driver-documents.index');
+    Route::get('/admin/driver-documents/{id}', [DriverDocumentController::class, 'show'])->name('driver-documents.show');
+    Route::post('/admin/driver-documents/{id}/approve', [DriverDocumentController::class, 'approve'])->name('driver-documents.approve');
+    Route::post('/admin/driver-documents/{id}/reject', [DriverDocumentController::class, 'reject'])->name('driver-documents.reject');
+    Route::get('/admin/drivers', [DriverController::class, 'index'])
+    ->name('drivers.index');
 });
 
 require __DIR__ . '/auth.php';

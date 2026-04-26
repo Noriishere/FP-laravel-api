@@ -50,6 +50,16 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+function toggleDriversMenu(el) {
+    const parent = el.parentElement;
+    const menu = parent.querySelector('.driversMenu');
+    const icon = el.querySelector('.toggle-icon');
+
+    menu.classList.toggle('hidden');
+    icon.classList.toggle('rotate-180');
+}
+</script>
 @stack('scripts')
 </body>
 </html>
