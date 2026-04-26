@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Models\Driver;
 use Illuminate\Http\Request;
 
 use App\Models\DriverDocument;
@@ -34,14 +35,15 @@ class DriverDocumentController extends Controller
         $doc = DriverDocument::findOrFail($id);
         $doc->update(['status' => 'approved', 'note' => null]);
 
-        return back()->with('success', 'Dokumen disetujui');
+        $this->syncDriverStatus($doc->driver_id);
+
+        return redirect()->route('driver-documents.show', $id)
+            ->with('success', 'Dokumen disetujui');
     }
 
     public function reject(Request $request, $id)
     {
-        $request->validate([
-            'note' => 'required'
-        ]);
+        $request->validate(['note' => 'required']);
 
         $doc = DriverDocument::findOrFail($id);
         $doc->update([
@@ -49,6 +51,36 @@ class DriverDocumentController extends Controller
             'note' => $request->note
         ]);
 
+        $this->syncDriverStatus($doc->driver_id);
+
         return back()->with('success', 'Dokumen ditolak');
+    }
+    private function syncDriverStatus($driverId)
+    {
+        $driver = Driver::with('documents')->find($driverId);
+        if (!$driver) return;
+
+        $docs = $driver->documents;
+
+        if ($docs->count() < 3) {
+            $driver->update(['verification_status' => 'pending']);
+            return;
+        }
+
+        if ($docs->contains('status', 'rejected')) {
+            $driver->update(['verification_status' => 'rejected']);
+            return;
+        }
+
+        if ($docs->every(fn($d) => $d->status === 'approved')) {
+            $driver->update([
+                'verification_status' => 'approved',
+                'status' => 'offline'
+            ]);
+            return;
+        }
+
+        // ⏳ sisanya pending
+        $driver->update(['verification_status' => 'pending']);
     }
 }

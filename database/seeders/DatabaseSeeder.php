@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Booking;
 use App\Models\BookingSeat;
 use App\Models\Driver;
+use App\Models\DriverDocument;
 use App\Models\Schedule;
 use App\Models\Seat;
 use App\Models\User;
@@ -62,14 +63,56 @@ class DatabaseSeeder extends Seeder
             }
         });
         User::factory()->count(5)->create();
-        $drivers = User::factory()->count(3)->create([
+        $drivers = User::factory()->count(5)->create([
             'role' => 'driver'
         ]);
 
         foreach ($drivers as $user) {
-            Driver::create([
-                'user_id' => $user->id
+
+            $driver = Driver::create([
+                'user_id' => $user->id,
+                'status' => fake()->randomElement(['online', 'offline', 'busy']),
+                'verification_status' => 'pending'
             ]);
+
+            // 🔥 RANDOM SCENARIO
+            $scenario = rand(1, 4);
+
+            // 1 = no document
+            // 2 = pending
+            // 3 = approved
+            // 4 = rejected
+
+            if ($scenario === 1) {
+                continue; // 🔥 driver tanpa dokumen (test case)
+            }
+
+            $types = ['ktp', 'sim', 'selfie'];
+
+            $statuses = match ($scenario) {
+                2 => ['pending', 'pending', 'approved'],
+                3 => ['approved', 'approved', 'approved'],
+                4 => ['approved', 'rejected', 'approved'],
+            };
+
+            foreach ($types as $i => $type) {
+                DriverDocument::create([
+                    'driver_id' => $driver->id,
+                    'type' => $type,
+                    'file_path' => "dummy/$type.jpg",
+                    'status' => $statuses[$i],
+                    'note' => $statuses[$i] === 'rejected' ? 'Dokumen tidak valid' : null
+                ]);
+            }
+
+            // 🔥 SYNC STATUS DRIVER
+            if ($scenario === 3) {
+                $driver->update(['verification_status' => 'approved']);
+            } elseif ($scenario === 4) {
+                $driver->update(['verification_status' => 'rejected']);
+            } else {
+                $driver->update(['verification_status' => 'pending']);
+            }
         }
         User::create([
             'name' => 'Admin',

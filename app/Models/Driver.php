@@ -9,10 +9,7 @@ class Driver extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'user_id',
-        'status'
-    ];
+    protected $fillable = ['verification_status', 'status', 'user_id'];
 
     public function user()
     {
@@ -20,6 +17,6 @@ class Driver extends Model
     }
     public function documents()
     {
-        return $this->hasMany(DriverDocument::class);
+        return $this->hasMany(DriverDocument::class, 'driver_id');
     }
 }
