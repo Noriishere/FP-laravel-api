@@ -78,4 +78,10 @@ class DashboardController extends Controller
             'title'
         ));
     }
+    public function users(){
+        return view('pages.users', [
+            'users' => User::latest()->get(),
+            'title' => 'Users'
+        ]);
+    }
 }
