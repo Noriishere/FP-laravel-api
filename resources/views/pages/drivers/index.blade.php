@@ -131,6 +131,9 @@
                         links: [],
 
                         async loadData(url = '/admin/drivers') {
+                            if (url && url.startsWith('http://')) {
+                                url = url.replace('http://', 'https://');
+                            }
                             let res = await fetch(url, {
                                 headers: {
                                     'X-Requested-With': 'XMLHttpRequest'
