@@ -13,28 +13,28 @@
             Dashboard
         </a>
 
-        <a href="#"
-           class="block px-4 py-2 rounded-md hover:bg-gray-100">
+        <a href="/users"
+           class="block px-4 py-2 rounded-md {{ request()->is('users') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
             Users
         </a>
 
-        <a href="#"
-           class="block px-4 py-2 rounded-md hover:bg-gray-100">
+        <a href="/drivers"
+           class="block px-4 py-2 rounded-md {{ request()->is('drivers') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
             Drivers
         </a>
 
-        <a href="#"
-           class="block px-4 py-2 rounded-md hover:bg-gray-100">
+        <a href="/vehicles"
+           class="block px-4 py-2 rounded-md {{ request()->is('vehicles') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
             Vehicles
         </a>
 
-        <a href="#"
-           class="block px-4 py-2 rounded-md hover:bg-gray-100">
+        <a href="/schedules"
+           class="block px-4 py-2 rounded-md {{ request()->is('schedules') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
             Schedules
         </a>
 
-        <a href="#"
-           class="block px-4 py-2 rounded-md hover:bg-gray-100">
+        <a href="/bookings"
+           class="block px-4 py-2 rounded-md {{ request()->is('bookings') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
             Bookings
         </a>
 

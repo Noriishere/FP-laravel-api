@@ -23,18 +23,18 @@
                     }
                 }
             }
-        }
+        }   
     </script>
 </head>
 
 <body class="bg-gray-100 font-sans">
-
+    
 <div class="flex h-screen overflow-hidden">
 
     <!-- SIDEBAR -->
     @include('components.sidebar')
 
-    <!-- MAIN -->
+    <!-- MAIN -->>aka
     <div class="flex-1 flex flex-col">
 
         <!-- NAVBAR -->
