@@ -21,7 +21,7 @@
             <option value="">All</option>
             <option value="admin" {{ request('role')=='admin'?'selected':'' }}>Admin</option>
             <option value="driver" {{ request('role')=='driver'?'selected':'' }}>Driver</option>
-            <option value="user" {{ request('role')=='customer'?'selected':'' }}>User</option>
+            <option value="customer" {{ request('role')=='customer'?'selected':'' }}>Customer</option>
         </select>
 
         <button class="bg-gray-800 text-white px-3 py-2 rounded-lg text-sm w-full md:w-auto">
