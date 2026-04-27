@@ -35,6 +35,8 @@
                     <th class="py-3">Nama Kendaraan</th>
                     <th>Plat Nomor</th>
                     <th>Kapasitas</th>
+                    <th>Tipe</th>
+                    <th>Warna</th>
                     <th class="text-center">Aksi</th>
                 </tr>
             </thead>
