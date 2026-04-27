@@ -31,7 +31,9 @@ class VehicleController extends Controller
             'plate_prefix' => 'required',
             'plate_number_main' => 'required',
             'plate_suffix' => 'required',
-            'capacity' => 'required|integer|min:1'
+            'capacity' => 'required|integer|min:1',
+            'type' => 'required',
+            'color' => 'required'
         ]);
 
         $plate = strtoupper(
@@ -43,7 +45,9 @@ class VehicleController extends Controller
         Vehicle::create([
             'name' => $request->name,
             'plate_number' => $plate,
-            'capacity' => $request->capacity
+            'capacity' => $request->capacity,
+            'type' => $request->type,
+            'color' => $request->color,
         ]);
 
         return redirect()->route('vehicles.index')
@@ -55,7 +59,6 @@ class VehicleController extends Controller
         $title = 'Edit Vehicle';
         $vehicle = Vehicle::findOrFail($id);
 
-        // 🔥 pecah plat
         $parts = explode(' ', $vehicle->plate_number);
 
         $vehicle->plate_prefix = $parts[0] ?? '';
@@ -72,7 +75,9 @@ class VehicleController extends Controller
         $request->validate([
             'name' => 'required',
             'plate_number' => 'required|unique:vehicles,plate_number,' . $id,
-            'capacity' => 'required|integer|min:1'
+            'capacity' => 'required|integer|min:1',
+            'type' => 'required',
+            'color' => 'required'
         ]);
 
         $vehicle->update($request->all());

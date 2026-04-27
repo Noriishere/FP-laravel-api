@@ -45,7 +45,12 @@
     {{-- CAPACITY --}}
     <input name="capacity" type="number" placeholder="Kapasitas"
         class="w-full border p-2 rounded">
-
+    {{-- TYPE --}}
+    <input name="type" type="text" placeholder="Tipe kendaraan (misal: hiace, elf, bus)"
+        class="w-full border p-2 rounded">
+    {{-- COLOR --}}
+    <input name="color" type="text" placeholder="Warna kendaraan"
+        class="w-full border p-2 rounded">
     <button class="bg-primary text-white px-4 py-2 rounded">
         Simpan
     </button>

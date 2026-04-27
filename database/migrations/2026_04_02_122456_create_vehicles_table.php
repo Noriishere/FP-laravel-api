@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('plate_number')->unique();
             $table->integer('capacity');
+            $table->string('type');
+            $table->string('color');
             $table->timestamps();
         });
     }

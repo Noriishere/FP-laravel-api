@@ -62,7 +62,18 @@
                             {{ $v->capacity }} seat
                         </span>
                     </td>
-
+                    {{-- TYPE --}}
+                    <td>
+                        <span class="text-gray-600">
+                            {{ $v->type }}
+                        </span>
+                    </td>
+                    {{-- COLOR --}}
+                    <td>
+                        <span class="text-gray-600">
+                            {{ $v->color }}
+                        </span>
+                    </td>
                     {{-- ACTION --}}
                     <td>
                         <div class="flex justify-center gap-3">

@@ -48,7 +48,14 @@
         <input name="capacity" type="number"
             value="{{ old('capacity', $vehicle->capacity) }}"
             class="w-full border p-2 rounded">
-
+        {{-- TYPE --}}
+        <input name="type" type="text"
+            value="{{ old('type', $vehicle->type) }}"
+            class="w-full border p-2 rounded">
+        {{-- COLOR --}}
+        <input name="color" type="text"
+            value="{{ old('color', $vehicle->color) }}"
+            class="w-full border p-2 rounded">
         {{-- SUBMIT --}}
         <button class="bg-primary text-white px-4 py-2 rounded">
             Update

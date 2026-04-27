@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::post('/driver/register', [DriverAuthController::class, 'register']);
-Route::post('/driver/login', [DriverAuthController::class, 'login']);
+Route::post('/drivers/register', [DriverAuthController::class, 'register']);
+Route::post('/drivers/login', [DriverAuthController::class, 'login']);
 
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
     ->middleware(['signed'])
@@ -34,8 +34,8 @@ Route::middleware(['auth:api', 'role:customer'])
     });
 
 Route::middleware(['auth:api', 'role:driver'])->group(function () {
-    Route::post('/driver/create', [DriverController::class, 'create']);
-    Route::post('/driver/{id}/documents', [DriverController::class, 'uploadDocument']);
+    Route::post('/drivers/create', [DriverController::class, 'create']);
+    Route::post('/drivers/{id}/documents', [DriverController::class, 'uploadDocument']);
 });
 
 Route::middleware(['auth:api', 'role:driver'])
