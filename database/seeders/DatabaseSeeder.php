@@ -117,15 +117,22 @@ class DatabaseSeeder extends Seeder
         User::create([
             'name' => 'Admin',
             'email' => 'bagasb65nurdiansyah777@gmail.com',
-            'password' => 'admin123',
+            'password' => 'Gassin2026!',
             'role' => 'admin',
             'email_verified_at' => now()
         ]);
         User::create([
             'name' => 'Akmal',
-            'email' => 'miawaugch@gmail.com',
-            'password' => 'admin123',
-            'role' => 'customer',
+            'email' => 'mamalnaresh@gmail.com',
+            'password' => 'Gassin2026!',
+            'role' => 'admin',
+            'email_verified_at' => now()
+        ]);
+        User::create([
+            'name' => 'Aseptian',
+            'email' => 'septian2996@gmail.com',
+            'password' => 'Gassin2026!',
+            'role' => 'admin',
             'email_verified_at' => now()
         ]);
         Driver::factory()->count(3)->create();
