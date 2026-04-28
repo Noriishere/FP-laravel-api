@@ -16,7 +16,7 @@ return new class extends Migration
             $table->decimal('origin_lng', 10, 7)->nullable();
             $table->decimal('destination_lat', 10, 7)->nullable();
             $table->decimal('destination_lng', 10, 7)->nullable();
-            $table->longText('polyline');
+            $table->longText('polyline')->nullable();
         });
     }
 

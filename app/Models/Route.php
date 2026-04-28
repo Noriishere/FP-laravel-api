@@ -10,12 +10,18 @@ class Route extends Model
     use HasFactory;
 
     protected $fillable = [
-        'origin',
-        'destination'
+        'origin_name',
+        'destination_name',
+        'origin_lat',
+        'origin_lng',
+        'destination_lat',
+        'destination_lng',
+        'distance',
+        'polyline',
     ];
     public function stops()
     {
-        return $this->hasMany(RouteStop::class);
+        return $this->hasMany(RouteStop::class)->orderBy('order');
     }
     public function schedules()
     {

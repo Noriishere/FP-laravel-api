@@ -19,6 +19,7 @@ return new class extends Migration
             $table->timestamp('departure_time');
             $table->decimal('price', 10, 2);
             $table->enum('status', ['scheduled', 'on-going', 'completed'])->default('scheduled');
+            $table->integer('arrive_time');
             $table->timestamps();
         });
     }

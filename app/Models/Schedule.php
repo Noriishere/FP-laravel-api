@@ -10,9 +10,11 @@ class Schedule extends Model
     use HasFactory;
     protected $fillable = [
         'route_id',
-        'vehicle_id',
         'driver_id',
+        'vehicle_id',
         'departure_time',
+        'arrival_time',
+        'price',
         'status'
     ];
     public function route()

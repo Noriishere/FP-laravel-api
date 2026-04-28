@@ -67,6 +67,14 @@
             <i class="fa-solid fa-bus w-4"></i>
             Vehicles
         </a>
+        
+        {{-- VEHICLES --}}
+        <a href="{{ url('/admin/routes') }}"
+           class="flex items-center gap-2 px-4 py-2 rounded-md transition
+           {{ request()->is('admin/routes*') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
+            <i class="fa-solid fa-map-marker-alt w-4"></i>
+            Routes
+        </a>
 
         {{-- SCHEDULES --}}
         <a href="{{ url('/admin/schedules') }}"
