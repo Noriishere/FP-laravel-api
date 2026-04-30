@@ -23,6 +23,10 @@ Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
     ->middleware(['signed'])
     ->name('verification.verify');
 
+Route::post('/debug', function () {
+    return response()->json(['masuk' => true]);
+});
+
 Route::get('/schedules', [ScheduleController::class, 'index']);
 Route::get('/schedules/{id}', [ScheduleController::class, 'show']);
 Route::get('/schedules/{id}/seats', [SeatController::class, 'availability']);
