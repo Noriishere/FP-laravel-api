@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-
+Route::post('/api/email/resend', [AuthController::class, 'resendVerification']);
 Route::post('/drivers/register', [DriverAuthController::class, 'register']);
 Route::post('/drivers/login', [DriverAuthController::class, 'login']);
 
