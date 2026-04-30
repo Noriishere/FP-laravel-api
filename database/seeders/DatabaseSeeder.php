@@ -151,20 +151,19 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
         }
-        $bookings = Booking::factory()->count(10)->create();
+        Booking::factory()->count(10)->create()->each(function ($booking) {
 
-        foreach ($bookings as $booking) {
-            $seats = Seat::where('schedule_id', $booking->schedule_id)
+            $availableSeats = Seat::where('schedule_id', $booking->schedule_id)
                 ->inRandomOrder()
-                ->take(rand(1, 3))
-                ->get();
+                ->limit($booking->total_seat)
+                ->pluck('id');
 
-            foreach ($seats as $seat) {
+            foreach ($availableSeats as $seatId) {
                 DB::table('booking_seats')->insert([
                     'booking_id' => $booking->id,
-                    'seat_id' => $seat->id
+                    'seat_id' => $seatId,
                 ]);
             }
-        }
+        });
     }
 }

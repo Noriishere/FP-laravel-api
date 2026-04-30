@@ -19,17 +19,17 @@ return new class extends Migration
             $table->string('order_id')->unique(); // 🔥 wajib buat pakasir
 
             $table->integer('total_seat');
-            $table->decimal('total_price', 10, 2)->nullable();
+            $table->decimal('total_price', 10, 2);
 
-            $table->enum('status', [
-                'pending',     // baru booking
-                'waiting_payment', // QR udah dibuat
-                'paid',        // webhook success
-                'cancelled',
-                'completed'
+            $table->enum('payment_status', [
+                'pending',
+                'paid',
+                'failed',
+                'expired'
             ])->default('pending');
-
-            $table->string('payment_method')->nullable(); // qris / va
+            $table->string('payment_ref')->nullable(); // id dari pakasir / midtrans
+            $table->string('payment_provider')->nullable(); // pakasir, midtrans
+            $table->string('payment_method')->nullable();   // qris, bni_va, dll
             $table->timestamp('expired_at')->nullable();  // dari pakasir
 
             $table->timestamps();

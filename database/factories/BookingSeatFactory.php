@@ -20,30 +20,30 @@ class BookingSeatFactory extends Factory
      * @return array<string, mixed>
      */
     public function definition(): array
-    {
-        $booking = Booking::inRandomOrder()->first();
+{
+    $schedule = Schedule::inRandomOrder()->first();
 
-        if (!$booking) {
-            throw new \Exception('No booking data found');
-        }
-
-        $usedSeatIds = DB::table('booking_seats')
-            ->join('bookings', 'booking_seats.booking_id', '=', 'bookings.id')
-            ->where('bookings.schedule_id', $booking->schedule_id)
-            ->pluck('seat_id');
-
-        $seat = Seat::where('schedule_id', $booking->schedule_id)
-            ->whereNotIn('id', $usedSeatIds)
-            ->inRandomOrder()
-            ->first();
-
-        if (!$seat) {
-            throw new \Exception('No available seat');
-        }
-
-        return [
-            'booking_id' => $booking->id,
-            'seat_id' => $seat->id,
-        ];
+    if (!$schedule) {
+        throw new \Exception('No schedule found');
     }
+
+    $totalSeat = rand(1, 3);
+
+    return [
+        'user_id' => User::inRandomOrder()->first()->id,
+        'schedule_id' => $schedule->id,
+        'order_id' => 'INV-' . now()->timestamp . '-' . uniqid(),
+        'total_seat' => $totalSeat,
+        'total_price' => $totalSeat * $schedule->price,
+
+        'status' => 'pending',
+        'payment_status' => 'pending',
+
+        'payment_provider' => null,
+        'payment_method' => null,
+        'payment_ref' => null,
+
+        'expired_at' => null,
+    ];
+}
 }

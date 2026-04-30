@@ -26,16 +26,21 @@ class BookingFactory extends Factory
         }
 
         $totalSeat = rand(1, 3);
-        $orderId = 'INV-' . now()->format('YmdHis') . '-' . rand(1000, 9999);
 
         return [
             'user_id' => User::inRandomOrder()->first()->id,
             'schedule_id' => $schedule->id,
-            'order_id' => $orderId,
+            'order_id' => 'INV-' . now()->timestamp . '-' . uniqid(),
             'total_seat' => $totalSeat,
             'total_price' => $totalSeat * $schedule->price,
+
             'status' => 'pending',
+            'payment_status' => 'pending',
+
+            'payment_provider' => null,
             'payment_method' => null,
+            'payment_ref' => null,
+
             'expired_at' => null,
         ];
     }
