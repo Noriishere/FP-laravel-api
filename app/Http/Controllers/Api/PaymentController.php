@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -58,7 +59,9 @@ class PaymentController extends Controller
             'payment_provider' => 'pakasir',
             'payment_method' => 'qris',
             'payment_status' => 'pending',
-            'expired_at' => $payment['expired_at'] ?? now()->addMinutes(15),
+            'expired_at' => isset($payment['expired_at'])
+                ? Carbon::parse($payment['expired_at'])->format('Y-m-d H:i:s')
+                : now()->addMinutes(15),
         ]);
 
         return response()->json([
