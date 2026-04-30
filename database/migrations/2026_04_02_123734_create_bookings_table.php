@@ -41,6 +41,7 @@ return new class extends Migration
 
             $table->timestamp('expired_at')->nullable();
 
+            $table->timestamps(); // 🔥 INI WAJIB
             $table->index(['user_id']);
             $table->index(['schedule_id']);
             $table->index(['order_id']);
