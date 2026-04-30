@@ -17,7 +17,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/email/resend', [AuthController::class, 'resendVerification']);
 Route::post('/drivers/register', [DriverAuthController::class, 'register']);
 Route::post('/drivers/login', [DriverAuthController::class, 'login']);
-Route::post('/webhook/pakasir', [PaymentController::class, 'webhook']);
+Route::post('/payment/pakasir/webhook', [PaymentController::class, 'webhook']);
 
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
     ->middleware(['signed'])
