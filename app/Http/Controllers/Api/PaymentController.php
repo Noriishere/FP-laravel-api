@@ -15,6 +15,20 @@ class PaymentController extends Controller
     {
         $booking = Booking::findOrFail($request->booking_id);
 
+        // ❗ pastikan belum dibayar
+        if ($booking->payment_status === 'paid') {
+            return response()->json([
+                'message' => 'Booking already paid'
+            ], 400);
+        }
+
+        // ❗ pastikan belum expired
+        if ($booking->expired_at && $booking->expired_at < now()) {
+            return response()->json([
+                'message' => 'Booking expired'
+            ], 400);
+        }
+
         $response = Http::post(
             'https://app.pakasir.com/api/transactioncreate/qris',
             [
@@ -25,10 +39,33 @@ class PaymentController extends Controller
             ]
         );
 
+        if (!$response->successful()) {
+            return response()->json([
+                'message' => 'Failed to create payment'
+            ], 500);
+        }
+
         $data = $response->json();
 
+        if (!isset($data['payment'])) {
+            return response()->json([
+                'message' => 'Invalid response from payment gateway'
+            ], 500);
+        }
+
+        $payment = $data['payment'];
+
+        // 🔥 update DB
+        $booking->update([
+            'payment_provider' => 'pakasir',
+            'payment_method' => 'qris',
+            'payment_status' => 'pending',
+            'expired_at' => $payment['expired_at'] ?? now()->addMinutes(15),
+        ]);
+
         return response()->json([
-            'payment' => $data['payment']
+            'type' => 'qr',
+            'payment' => $payment
         ]);
     }
     public function webhook(Request $request)
@@ -45,7 +82,7 @@ class PaymentController extends Controller
             return response()->json(['message' => 'Booking not found'], 404);
         }
 
-        if ($booking->status === 'paid') {
+        if ($booking->payment_status === 'paid') {
             return response()->json(['message' => 'Already processed']);
         }
 
@@ -59,6 +96,7 @@ class PaymentController extends Controller
 
                 $booking->update([
                     'status' => 'paid',
+                    'payment_status' => 'paid',
                     'payment_method' => $request->payment_method
                 ]);
 

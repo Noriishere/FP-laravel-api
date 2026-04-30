@@ -30,7 +30,11 @@ class BookingController extends Controller
                 'message' => 'Invalid seat selection'
             ], 400);
         }
-
+        if (count($request->seat_ids) !== count(array_unique($request->seat_ids))) {
+            return response()->json([
+                'message' => 'Duplicate seat selection'
+            ], 400);
+        }
         return DB::transaction(function () use ($request, $schedule) {
 
             DB::table('seats')
@@ -42,18 +46,33 @@ class BookingController extends Controller
                 ->join('bookings', 'booking_seats.booking_id', '=', 'bookings.id')
                 ->where('bookings.schedule_id', $request->schedule_id)
                 ->whereIn('booking_seats.seat_id', $request->seat_ids)
-                ->whereIn('bookings.status', ['paid']) // 🔥 cuma cek yg sudah bayar
+                ->where(function ($q) {
+                    $q->where('bookings.payment_status', 'paid')
+                        ->orWhere(function ($q2) {
+                            $q2->where('bookings.payment_status', 'pending')
+                                ->where('bookings.expired_at', '>', now());
+                        });
+                })
                 ->pluck('seat_id')
                 ->toArray();
-
             if (count($bookedSeats) > 0) {
                 return response()->json([
                     'message' => 'Seat already booked',
                     'conflict_seats' => $bookedSeats
                 ], 409);
             }
+            $existing = Booking::where('user_id', Auth::id())
+                ->where('schedule_id', $request->schedule_id)
+                ->where('payment_status', 'pending')
+                ->where('expired_at', '>', now())
+                ->exists();
 
-            $orderId = 'INV-' . now()->format('YmdHis') . '-' . rand(1000, 9999);
+            if ($existing) {
+                return response()->json([
+                    'message' => 'You still have unpaid booking for this schedule'
+                ], 400);
+            }
+            $orderId = 'INV-' . now()->format('YmdHis') . '-' . uniqid();
 
             $booking = Booking::create([
                 'user_id' => Auth::id(),
@@ -61,7 +80,10 @@ class BookingController extends Controller
                 'order_id' => $orderId,
                 'total_seat' => count($request->seat_ids),
                 'total_price' => count($request->seat_ids) * $schedule->price,
-                'status' => 'pending'
+                'status' => 'pending',
+                'payment_status' => 'pending',
+                'payment_provider' => null,
+                'expired_at' => now()->addMinutes(15)
             ]);
 
             foreach ($request->seat_ids as $seatId) {
