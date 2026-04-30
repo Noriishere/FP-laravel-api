@@ -15,14 +15,12 @@ class PaymentController extends Controller
     {
         $booking = Booking::findOrFail($request->booking_id);
 
-        // ❗ pastikan belum dibayar
         if ($booking->payment_status === 'paid') {
             return response()->json([
                 'message' => 'Booking already paid'
             ], 400);
         }
 
-        // ❗ pastikan belum expired
         if ($booking->expired_at && $booking->expired_at < now()) {
             return response()->json([
                 'message' => 'Booking expired'
@@ -38,6 +36,11 @@ class PaymentController extends Controller
                 "api_key" => config('pakasir.api_key'),
             ]
         );
+
+        return response()->json([
+            'status' => $response->status(),
+            'body' => $response->body(),
+        ]);
 
         if (!$response->successful()) {
             return response()->json([
