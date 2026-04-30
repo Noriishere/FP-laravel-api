@@ -15,6 +15,10 @@ Route::get('/admin/', function () {
     return view('pages.home');
 });
 
+Route::get('/', function () {
+    return view('pages.landing-pages');
+})->name('landing-pages');
+
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('/admin/routes', RouteController::class);
     Route::resource('/admin/schedules', ScheduleController::class);
