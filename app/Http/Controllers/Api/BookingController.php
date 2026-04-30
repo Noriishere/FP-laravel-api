@@ -18,7 +18,9 @@ class BookingController extends Controller
             'seat_ids' => 'required|array|min:1',
             'seat_ids.*' => 'exists:seats,id'
         ]);
+
         $schedule = Schedule::findOrFail($request->schedule_id);
+
         $validSeats = \App\Models\Seat::whereIn('id', $request->seat_ids)
             ->where('schedule_id', $request->schedule_id)
             ->count();
@@ -28,6 +30,7 @@ class BookingController extends Controller
                 'message' => 'Invalid seat selection'
             ], 400);
         }
+
         return DB::transaction(function () use ($request, $schedule) {
 
             DB::table('seats')
@@ -39,6 +42,7 @@ class BookingController extends Controller
                 ->join('bookings', 'booking_seats.booking_id', '=', 'bookings.id')
                 ->where('bookings.schedule_id', $request->schedule_id)
                 ->whereIn('booking_seats.seat_id', $request->seat_ids)
+                ->whereIn('bookings.status', ['paid']) // 🔥 cuma cek yg sudah bayar
                 ->pluck('seat_id')
                 ->toArray();
 
@@ -49,16 +53,15 @@ class BookingController extends Controller
                 ], 409);
             }
 
-            DB::table('seats')
-                ->whereIn('id', $request->seat_ids)
-                ->update(['status' => 'booked']);
+            $orderId = 'INV-' . now()->format('YmdHis') . '-' . rand(1000, 9999);
 
             $booking = Booking::create([
                 'user_id' => Auth::id(),
                 'schedule_id' => $request->schedule_id,
+                'order_id' => $orderId,
                 'total_seat' => count($request->seat_ids),
                 'total_price' => count($request->seat_ids) * $schedule->price,
-                'status' => 'booked'
+                'status' => 'pending'
             ]);
 
             foreach ($request->seat_ids as $seatId) {
@@ -69,9 +72,10 @@ class BookingController extends Controller
             }
 
             return response()->json([
-                'message' => 'Booking success',
+                'message' => 'Booking created, waiting payment',
                 'booking_id' => $booking->id,
-                'seats' => $request->seat_ids
+                'order_id' => $booking->order_id,
+                'total_price' => $booking->total_price
             ]);
         });
     }

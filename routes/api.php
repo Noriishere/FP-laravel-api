@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\Driver\AuthController as DriverAuthController;
 use App\Http\Controllers\Api\Driver\DriverController;
 use App\Http\Controllers\Api\LocationController;
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ScheduleController;
 use App\Http\Controllers\Api\SeatController;
 use App\Http\Controllers\Api\VehicleController;
@@ -13,9 +14,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/api/email/resend', [AuthController::class, 'resendVerification']);
+Route::post('/email/resend', [AuthController::class, 'resendVerification']);
 Route::post('/drivers/register', [DriverAuthController::class, 'register']);
 Route::post('/drivers/login', [DriverAuthController::class, 'login']);
+Route::post('/webhook/pakasir', [PaymentController::class, 'webhook']);
 
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
     ->middleware(['signed'])
