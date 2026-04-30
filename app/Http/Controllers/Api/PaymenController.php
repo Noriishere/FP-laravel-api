@@ -7,7 +7,7 @@ use App\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class PaymentController extends Controller
+class PaymenController extends Controller
 {
     public function webhook(Request $request)
     {
