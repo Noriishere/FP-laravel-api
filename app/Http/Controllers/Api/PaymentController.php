@@ -32,15 +32,10 @@ class PaymentController extends Controller
             [
                 "project" => config('pakasir.project'),
                 "order_id" => $booking->order_id,
-                "amount" => $booking->total_price,
+                "amount" => (int) $booking->total_price,
                 "api_key" => config('pakasir.api_key'),
             ]
         );
-
-        return response()->json([
-            'status' => $response->status(),
-            'body' => $response->body(),
-        ]);
 
         if (!$response->successful()) {
             return response()->json([
