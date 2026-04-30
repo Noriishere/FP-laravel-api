@@ -16,10 +16,17 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('schedule_id')->constrained()->cascadeOnDelete();
 
-            $table->string('order_id')->unique(); // 🔥 wajib buat pakasir
+            $table->string('order_id')->unique();
 
             $table->integer('total_seat');
             $table->decimal('total_price', 10, 2);
+
+            $table->enum('status', [
+                'pending',
+                'paid',
+                'cancelled',
+                'completed'
+            ])->default('pending');
 
             $table->enum('payment_status', [
                 'pending',
@@ -27,12 +34,12 @@ return new class extends Migration
                 'failed',
                 'expired'
             ])->default('pending');
-            $table->string('payment_ref')->nullable(); // id dari pakasir / midtrans
-            $table->string('payment_provider')->nullable(); // pakasir, midtrans
-            $table->string('payment_method')->nullable();   // qris, bni_va, dll
-            $table->timestamp('expired_at')->nullable();  // dari pakasir
 
-            $table->timestamps();
+            $table->string('payment_provider')->nullable();
+            $table->string('payment_method')->nullable();
+            $table->string('payment_ref')->nullable();
+
+            $table->timestamp('expired_at')->nullable();
 
             $table->index(['user_id']);
             $table->index(['schedule_id']);

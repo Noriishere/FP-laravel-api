@@ -153,7 +153,13 @@ class DatabaseSeeder extends Seeder
         }
         Booking::factory()->count(10)->create()->each(function ($booking) {
 
+            $usedSeatIds = DB::table('booking_seats')
+                ->join('bookings', 'booking_seats.booking_id', '=', 'bookings.id')
+                ->where('bookings.schedule_id', $booking->schedule_id)
+                ->pluck('seat_id');
+
             $availableSeats = Seat::where('schedule_id', $booking->schedule_id)
+                ->whereNotIn('id', $usedSeatIds)
                 ->inRandomOrder()
                 ->limit($booking->total_seat)
                 ->pluck('id');
