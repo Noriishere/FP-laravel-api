@@ -113,4 +113,22 @@ class PaymentController extends Controller
 
         return response()->json(['success' => true]);
     }
+    public function callback(Request $request)
+    {
+        $orderId = $request->order_id;
+        $status = $request->status;
+
+        $booking = Booking::where('order_id', $orderId)->first();
+
+        if (!$booking) {
+            return response()->json(['message' => 'Not found'], 404);
+        }
+
+        if ($status === 'PAID') {
+            $booking->status = 'paid';
+            $booking->save();
+        }
+
+        return response()->json(['message' => 'OK']);
+    }
 }
