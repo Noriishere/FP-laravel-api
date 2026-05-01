@@ -133,38 +133,35 @@ class PaymentController extends Controller
     }
     public function cancel(Request $request)
     {
-        $booking = Booking::findOrFail($request->booking_id);
+        try {
 
-        if ($booking->payment_status === 'paid') {
+            $booking = Booking::findOrFail($request->booking_id);
+
+            DB::transaction(function () use ($booking) {
+
+                $booking->update([
+                    'status' => 'cancelled',
+                    'payment_status' => 'cancelled'
+                ]);
+
+                $seatIds = DB::table('booking_seats')
+                    ->where('booking_id', $booking->id)
+                    ->pluck('seat_id');
+
+                DB::table('seats')
+                    ->whereIn('id', $seatIds)
+                    ->update(['status' => 'available']);
+            });
+
             return response()->json([
-                'message' => 'Cannot cancel paid booking'
-            ], 400);
-        }
-
-        if ($booking->payment_status === 'cancelled') {
-            return response()->json([
-                'message' => 'Booking already cancelled'
-            ], 400);
-        }
-
-        DB::transaction(function () use ($booking) {
-
-            $booking->update([
-                'status' => 'cancelled',
-                'payment_status' => 'cancelled'
+                'message' => 'Booking cancelled successfully'
             ]);
+        } catch (\Throwable $e) {
 
-            $seatIds = DB::table('booking_seats')
-                ->where('booking_id', $booking->id)
-                ->pluck('seat_id');
-
-            DB::table('seats')
-                ->whereIn('id', $seatIds)
-                ->update(['status' => 'available']);
-        });
-
-        return response()->json([
-            'message' => 'Booking cancelled successfully'
-        ]);
+            return response()->json([
+                'error' => $e->getMessage(),
+                'line' => $e->getLine()
+            ], 500);
+        }
     }
 }
