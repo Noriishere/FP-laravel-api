@@ -32,7 +32,8 @@ return new class extends Migration
                 'pending',
                 'paid',
                 'failed',
-                'expired'
+                'expired',
+                'cancelled'
             ])->default('pending');
 
             $table->string('payment_provider')->nullable();
