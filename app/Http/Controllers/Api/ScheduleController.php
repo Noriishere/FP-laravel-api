@@ -75,4 +75,82 @@ class ScheduleController extends Controller
             ]
         ]);
     }
+    public function sorted(Request $request)
+    {
+        $query = Schedule::with(['route', 'vehicle', 'driver']);
+
+        // optional filter (biar tetep bisa dipakai kayak index)
+        if ($request->origin) {
+            $query->whereHas(
+                'route',
+                fn($q) =>
+                $q->where('origin_name', 'like', '%' . $request->origin . '%')
+            );
+        }
+
+        if ($request->destination) {
+            $query->whereHas(
+                'route',
+                fn($q) =>
+                $q->where('destination_name', 'like', '%' . $request->destination . '%')
+            );
+        }
+
+        // sorting
+        $direction = $request->get('direction', 'asc'); // asc / desc
+
+        $query->orderBy('departure_time', $direction);
+
+        return response()->json([
+            'success' => true,
+            'data' => $query->get()
+        ]);
+    }
+    public function sortedByDay(Request $request)
+    {
+        $query = Schedule::with(['route', 'vehicle', 'driver']);
+
+        if ($request->origin) {
+            $query->whereHas(
+                'route',
+                fn($q) =>
+                $q->where('origin_name', 'like', '%' . $request->origin . '%')
+            );
+        }
+
+        if ($request->destination) {
+            $query->whereHas(
+                'route',
+                fn($q) =>
+                $q->where('destination_name', 'like', '%' . $request->destination . '%')
+            );
+        }
+
+        // 🔥 FILTER TANGGAL (1 hari)
+        if ($request->date) {
+            $query->whereDate('departure_time', $request->date);
+        }
+
+        // 🔥 FILTER RANGE TANGGAL
+        if ($request->from_date && $request->to_date) {
+            $query->whereBetween('departure_time', [
+                $request->from_date,
+                $request->to_date
+            ]);
+        }
+
+        // sorting
+        $direction = $request->get('direction', 'asc');
+
+        if (!in_array($direction, ['asc', 'desc'])) {
+            $direction = 'asc';
+        }
+
+        $query->orderBy('departure_time', $direction);
+
+        return response()->json([
+            'success' => true,
+            'data' => $query->get()
+        ]);
+    }
 }

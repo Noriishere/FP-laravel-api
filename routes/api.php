@@ -31,6 +31,10 @@ Route::post('/debug', function () {
 });
 
 Route::get('/schedules', [ScheduleController::class, 'index']);
+
+Route::get('/schedules/sorted', [ScheduleController::class, 'sorted']);
+Route::get('/schedules/sortedByDay', [ScheduleController::class, 'sortedByDay']);
+
 Route::get('/schedules/{id}', [ScheduleController::class, 'show']);
 Route::get('/schedules/{id}/seats', [SeatController::class, 'availability']);
 Route::get('/schedules/{id}/map', [ScheduleController::class, 'map']);

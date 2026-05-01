@@ -54,7 +54,6 @@ class PaymentController extends Controller
 
         $payment = $data['payment'];
 
-        // 🔥 update DB
         $booking->update([
             'payment_provider' => 'pakasir',
             'payment_method' => 'qris',
@@ -92,6 +91,13 @@ class PaymentController extends Controller
         }
 
         if ($status === 'completed') {
+
+            // ❗ BLOCK kalau sudah cancel
+            if ($booking->payment_status === 'cancelled') {
+                return response()->json([
+                    'message' => 'Booking already cancelled'
+                ]);
+            }
 
             DB::transaction(function () use ($booking, $request) {
 
