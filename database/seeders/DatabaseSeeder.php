@@ -175,6 +175,7 @@ class DatabaseSeeder extends Seeder
                 DB::table('booking_seats')->insert([
                     'booking_id' => $booking->id,
                     'seat_id' => $seatId,
+                    'schedule_id' => $booking->schedule_id, // 🔥 FIX
                 ]);
             }
         });
