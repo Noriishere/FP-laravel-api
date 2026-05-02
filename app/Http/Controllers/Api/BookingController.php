@@ -89,7 +89,8 @@ class BookingController extends Controller
             foreach ($request->seat_ids as $seatId) {
                 DB::table('booking_seats')->insert([
                     'booking_id' => $booking->id,
-                    'seat_id' => $seatId
+                    'seat_id' => $seatId,
+                    'schedule_id' => $booking->schedule_id // 🔥 WAJIB
                 ]);
             }
 
