@@ -40,8 +40,7 @@ class ScheduleController extends Controller
         $schedule = Schedule::with([
             'route',
             'vehicle',
-            'driver',
-            'seats'
+            'driver'
         ])->findOrFail($id);
 
         return response()->json([
