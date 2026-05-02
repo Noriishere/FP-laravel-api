@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Schedule;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class ScheduleController extends Controller
@@ -128,18 +129,19 @@ class ScheduleController extends Controller
 
         // 🔥 FILTER TANGGAL (1 hari)
         if ($request->date) {
-            $query->whereDate('departure_time', $request->date);
+            $start = Carbon::parse($request->date)->startOfDay();
+            $end = Carbon::parse($request->date)->endOfDay();
+
+            $query->whereBetween('departure_time', [$start, $end]);
         }
 
-        // 🔥 FILTER RANGE TANGGAL
         if ($request->from_date && $request->to_date) {
-            $query->whereBetween('departure_time', [
-                $request->from_date,
-                $request->to_date
-            ]);
+            $start = Carbon::parse($request->from_date)->startOfDay();
+            $end = Carbon::parse($request->to_date)->endOfDay();
+
+            $query->whereBetween('departure_time', [$start, $end]);
         }
 
-        // sorting
         $direction = $request->get('direction', 'asc');
 
         if (!in_array($direction, ['asc', 'desc'])) {

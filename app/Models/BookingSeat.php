@@ -9,6 +9,7 @@ class BookingSeat extends Model
 {
     use HasFactory;
     protected $fillable = [
+        'schedule_id',
         'booking_id',
         'seat_id'
     ];

@@ -14,36 +14,12 @@ use Illuminate\Support\Facades\DB;
 class BookingSeatFactory extends Factory
 {
     protected $model = BookingSeat::class;
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+
     public function definition(): array
-{
-    $schedule = Schedule::inRandomOrder()->first();
-
-    if (!$schedule) {
-        throw new \Exception('No schedule found');
+    {
+        return [
+            'booking_id' => Booking::inRandomOrder()->first()->id,
+            'seat_id' => Seat::inRandomOrder()->first()->id,
+        ];
     }
-
-    $totalSeat = rand(1, 3);
-
-    return [
-        'user_id' => User::inRandomOrder()->first()->id,
-        'schedule_id' => $schedule->id,
-        'order_id' => 'INV-' . now()->timestamp . '-' . uniqid(),
-        'total_seat' => $totalSeat,
-        'total_price' => $totalSeat * $schedule->price,
-
-        'status' => 'pending',
-        'payment_status' => 'pending',
-
-        'payment_provider' => null,
-        'payment_method' => null,
-        'payment_ref' => null,
-
-        'expired_at' => null,
-    ];
-}
 }

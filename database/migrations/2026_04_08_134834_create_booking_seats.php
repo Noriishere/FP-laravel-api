@@ -9,9 +9,10 @@ return new class extends Migration {
     {
         Schema::create('booking_seats', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('schedule_id')->constrained()->cascadeOnDelete();
             $table->foreignId('booking_id')->constrained()->cascadeOnDelete();
             $table->foreignId('seat_id')->constrained()->cascadeOnDelete();
-            $table->unique(['booking_id', 'seat_id']);
+            $table->unique(['schedule_id', 'seat_id']);
         });
     }
 
