@@ -16,36 +16,47 @@ class BookingController extends Controller
         $request->validate([
             'schedule_id' => 'required|exists:schedules,id',
             'seat_ids' => 'required|array|min:1',
-            'seat_ids.*' => 'exists:seats,id'
+            'seat_ids.*' => 'integer'
         ]);
 
         $schedule = Schedule::findOrFail($request->schedule_id);
 
-        $validSeats = \App\Models\Seat::whereIn('id', $request->seat_ids)
-            ->where('schedule_id', $request->schedule_id)
-            ->count();
+        // 🔥 Ambil seat berdasarkan seat_number
+        $seats = \App\Models\Seat::where('schedule_id', $request->schedule_id)
+            ->whereIn('seat_number', $request->seat_ids)
+            ->get();
 
-        if ($validSeats !== count($request->seat_ids)) {
+        // ❗ Validasi: semua seat harus valid
+        if ($seats->count() !== count($request->seat_ids)) {
             return response()->json([
                 'message' => 'Invalid seat selection'
             ], 400);
         }
+
+        // ❗ Duplicate request
         if (count($request->seat_ids) !== count(array_unique($request->seat_ids))) {
             return response()->json([
                 'message' => 'Duplicate seat selection'
             ], 400);
         }
-        return DB::transaction(function () use ($request, $schedule) {
 
+        // 🔥 Mapping seat_number → seat_id
+        $seatMap = $seats->pluck('id', 'seat_number');
+        $seatIds = array_values($seatMap->toArray());
+
+        return DB::transaction(function () use ($request, $schedule, $seatIds) {
+
+            // 🔒 Lock seat biar aman race condition
             DB::table('seats')
-                ->whereIn('id', $request->seat_ids)
+                ->whereIn('id', $seatIds)
                 ->lockForUpdate()
                 ->get();
 
+            // 🔥 Cek sudah dibooking
             $bookedSeats = DB::table('booking_seats')
                 ->join('bookings', 'booking_seats.booking_id', '=', 'bookings.id')
                 ->where('bookings.schedule_id', $request->schedule_id)
-                ->whereIn('booking_seats.seat_id', $request->seat_ids)
+                ->whereIn('booking_seats.seat_id', $seatIds)
                 ->where(function ($q) {
                     $q->where('bookings.payment_status', 'paid')
                         ->orWhere(function ($q2) {
@@ -53,14 +64,17 @@ class BookingController extends Controller
                                 ->where('bookings.expired_at', '>', now());
                         });
                 })
-                ->pluck('seat_id')
+                ->pluck('booking_seats.seat_id')
                 ->toArray();
+
             if (count($bookedSeats) > 0) {
                 return response()->json([
                     'message' => 'Seat already booked',
                     'conflict_seats' => $bookedSeats
                 ], 409);
             }
+
+            // ❗ Cegah double pending booking
             $existing = Booking::where('user_id', Auth::id())
                 ->where('schedule_id', $request->schedule_id)
                 ->where('payment_status', 'pending')
@@ -72,6 +86,7 @@ class BookingController extends Controller
                     'message' => 'You still have unpaid booking for this schedule'
                 ], 400);
             }
+
             $orderId = 'INV-' . now()->format('YmdHis') . '-' . uniqid();
 
             $booking = Booking::create([
@@ -86,11 +101,12 @@ class BookingController extends Controller
                 'expired_at' => now()->addMinutes(15)
             ]);
 
-            foreach ($request->seat_ids as $seatId) {
+            // 🔥 Insert booking_seats
+            foreach ($seatIds as $seatId) {
                 DB::table('booking_seats')->insert([
                     'booking_id' => $booking->id,
                     'seat_id' => $seatId,
-                    'schedule_id' => $booking->schedule_id // 🔥 WAJIB
+                    'schedule_id' => $booking->schedule_id
                 ]);
             }
 

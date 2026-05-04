@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Schedule;
 use App\Models\Route;
 use App\Models\Driver;
+use App\Models\Seat;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -74,7 +75,14 @@ class ScheduleController extends Controller
             'price' => $request->price,
             'status' => 'scheduled'
         ]);
-        
+        $vehicle = Vehicle::find($request->vehicle_id);
+
+        for ($i = 1; $i <= $vehicle->capacity; $i++) {
+            Seat::create([
+                'schedule_id' => $schedule->id,
+                'seat_number' => $i
+            ]);
+        }
         return redirect()->route('schedules.index')
             ->with('success', 'Schedule berhasil dibuat');
     }
