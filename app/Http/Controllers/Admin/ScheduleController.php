@@ -147,8 +147,9 @@ class ScheduleController extends Controller
         ])->findOrFail($id);
 
         // ambil seat yang sudah dibooking
-        $bookedSeatIds = DB::table('booking_seats')
+        $bookedSeatNumbers = DB::table('booking_seats')
             ->join('bookings', 'booking_seats.booking_id', '=', 'bookings.id')
+            ->join('seats', 'booking_seats.seat_id', '=', 'seats.id')
             ->where('bookings.schedule_id', $id)
             ->where(function ($q) {
                 $q->where('bookings.payment_status', 'paid')
@@ -157,9 +158,8 @@ class ScheduleController extends Controller
                             ->where('bookings.expired_at', '>', now());
                     });
             })
-            ->pluck('booking_seats.seat_id')
+            ->pluck('seats.seat_number')
             ->toArray();
-
         return view('pages.schedules.show', compact('schedule', 'bookedSeatIds'));
     }
 }

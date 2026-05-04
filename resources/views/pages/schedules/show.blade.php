@@ -44,15 +44,13 @@
             <div class="grid grid-cols-4 gap-3">
                 @for ($i = 1; $i <= $schedule->vehicle->capacity; $i++)
                     @php
-                        $isBooked = in_array($i, $bookedSeatIds);
+                        $isBooked = in_array($i, $bookedSeatNumbers);
                     @endphp
 
-                    <div
-                        class="text-center py-2 rounded-lg text-sm
-            {{ $isBooked ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600' }}">
-
+                    <div class="{{ $isBooked ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600' }}">
                         {{ $i }}
                     </div>
+                @endfor
                 @endfor
             </div>
 
