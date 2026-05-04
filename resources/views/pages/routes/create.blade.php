@@ -44,10 +44,14 @@
                                 Titik Asal (Origin)
                             </span>
                         </label>
-                        <input type="text" name="origin_name" id="origin_name" value="{{ old('origin_name') }}"
-                            placeholder="Klik peta atau ketik nama lokasi..."
-                            class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition @error('origin_name') border-red-400 @enderror"
-                            required>
+                        <div class="relative">
+                            <input type="text" name="origin_name" id="origin_name" value="{{ old('origin_name') }}"
+                                placeholder="Klik peta atau ketik nama lokasi..."
+                                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm">
+
+                            <div id="origin_suggestions"
+                                class="absolute z-50 bg-white border w-full mt-1 rounded shadow hidden"></div>
+                        </div>
                         @error('origin_name')
                             <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                         @enderror
@@ -59,10 +63,12 @@
                                 Titik Tujuan (Destination)
                             </span>
                         </label>
-                        <input type="text" name="destination_name" id="destination_name"
-                            value="{{ old('destination_name') }}" placeholder="Klik peta atau ketik nama lokasi..."
-                            class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition @error('destination_name') border-red-400 @enderror"
-                            required>
+                        <div class="relative">
+                            <input type="text" name="destination_name" id="destination_name" ...>
+
+                            <div id="destination_suggestions"
+                                class="absolute z-50 bg-white border w-full mt-1 rounded shadow hidden"></div>
+                        </div>
                         @error('destination_name')
                             <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                         @enderror
@@ -168,14 +174,68 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            function setupAutocomplete(inputId, suggestionId, latId, lngId) {
+                const input = document.getElementById(inputId);
+                const box = document.getElementById(suggestionId);
 
+                let timeout = null;
+
+                input.addEventListener('input', function() {
+                    clearTimeout(timeout);
+
+                    const query = input.value;
+                    if (query.length < 3) {
+                        box.classList.add('hidden');
+                        return;
+                    }
+
+                    timeout = setTimeout(() => {
+                        fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json`)
+                            .then(res => res.json())
+                            .then(data => {
+                                box.innerHTML = '';
+
+                                data.slice(0, 5).forEach(place => {
+                                    const item = document.createElement('div');
+                                    item.className =
+                                        'p-2 text-sm hover:bg-gray-100 cursor-pointer';
+                                    item.textContent = place.display_name;
+
+                                    item.onclick = () => {
+                                        input.value = place.display_name;
+                                        document.getElementById(latId).value = place
+                                            .lat;
+                                        document.getElementById(lngId).value = place
+                                            .lon;
+
+                                        // pindahin map
+                                        map.setView([place.lat, place.lon], 13);
+
+                                        box.classList.add('hidden');
+                                    };
+
+                                    box.appendChild(item);
+                                });
+
+                                box.classList.remove('hidden');
+                            });
+                    }, 400);
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!box.contains(e.target) && e.target !== input) {
+                        box.classList.add('hidden');
+                    }
+                });
+            }
             // ── Map init ─────────────────────────────────────────────
             const map = L.map('map').setView([-2.5, 118.0], 5);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors',
                 maxZoom: 19
             }).addTo(map);
-
+            setupAutocomplete('origin_name', 'origin_suggestions', 'origin_lat', 'origin_lng');
+            setupAutocomplete('destination_name', 'destination_suggestions', 'destination_lat', 'destination_lng');
             // ── Custom markers ────────────────────────────────────────
             function createIcon(color) {
                 return L.divIcon({
