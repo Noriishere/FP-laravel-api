@@ -228,14 +228,14 @@
                     }
                 });
             }
-            setupAutocomplete('origin_name', 'origin_suggestions', 'origin_lat', 'origin_lng');
-            setupAutocomplete('destination_name', 'destination_suggestions', 'destination_lat', 'destination_lng');
             // ── Map init ─────────────────────────────────────────────
             const map = L.map('map').setView([-2.5, 118.0], 5);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors',
                 maxZoom: 19
             }).addTo(map);
+            setupAutocomplete('origin_name', 'origin_suggestions', 'origin_lat', 'origin_lng');
+            setupAutocomplete('destination_name', 'destination_suggestions', 'destination_lat', 'destination_lng');
 
             // ── Custom markers ────────────────────────────────────────
             function createIcon(color) {
