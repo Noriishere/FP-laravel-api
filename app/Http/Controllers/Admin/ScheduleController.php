@@ -9,6 +9,7 @@ use App\Models\Driver;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class ScheduleController extends Controller
 {
@@ -131,6 +132,27 @@ class ScheduleController extends Controller
     }
     public function show($id)
     {
-        abort(404);
+        $schedule = Schedule::with([
+            'route',
+            'vehicle',
+            'driver.user',
+            'seats'
+        ])->findOrFail($id);
+
+        // ambil seat yang sudah dibooking (PAID + PENDING aktif)
+        $bookedSeatIds = DB::table('booking_seats')
+            ->join('bookings', 'booking_seats.booking_id', '=', 'bookings.id')
+            ->where('bookings.schedule_id', $id)
+            ->where(function ($q) {
+                $q->where('bookings.payment_status', 'paid')
+                    ->orWhere(function ($q2) {
+                        $q2->where('bookings.payment_status', 'pending')
+                            ->where('bookings.expired_at', '>', now());
+                    });
+            })
+            ->pluck('booking_seats.seat_id')
+            ->toArray();
+
+        return view('pages.schedules.show', compact('schedule', 'bookedSeatIds'));
     }
 }
