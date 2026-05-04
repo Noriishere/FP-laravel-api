@@ -51,7 +51,6 @@
                         {{ $i }}
                     </div>
                 @endfor
-                @endfor
             </div>
 
             <div class="mt-4 flex gap-4 text-xs">
