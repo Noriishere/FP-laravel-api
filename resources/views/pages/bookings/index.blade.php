@@ -62,8 +62,8 @@
 
                         {{-- STATUS --}}
                         <td class="py-3">
-                            @if ($booking->status == 'confirmed')
-                                <span class="text-green-600 text-xs">● Confirmed</span>
+                            @if ($booking->status == 'paid')
+                                <span class="text-green-600 text-xs">● Paid</span>
                             @elseif($booking->status == 'pending')
                                 <span class="text-yellow-600 text-xs">● Pending</span>
                             @else
