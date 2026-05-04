@@ -63,12 +63,12 @@
                                 Titik Tujuan (Destination)
                             </span>
                         </label>
-                        <div class="relative">
-                            <input type="text" name="destination_name" id="destination_name" ...>
-
-                            <div id="destination_suggestions"
-                                class="absolute z-50 bg-white border w-full mt-1 rounded shadow hidden"></div>
-                        </div>
+                        <input type="text" name="destination_name" id="destination_name"
+                            value="{{ old('destination_name') }}" placeholder="Klik peta atau ketik nama lokasi..."
+                            class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition @error('destination_name') border-red-400 @enderror"
+                            required>
+                        <div id="destination_suggestions"
+                            class="absolute z-50 bg-white border w-full mt-1 rounded shadow hidden"></div>
                         @error('destination_name')
                             <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                         @enderror
@@ -228,14 +228,15 @@
                     }
                 });
             }
+            setupAutocomplete('origin_name', 'origin_suggestions', 'origin_lat', 'origin_lng');
+            setupAutocomplete('destination_name', 'destination_suggestions', 'destination_lat', 'destination_lng');
             // ── Map init ─────────────────────────────────────────────
             const map = L.map('map').setView([-2.5, 118.0], 5);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors',
                 maxZoom: 19
             }).addTo(map);
-            setupAutocomplete('origin_name', 'origin_suggestions', 'origin_lat', 'origin_lng');
-            setupAutocomplete('destination_name', 'destination_suggestions', 'destination_lat', 'destination_lng');
+
             // ── Custom markers ────────────────────────────────────────
             function createIcon(color) {
                 return L.divIcon({
