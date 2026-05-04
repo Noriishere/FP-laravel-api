@@ -74,16 +74,7 @@ class ScheduleController extends Controller
             'price' => $request->price,
             'status' => 'scheduled'
         ]);
-
-        $vehicle = Vehicle::find($request->vehicle_id);
-
-        for ($i = 1; $i <= $vehicle->capacity; $i++) {
-            \App\Models\Seat::create([
-                'schedule_id' => $schedule->id,
-                'seat_number' => 'A' . $i
-            ]);
-        }
-
+        
         return redirect()->route('schedules.index')
             ->with('success', 'Schedule berhasil dibuat');
     }
