@@ -201,15 +201,31 @@
                                         'p-2 text-sm hover:bg-gray-100 cursor-pointer';
                                     item.textContent = place.display_name;
 
-                                    item.onclick = () => {
-                                        input.value = place.display_name;
-                                        document.getElementById(latId).value = place
-                                            .lat;
-                                        document.getElementById(lngId).value = place
-                                            .lon;
+                                    // item.onclick = () => {
+                                    //     input.value = place.display_name;
+                                    //     document.getElementById(latId).value = place
+                                    //         .lat;
+                                    //     document.getElementById(lngId).value = place
+                                    //         .lon;
 
-                                        // pindahin map
-                                        map.setView([place.lat, place.lon], 13);
+                                    //     // pindahin map
+                                    //     map.setView([place.lat, place.lon], 13);
+
+                                    //     box.classList.add('hidden');
+                                    // };
+                                    item.onclick = () => {
+                                        const lat = parseFloat(place.lat);
+                                        const lng = parseFloat(place.lon);
+
+                                        input.value = place.display_name;
+
+                                        document.getElementById(latId).value = lat;
+                                        document.getElementById(lngId).value = lng;
+
+                                        map.setView([lat, lng], 13);
+
+                                        // 🔥 pakai engine yang sama
+                                        handlePointSelection(lat, lng, 'search');
 
                                         box.classList.add('hidden');
                                     };
@@ -277,52 +293,50 @@
                     });
             }
 
-            // ── Map click ─────────────────────────────────────────────
-            map.on('click', function(e) {
-                const {
-                    lat,
-                    lng
-                } = e.latlng;
+            function handlePointSelection(lat, lng, source = 'map') {
 
                 if (clickCount === 0) {
-                    // Set origin
                     if (originMarker) map.removeLayer(originMarker);
+
                     originMarker = L.marker([lat, lng], {
-                            icon: createIcon('#34d399')
-                        })
-                        .addTo(map).bindPopup('<b>Origin</b>').openPopup();
+                        icon: createIcon('#34d399')
+                    }).addTo(map).bindPopup('<b>Origin</b>').openPopup();
 
                     document.getElementById('origin_lat').value = lat;
                     document.getElementById('origin_lng').value = lng;
-                    originText.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-                    coordPreview.classList.remove('hidden');
-                    coordPreview.classList.add('grid');
 
-                    reverseGeocode(lat, lng, 'origin_name');
+                    if (source === 'map') {
+                        reverseGeocode(lat, lng, 'origin_name');
+                    }
+
                     setStatus('Origin dipilih — pilih destination', 'text-emerald-600');
                     clickCount = 1;
 
                 } else if (clickCount === 1) {
-                    // Set destination
                     if (destinationMarker) map.removeLayer(destinationMarker);
+
                     destinationMarker = L.marker([lat, lng], {
-                            icon: createIcon('#f87171')
-                        })
-                        .addTo(map).bindPopup('<b>Destination</b>').openPopup();
+                        icon: createIcon('#f87171')
+                    }).addTo(map).bindPopup('<b>Destination</b>').openPopup();
 
                     document.getElementById('destination_lat').value = lat;
                     document.getElementById('destination_lng').value = lng;
-                    destText.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
 
-                    reverseGeocode(lat, lng, 'destination_name');
+                    if (source === 'map') {
+                        reverseGeocode(lat, lng, 'destination_name');
+                    }
+
                     setStatus('Kedua titik dipilih ✓', 'text-blue-600');
                     clickCount = 2;
 
-                    // Fit map to both markers
-                    const bounds = L.latLngBounds(originMarker.getLatLng(), destinationMarker.getLatLng());
+                    const bounds = L.latLngBounds(
+                        originMarker.getLatLng(),
+                        destinationMarker.getLatLng()
+                    );
                     map.fitBounds(bounds, {
                         padding: [50, 50]
                     });
+
                 } else {
                     const stopMarker = L.marker([lat, lng]).addTo(map);
                     stopMarkers.push(stopMarker);
@@ -331,8 +345,67 @@
                         lng
                     });
                     renderStops();
+
                     setStatus(`Stop ditambahkan (${stops.length})`, 'text-purple-600');
                 }
+            }
+            // ── Map click ─────────────────────────────────────────────
+            map.on('click', function(e) {
+                handlePointSelection(e.latlng.lat, e.latlng.lng, 'map');
+                // const {
+                //     lat,
+                //     lng
+                // } = e.latlng;
+
+                // if (clickCount === 0) {
+                //     // Set origin
+                //     if (originMarker) map.removeLayer(originMarker);
+                //     originMarker = L.marker([lat, lng], {
+                //             icon: createIcon('#34d399')
+                //         })
+                //         .addTo(map).bindPopup('<b>Origin</b>').openPopup();
+
+                //     document.getElementById('origin_lat').value = lat;
+                //     document.getElementById('origin_lng').value = lng;
+                //     originText.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                //     coordPreview.classList.remove('hidden');
+                //     coordPreview.classList.add('grid');
+
+                //     reverseGeocode(lat, lng, 'origin_name');
+                //     setStatus('Origin dipilih — pilih destination', 'text-emerald-600');
+                //     clickCount = 1;
+
+                // } else if (clickCount === 1) {
+                //     // Set destination
+                //     if (destinationMarker) map.removeLayer(destinationMarker);
+                //     destinationMarker = L.marker([lat, lng], {
+                //             icon: createIcon('#f87171')
+                //         })
+                //         .addTo(map).bindPopup('<b>Destination</b>').openPopup();
+
+                //     document.getElementById('destination_lat').value = lat;
+                //     document.getElementById('destination_lng').value = lng;
+                //     destText.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+
+                //     reverseGeocode(lat, lng, 'destination_name');
+                //     setStatus('Kedua titik dipilih ✓', 'text-blue-600');
+                //     clickCount = 2;
+
+                //     // Fit map to both markers
+                //     const bounds = L.latLngBounds(originMarker.getLatLng(), destinationMarker.getLatLng());
+                //     map.fitBounds(bounds, {
+                //         padding: [50, 50]
+                //     });
+                // } else {
+                //     const stopMarker = L.marker([lat, lng]).addTo(map);
+                //     stopMarkers.push(stopMarker);
+                //     stops.push({
+                //         lat,
+                //         lng
+                //     });
+                //     renderStops();
+                //     setStatus(`Stop ditambahkan (${stops.length})`, 'text-purple-600');
+                // }
             });
 
             // ── Reset button (dbl-click) ───────────────────────────────
