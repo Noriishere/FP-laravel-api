@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\RouteController;
 use App\Http\Controllers\Admin\ScheduleController;
 use App\Http\Controllers\Dashboard\DriverController;
@@ -20,6 +21,7 @@ Route::get('/', function () {
 })->name('landing-pages');
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::resource('/admin/bookings', BookingController::class);
     Route::resource('/admin/routes', RouteController::class);
     Route::resource('/admin/schedules', ScheduleController::class);
     Route::get('/available-drivers', [ScheduleController::class, 'availableDrivers']);
