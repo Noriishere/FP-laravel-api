@@ -71,7 +71,7 @@
                             {{-- AKSI --}}
                             <td class="py-3">
                                 <div class="flex gap-2 items-center">
-                                    <a href="#" class="text-blue-600 text-xs">Detail</a>
+                                    <a href="{{ route('schedules.show', $schedule->id) }}" class="text-blue-600 text-xs">Detail</a>
                                     <a href="#" class="text-yellow-600 text-xs">Edit</a>
 
                                     <form action="{{ route('schedules.destroy', $schedule->id) }}" method="POST"

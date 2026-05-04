@@ -40,13 +40,25 @@ class ScheduleController extends Controller
         $schedule = Schedule::with([
             'route',
             'vehicle',
-            'driver'
+            'driver.user',
+            'seats'
         ])->findOrFail($id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $schedule
-        ]);
+        // ambil seat yang sudah dibooking (PAID + PENDING aktif)
+        $bookedSeatIds = DB::table('booking_seats')
+            ->join('bookings', 'booking_seats.booking_id', '=', 'bookings.id')
+            ->where('bookings.schedule_id', $id)
+            ->where(function ($q) {
+                $q->where('bookings.payment_status', 'paid')
+                    ->orWhere(function ($q2) {
+                        $q2->where('bookings.payment_status', 'pending')
+                            ->where('bookings.expired_at', '>', now());
+                    });
+            })
+            ->pluck('booking_seats.seat_id')
+            ->toArray();
+
+        return view('pages.schedules.show', compact('schedule', 'bookedSeatIds'));
     }
     public function map($id)
     {
