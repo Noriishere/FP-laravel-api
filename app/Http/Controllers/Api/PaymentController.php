@@ -92,24 +92,32 @@ class PaymentController extends Controller
 
         if ($status === 'completed') {
 
-            // ❗ BLOCK kalau sudah cancel
-            if ($booking->payment_status === 'cancelled') {
-                return response()->json([
-                    'message' => 'Booking already cancelled'
-                ]);
-            }
-
             DB::transaction(function () use ($booking, $request) {
+
+                $seatIds = DB::table('booking_seats')
+                    ->where('booking_id', $booking->id)
+                    ->pluck('seat_id');
+
+                // 🔥 cek apakah seat masih available
+                $conflict = DB::table('seats')
+                    ->whereIn('id', $seatIds)
+                    ->where('status', 'booked')
+                    ->exists();
+
+                if ($conflict) {
+                    Log::warning('Seat conflict after payment', [
+                        'booking_id' => $booking->id
+                    ]);
+
+                    // ❗ jangan force paid kalau sudah diambil orang lain
+                    return;
+                }
 
                 $booking->update([
                     'status' => 'paid',
                     'payment_status' => 'paid',
                     'payment_method' => $request->payment_method
                 ]);
-
-                $seatIds = DB::table('booking_seats')
-                    ->where('booking_id', $booking->id)
-                    ->pluck('seat_id');
 
                 DB::table('seats')
                     ->whereIn('id', $seatIds)
