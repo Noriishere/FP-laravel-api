@@ -144,11 +144,10 @@ class ScheduleController extends Controller
         $schedule = Schedule::with([
             'route',
             'vehicle',
-            'driver.user',
-            'seats'
+            'driver.user'
         ])->findOrFail($id);
 
-        // ambil seat yang sudah dibooking (PAID + PENDING aktif)
+        // ambil seat yang sudah dibooking
         $bookedSeatIds = DB::table('booking_seats')
             ->join('bookings', 'booking_seats.booking_id', '=', 'bookings.id')
             ->where('bookings.schedule_id', $id)
