@@ -160,6 +160,6 @@ class ScheduleController extends Controller
             })
             ->pluck('seats.seat_number')
             ->toArray();
-        return view('pages.schedules.show', compact('schedule', 'bookedSeatIds'));
+        return view('pages.schedules.show', compact('schedule', 'bookedSeatNumbers'));
     }
 }
