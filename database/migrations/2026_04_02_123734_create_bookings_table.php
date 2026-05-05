@@ -39,7 +39,8 @@ return new class extends Migration
             $table->string('payment_provider')->nullable();
             $table->string('payment_method')->nullable();
             $table->string('payment_ref')->nullable();
-
+            $table->timestamp('checked_at')->nullable();
+            $table->foreignId('checked_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('expired_at')->nullable();
 
             $table->timestamps(); // 🔥 INI WAJIB

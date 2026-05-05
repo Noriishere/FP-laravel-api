@@ -19,8 +19,18 @@ class Booking extends Model
         'payment_provider',
         'payment_method',
         'payment_ref',
-        'expired_at'
+        'expired_at',
+        'checked_at',
+        'checked_by'
     ];
+    protected $casts = [
+        'expired_at' => 'datetime',
+        'checked_at' => 'datetime',
+    ];
+    public function checkedBy()
+    {
+        return $this->belongsTo(User::class, 'checked_by');
+    }
 
     public function user()
     {

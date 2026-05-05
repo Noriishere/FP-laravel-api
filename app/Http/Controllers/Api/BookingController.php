@@ -101,7 +101,6 @@ class BookingController extends Controller
                 'expired_at' => now()->addMinutes(15)
             ]);
 
-            // 🔥 Insert booking_seats
             foreach ($seatIds as $seatId) {
                 DB::table('booking_seats')->insert([
                     'booking_id' => $booking->id,
@@ -117,5 +116,54 @@ class BookingController extends Controller
                 'total_price' => $booking->total_price
             ]);
         });
+    }
+    public function scan(Request $request)
+    {
+        $user = auth('api')->user();
+        $request->validate([
+            'order_id' => 'required|string'
+        ]);
+
+        $booking = Booking::with(['schedule.route', 'user'])
+            ->where('order_id', $request->order_id)
+            ->first();
+
+        if (!$booking) {
+            return response()->json([
+                'message' => 'Booking not found'
+            ], 404);
+        }
+
+        if ($booking->payment_status === 'pending' && $booking->expired_at < now()) {
+            return response()->json([
+                'message' => 'Booking expired'
+            ], 400);
+        }
+
+        if ($booking->payment_status !== 'paid') {
+            return response()->json([
+                'message' => 'Payment not completed'
+            ], 400);
+        }
+
+        if ($booking->checked_at) {
+            return response()->json([
+                'message' => 'Ticket already used'
+            ], 400);
+        }
+
+        $booking->update([
+            'checked_at' => now(),
+            'checked_by' => $user->id
+        ]);
+
+        return response()->json([
+            'message' => 'Valid ticket',
+            'data' => [
+                'user' => $booking->user->name,
+                'route' => $booking->schedule->route->start . ' - ' . $booking->schedule->route->end,
+                'total_seat' => $booking->total_seat
+            ]
+        ]);
     }
 }

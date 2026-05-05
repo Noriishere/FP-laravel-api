@@ -44,19 +44,17 @@ Route::middleware(['auth:api', 'role:customer'])
         Route::get('/me/bookings', [UserController::class, 'myBookings']);
         Route::get('/schedules/{id}/tracking', [LocationController::class, 'tracking']);
         Route::get('/schedules/{id}/route', [ScheduleController::class, 'map']);
+        Route::get('/vehicles', [VehicleController::class, 'index']);
+        Route::get('/vehicles/{id}', [VehicleController::class, 'show']);
     });
 
 Route::middleware(['auth:api', 'role:driver'])->group(function () {
+    Route::post('/scan-booking', [BookingController::class, 'scan']);
     Route::post('/drivers/create', [DriverController::class, 'create']);
     Route::post('/drivers/{id}/documents', [DriverController::class, 'uploadDocument']);
+    Route::get('/me/schedules', [UserController::class, 'schedules']);
+    Route::post('/location', [LocationController::class, 'update']);
 });
-
-Route::middleware(['auth:api', 'role:driver'])
-    ->prefix('driver')
-    ->group(function () {
-        Route::get('/me/schedules', [UserController::class, 'schedules']);
-        Route::post('/location', [LocationController::class, 'update']);
-    });
 
 Route::middleware(['auth:api'])->group(function () {
 
@@ -65,9 +63,4 @@ Route::middleware(['auth:api'])->group(function () {
     Route::post('/refresh', [AuthController::class, 'refresh']);
 
     Route::post('/bookings', [BookingController::class, 'store']);
-});
-
-Route::middleware(['auth:api', 'role:customer'])->group(function () {
-    Route::get('/vehicles', [VehicleController::class, 'index']);
-    Route::get('/vehicles/{id}', [VehicleController::class, 'show']);
 });
