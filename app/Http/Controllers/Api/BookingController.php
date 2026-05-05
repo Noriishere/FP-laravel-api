@@ -161,7 +161,7 @@ class BookingController extends Controller
             'message' => 'Valid ticket',
             'data' => [
                 'user' => $booking->user->name,
-                'route' => $booking->schedule->route->start . ' - ' . $booking->schedule->route->end,
+                'route' => $booking->schedule->route->origin_name . ' - ' . $booking->schedule->route->destination_name,
                 'total_seat' => $booking->total_seat
             ]
         ]);
