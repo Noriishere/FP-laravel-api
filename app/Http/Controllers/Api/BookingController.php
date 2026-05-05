@@ -148,7 +148,13 @@ class BookingController extends Controller
 
         if ($booking->checked_at) {
             return response()->json([
-                'message' => 'Ticket already used'
+                'message' => 'Ticket already used',
+                'data' => [
+                    'user' => $booking->user->name,
+                    'route' => $booking->schedule->route->origin_name . ' - ' . $booking->schedule->route->destination_name,
+                    'total_seat' => $booking->total_seat,
+                    'seat_numbers' => $booking->seats->pluck('seat_number')
+                ]
             ], 400);
         }
 
@@ -162,7 +168,8 @@ class BookingController extends Controller
             'data' => [
                 'user' => $booking->user->name,
                 'route' => $booking->schedule->route->origin_name . ' - ' . $booking->schedule->route->destination_name,
-                'total_seat' => $booking->total_seat
+                'total_seat' => $booking->total_seat,
+                'seat_numbers' => $booking->seats->pluck('seat_number')
             ]
         ]);
     }
