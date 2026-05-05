@@ -142,6 +142,13 @@ class DatabaseSeeder extends Seeder
             'role' => 'customer',
             'email_verified_at' => now()
         ]);
+        User::create([
+            'name' => 'AsepGacor',
+            'email' => 'asepGacor@gmail.com',
+            'password' => 'admin123',
+            'role' => 'driver',
+            'email_verified_at' => now()
+        ]);
         Driver::factory()->count(3)->create();
         Vehicle::factory()->count(2)->create();
         $routeIds = Route::has('stops')->pluck('id');
