@@ -24,3 +24,5 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 /app/providers/appServiceProvider.php
+/public/.well-known/
+/public/.user.ini
