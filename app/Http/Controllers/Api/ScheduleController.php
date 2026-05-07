@@ -126,12 +126,18 @@ class ScheduleController extends Controller
             );
         }
 
-        // 🔥 FILTER TANGGAL (1 hari)
-        if ($request->date) {
-            $start = Carbon::parse($request->date)->startOfDay();
-            $end = Carbon::parse($request->date)->endOfDay();
+        if ($request->origin_date) {
+            $start = Carbon::parse($request->origin_date)->startOfDay();
+            $end = Carbon::parse($request->origin_date)->endOfDay();
 
             $query->whereBetween('departure_time', [$start, $end]);
+        }
+
+        if ($request->destination_date) {
+            $start = Carbon::parse($request->destination_date)->startOfDay();
+            $end = Carbon::parse($request->destination_date)->endOfDay();
+
+            $query->whereBetween('arrival_time', [$start, $end]);
         }
 
         if ($request->from_date && $request->to_date) {
