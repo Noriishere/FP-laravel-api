@@ -307,7 +307,6 @@
                             <p class="text-sm text-gray-700 truncate">${s.name}</p>
                             <p class="text-xs font-mono text-gray-400 mt-0.5">${Number(s.lat).toFixed(5)}, ${Number(s.lng).toFixed(5)}</p>
 
-                            {{-- Pickup / Dropoff toggles --}}
                             <div class="flex items-center gap-4 mt-2">
                                 <label class="inline-flex items-center gap-1.5 cursor-pointer select-none">
                                     <input type="checkbox" class="pickup-toggle rounded accent-blue-500"
