@@ -39,8 +39,6 @@ class ScheduleFactory extends Factory
             ),
 
             'status' => fake()->randomElement([
-                'scheduled',
-                'on-going',
                 'completed'
             ]),
         ];
