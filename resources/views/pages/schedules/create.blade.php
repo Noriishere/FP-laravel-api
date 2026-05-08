@@ -45,7 +45,7 @@
                         <option value="">— Pilih Route —</option>
                         @foreach ($routes as $route)
                             <option value="{{ $route->id }}" {{ old('route_id') == $route->id ? 'selected' : '' }}>
-                                {{ $route->origin_name }} → {{ $route->destination_name }}
+                                {{ $route->origin?->name }} → {{ $route->destination?->name }}
                                 ({{ $route->distance }} km)
                             </option>
                         @endforeach
