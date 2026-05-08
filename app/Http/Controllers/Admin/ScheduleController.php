@@ -11,7 +11,7 @@ use App\Models\Vehicle;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use App\Models\ScheduleStopTime;
+use App\Models\ScheduleStopTimes as ScheduleStopTime;
 
 class ScheduleController extends Controller
 {

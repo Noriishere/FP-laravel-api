@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ScheduleStopTime extends Model
+class ScheduleStopTimes extends Model
 {
     protected $fillable = [
         'schedule_id',

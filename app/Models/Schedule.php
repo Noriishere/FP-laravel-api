@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Models;
-use App\Models\ScheduleStopTime;
+use App\Models\ScheduleStopTimes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -58,7 +58,7 @@ class Schedule extends Model
 
     public function stopTimes()
     {
-        return $this->hasMany(ScheduleStopTime::class)
+        return $this->hasMany(ScheduleStopTimes::class)
             ->orderBy('stop_order');
     }
 
