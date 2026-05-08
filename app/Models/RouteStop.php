@@ -25,7 +25,7 @@ class RouteStop extends Model
     public function scheduleTimes()
     {
         return $this->hasMany(
-            ScheduleStopTime::class,
+            ScheduleStopTimes::class,
             'route_stop_id'
         );
     }
