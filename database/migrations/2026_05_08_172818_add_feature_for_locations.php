@@ -13,10 +13,6 @@ return new class extends Migration
     {
         Schema::table('locations', function (Blueprint $table) {
 
-            $table->decimal('speed', 8, 2)
-                ->nullable()
-                ->after('longitude');
-
             $table->decimal('heading', 8, 2)
                 ->nullable()
                 ->after('speed');
