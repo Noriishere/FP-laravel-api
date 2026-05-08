@@ -18,9 +18,6 @@ Route::post('/email/resend', [AuthController::class, 'resendVerification']);
 Route::post('/drivers/register', [DriverAuthController::class, 'register']);
 Route::post('/drivers/login', [DriverAuthController::class, 'login']);
 Route::post('/payment/pakasir/webhook', [PaymentController::class, 'webhook']);
-Route::post('/payment/create', [PaymentController::class, 'create']);
-Route::post('/payment/callback', [PaymentController::class, 'callback']);
-Route::post('/payment/cancel', [PaymentController::class, 'cancel']);
 
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
     ->middleware(['signed'])
@@ -41,6 +38,9 @@ Route::get('/schedules/{id}/map', [ScheduleController::class, 'map']);
 
 Route::middleware(['auth:api', 'role:customer'])
     ->group(function () {
+        Route::post('/payment/create', [PaymentController::class, 'create']);
+        Route::post('/payment/callback', [PaymentController::class, 'callback']);
+        Route::post('/payment/cancel', [PaymentController::class, 'cancel']);
         Route::get('/me/bookings', [UserController::class, 'myBookings']);
         Route::get('/schedules/{id}/tracking', [LocationController::class, 'tracking']);
         Route::get('/schedules/{id}/route', [ScheduleController::class, 'map']);
