@@ -34,7 +34,23 @@
                         </ul>
                     </div>
                 @endif
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                        Nama Route
+                    </label>
 
+                    <input type="text" name="name" value="{{ old('name') }}" placeholder="Contoh: Bandung - Jakarta"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm
+        @error('name') border-red-400 @enderror"
+                        required>
+
+                    @error('name')
+                        <p class="mt-1 text-xs text-red-500">
+                            {{ $message }}
+                        </p>
+                    @enderror
+                </div>
+                
                 {{-- Name Inputs --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
                     <div>
@@ -191,7 +207,8 @@
 
                     timeout = setTimeout(() => {
                         fetch(
-                                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1`)
+                                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1`
+                                )
                             .then(res => res.json())
                             .then(data => {
                                 box.innerHTML = '';
@@ -344,7 +361,8 @@
 
                         // Fit ke kedua titik
                         const bounds = L.latLngBounds([stops[0].lat, stops[0].lng], [stops[1].lat, stops[1]
-                            .lng]);
+                            .lng
+                        ]);
                         map.fitBounds(bounds, {
                             padding: [50, 50]
                         });
@@ -437,7 +455,7 @@
                     <span class="text-xs font-mono opacity-60">${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</span>
                 </div>
                 ${isVia ? `<button type="button" data-index="${i}"
-                        class="remove-stop ml-3 text-xs text-red-400 hover:text-red-600 transition flex-shrink-0">Hapus</button>` : ''}
+                            class="remove-stop ml-3 text-xs text-red-400 hover:text-red-600 transition flex-shrink-0">Hapus</button>` : ''}
             `;
                     stopsList.appendChild(row);
                 });
