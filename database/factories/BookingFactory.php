@@ -12,36 +12,119 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class BookingFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
-        $schedule = Schedule::inRandomOrder()->first();
+        $schedule = Schedule::with([
+            'route.stops'
+        ])
+            ->inRandomOrder()
+            ->first();
 
-        if (!$schedule) {
-            throw new \Exception('No schedule found');
+        if (
+            !$schedule
+            || $schedule->route->stops->count() < 2
+        ) {
+
+            throw new \Exception(
+                'No valid schedule found'
+            );
         }
+
+        $stops = $schedule->route->stops
+            ->sortBy('order')
+            ->values();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Random Segment
+        |--------------------------------------------------------------------------
+        */
+
+        $pickupIndex = rand(
+            0,
+            $stops->count() - 2
+        );
+
+        $dropoffIndex = rand(
+            $pickupIndex + 1,
+            $stops->count() - 1
+        );
+
+        $pickupStop = $stops[$pickupIndex];
+
+        $dropoffStop = $stops[$dropoffIndex];
+
+        /*
+        |--------------------------------------------------------------------------
+        | Seat Count
+        |--------------------------------------------------------------------------
+        */
 
         $totalSeat = rand(1, 3);
 
-        return [
-            'user_id' => User::inRandomOrder()->first()->id,
-            'schedule_id' => $schedule->id,
-            'order_id' => 'INV-' . now()->timestamp . '-' . uniqid(),
-            'total_seat' => $totalSeat,
-            'total_price' => $totalSeat * $schedule->price,
+        /*
+        |--------------------------------------------------------------------------
+        | Segment Pricing
+        |--------------------------------------------------------------------------
+        */
 
-            'status' => 'pending',
-            'payment_status' => 'pending',
+        $segmentDistance =
+            $dropoffStop->order
+            - $pickupStop->order;
+
+        $pricePerSegment =
+            $schedule->price
+            / max(
+                1,
+                $stops->count() - 1
+            );
+
+        $totalPrice =
+            $pricePerSegment
+            * $segmentDistance
+            * $totalSeat;
+
+        return [
+
+            'user_id' => User::inRandomOrder()
+                ->first()
+                ->id,
+
+            'schedule_id' => $schedule->id,
+
+            'pickup_stop_id' => $pickupStop->id,
+
+            'dropoff_stop_id' => $dropoffStop->id,
+
+            'order_id' =>
+                'INV-'
+                . now()->timestamp
+                . '-'
+                . uniqid(),
+
+            'total_seat' => $totalSeat,
+
+            'total_price' => round($totalPrice),
+
+            'status' => fake()->randomElement([
+                'pending',
+                'paid',
+                'completed'
+            ]),
+
+            'payment_status' => fake()->randomElement([
+                'pending',
+                'paid'
+            ]),
 
             'payment_provider' => null,
+
             'payment_method' => null,
+
             'payment_ref' => null,
 
-            'expired_at' => null,
+            'expired_at' => now()
+                ->addMinutes(15),
         ];
     }
 }
