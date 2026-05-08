@@ -8,10 +8,19 @@ class RouteStop extends Model
 {
     protected $fillable = [
         'route_id',
+        'code',
         'name',
+        'address',
         'lat',
         'lng',
-        'order'
+        'order',
+        'is_pickup',
+        'is_dropoff',
+    ];
+
+    protected $casts = [
+        'is_pickup' => 'boolean',
+        'is_dropoff' => 'boolean',
     ];
 
     public function route()

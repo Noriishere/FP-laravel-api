@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 class RouteController extends Controller
 {
@@ -24,111 +25,122 @@ class RouteController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'origin_name' => 'required',
-            'destination_name' => 'required',
-            'origin_lat' => 'required|numeric',
-            'origin_lng' => 'required|numeric',
-            'destination_lat' => 'required|numeric',
-            'destination_lng' => 'required|numeric',
-            'stops' => 'nullable|string'
+            'name' => 'required|string|max:255',
+            'stops' => 'required|string'
         ]);
-        $stopsInput = json_decode($request->stops, true) ?? [];
+
+        $stopsInput = json_decode($request->stops, true);
+
+        if (!$stopsInput || count($stopsInput) < 2) {
+            return back()->withErrors([
+                'stops' => 'Minimal harus memiliki origin dan destination'
+            ]);
+        }
 
         $points = [];
 
-        // origin
-        $points[] = "{$request->origin_lng},{$request->origin_lat}";
-
-        // stops tengah
         foreach ($stopsInput as $stop) {
             $points[] = "{$stop['lng']},{$stop['lat']}";
         }
 
-        // destination
-        $points[] = "{$request->destination_lng},{$request->destination_lat}";
-
-        // jadi string OSRM
         $coordinates = implode(';', $points);
+
         $routeData = $this->generateRoute($coordinates);
 
         $route = Route::create([
-            'origin_name' => $request->origin_name,
-            'destination_name' => $request->destination_name,
-            'origin_lat' => $request->origin_lat,
-            'origin_lng' => $request->origin_lng,
-            'destination_lat' => $request->destination_lat,
-            'destination_lng' => $request->destination_lng,
+            'name' => $request->name,
             'distance' => $routeData['distance'],
             'polyline' => json_encode($routeData['polyline']),
+            'is_active' => true
         ]);
-        $stops = [];
-        $stopsInput = json_decode($request->stops, true) ?? [];
-        // origin
-        $stops[] = [
-            'name' => $request->origin_name,
-            'lat' => $request->origin_lat,
-            'lng' => $request->origin_lng,
-            'order' => 1
-        ];
 
-        // middle stops (dari FE)
+        $stops = [];
+
         foreach ($stopsInput as $index => $stop) {
             $stops[] = [
-                'name' => 'Stop ' . ($index + 1),
+                'code' => strtoupper(Str::random(6)),
+                'name' => $stop['name'],
+                'address' => $stop['address'] ?? null,
                 'lat' => $stop['lat'],
                 'lng' => $stop['lng'],
-                'order' => $index + 2
+                'order' => $index + 1,
+                'is_pickup' => $stop['is_pickup'] ?? true,
+                'is_dropoff' => $stop['is_dropoff'] ?? true,
+                'created_at' => now(),
+                'updated_at' => now(),
             ];
         }
 
-        // destination
-        $stops[] = [
-            'name' => $request->destination_name,
-            'lat' => $request->destination_lat,
-            'lng' => $request->destination_lng,
-            'order' => count($stops) + 1
-        ];
-
         $route->stops()->createMany($stops);
 
-        return redirect()->route('routes.index')
+        return redirect()
+            ->route('routes.index')
             ->with('success', 'Route berhasil dibuat');
     }
 
     public function edit($id)
     {
-        $route = Route::findOrFail($id);
+        $route = Route::with('stops')->findOrFail($id);
 
         return view('pages.routes.edit', compact('route'));
     }
 
     public function update(Request $request, $id)
     {
-        $route = Route::findOrFail($id);
+        $route = Route::with('stops')->findOrFail($id);
 
         $request->validate([
-            'origin_name' => 'required',
-            'destination_name' => 'required',
-            'origin_lat' => 'required|numeric',
-            'origin_lng' => 'required|numeric',
-            'destination_lat' => 'required|numeric',
-            'destination_lng' => 'required|numeric',
+            'name' => 'required|string|max:255',
+            'stops' => 'required|string'
         ]);
+
+        $stopsInput = json_decode($request->stops, true);
+
+        if (!$stopsInput || count($stopsInput) < 2) {
+            return back()->withErrors([
+                'stops' => 'Minimal harus memiliki origin dan destination'
+            ]);
+        }
+
+        $points = [];
+
+        foreach ($stopsInput as $stop) {
+            $points[] = "{$stop['lng']},{$stop['lat']}";
+        }
+
+        $coordinates = implode(';', $points);
 
         $routeData = $this->generateRoute($coordinates);
 
         $route->update([
-            'origin_name' => $request->origin_name,
-            'destination_name' => $request->destination_name,
-            'origin_lat' => $request->origin_lat,
-            'origin_lng' => $request->origin_lng,
-            'destination_lat' => $request->destination_lat,
-            'destination_lng' => $request->destination_lng,
+            'name' => $request->name,
             'distance' => $routeData['distance'],
             'polyline' => json_encode($routeData['polyline']),
         ]);
 
-        return redirect()->route('routes.index')
+        $route->stops()->delete();
+
+        $stops = [];
+
+        foreach ($stopsInput as $index => $stop) {
+            $stops[] = [
+                'code' => strtoupper(Str::random(6)),
+                'name' => $stop['name'],
+                'address' => $stop['address'] ?? null,
+                'lat' => $stop['lat'],
+                'lng' => $stop['lng'],
+                'order' => $index + 1,
+                'is_pickup' => $stop['is_pickup'] ?? true,
+                'is_dropoff' => $stop['is_dropoff'] ?? true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        $route->stops()->createMany($stops);
+
+        return redirect()
+            ->route('routes.index')
             ->with('success', 'Route berhasil diupdate');
     }
 
@@ -138,10 +150,11 @@ class RouteController extends Controller
 
         $route->delete();
 
-        return redirect()->back()->with('success', 'Route berhasil dihapus');
+        return redirect()
+            ->back()
+            ->with('success', 'Route berhasil dihapus');
     }
 
-    // 🔥 HELPER OSRM
     private function generateRoute($coordinates)
     {
         $url = "https://router.project-osrm.org/route/v1/driving/{$coordinates}";

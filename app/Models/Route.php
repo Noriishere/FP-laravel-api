@@ -10,21 +10,34 @@ class Route extends Model
     use HasFactory;
 
     protected $fillable = [
-        'origin_name',
-        'destination_name',
-        'origin_lat',
-        'origin_lng',
-        'destination_lat',
-        'destination_lng',
+        'name',
         'distance',
         'polyline',
+        'is_active',
     ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
     public function stops()
     {
-        return $this->hasMany(RouteStop::class)->orderBy('order');
+        return $this->hasMany(RouteStop::class)
+            ->orderBy('order');
     }
+
     public function schedules()
     {
         return $this->hasMany(Schedule::class);
+    }
+
+    public function getOriginAttribute()
+    {
+        return $this->stops->first();
+    }
+
+    public function getDestinationAttribute()
+    {
+        return $this->stops->last();
     }
 }

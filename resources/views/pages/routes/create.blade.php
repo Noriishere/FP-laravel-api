@@ -174,15 +174,15 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+
+            // ── Autocomplete helper ───────────────────────────────────────────
             function setupAutocomplete(inputId, suggestionId, latId, lngId) {
                 const input = document.getElementById(inputId);
                 const box = document.getElementById(suggestionId);
-
                 let timeout = null;
 
                 input.addEventListener('input', function() {
                     clearTimeout(timeout);
-
                     const query = input.value;
                     if (query.length < 3) {
                         box.classList.add('hidden');
@@ -190,70 +190,76 @@
                     }
 
                     timeout = setTimeout(() => {
-                        fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json`)
+                        fetch(
+                                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1`)
                             .then(res => res.json())
                             .then(data => {
                                 box.innerHTML = '';
-
                                 data.slice(0, 5).forEach(place => {
                                     const item = document.createElement('div');
                                     item.className =
                                         'p-2 text-sm hover:bg-gray-100 cursor-pointer';
                                     item.textContent = place.display_name;
-
-                                    // item.onclick = () => {
-                                    //     input.value = place.display_name;
-                                    //     document.getElementById(latId).value = place
-                                    //         .lat;
-                                    //     document.getElementById(lngId).value = place
-                                    //         .lon;
-
-                                    //     // pindahin map
-                                    //     map.setView([place.lat, place.lon], 13);
-
-                                    //     box.classList.add('hidden');
-                                    // };
                                     item.onclick = () => {
                                         const lat = parseFloat(place.lat);
                                         const lng = parseFloat(place.lon);
-
                                         input.value = place.display_name;
-
                                         document.getElementById(latId).value = lat;
                                         document.getElementById(lngId).value = lng;
-
                                         map.setView([lat, lng], 13);
-
-                                        // 🔥 pakai engine yang sama
-                                        handlePointSelection(lat, lng, 'search');
-
+                                        handlePointSelection(lat, lng, place
+                                            .display_name, 'search');
                                         box.classList.add('hidden');
                                     };
-
                                     box.appendChild(item);
                                 });
-
                                 box.classList.remove('hidden');
                             });
                     }, 400);
                 });
 
                 document.addEventListener('click', (e) => {
-                    if (!box.contains(e.target) && e.target !== input) {
-                        box.classList.add('hidden');
-                    }
+                    if (!box.contains(e.target) && e.target !== input) box.classList.add('hidden');
                 });
             }
-            // ── Map init ─────────────────────────────────────────────
+
+            // ── Map init ──────────────────────────────────────────────────────
             const map = L.map('map').setView([-2.5, 118.0], 5);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors',
                 maxZoom: 19
             }).addTo(map);
+
             setupAutocomplete('origin_name', 'origin_suggestions', 'origin_lat', 'origin_lng');
             setupAutocomplete('destination_name', 'destination_suggestions', 'destination_lat', 'destination_lng');
 
-            // ── Custom markers ────────────────────────────────────────
+            // ── State ─────────────────────────────────────────────────────────
+            /*
+             * stops[] — array of objects yang dikirim ke backend:
+             * {
+             *   name      : string,
+             *   address   : string|null,
+             *   lat       : number,
+             *   lng       : number,
+             *   is_pickup : boolean,
+             *   is_dropoff: boolean
+             * }
+             * Index 0 = origin, index 1 = destination, index 2+ = via-stops
+             */
+            let stops = []; // data stops (sesuai format backend)
+            let stopMarkers = []; // L.Marker untuk setiap stop
+            let routeLayer = null;
+            let clickCount = 0; // 0=belum ada, 1=origin dipilih, 2+=destination + via
+
+            const statusEl = document.getElementById('mapStatus');
+            const stopsInput = document.getElementById('stopsInput'); // hidden input
+
+            // ── Helpers ───────────────────────────────────────────────────────
+            function setStatus(text, color = 'text-gray-400') {
+                statusEl.textContent = text;
+                statusEl.className = `text-xs font-medium bg-gray-100 px-3 py-1 rounded-full ${color}`;
+            }
+
             function createIcon(color) {
                 return L.divIcon({
                     className: '',
@@ -264,167 +270,119 @@
                 });
             }
 
-            let originMarker = null;
-            let destinationMarker = null;
-            let routeLayer = null;
-            let clickCount = 0;
-            let stopMarkers = [];
-            let stops = [];
-            const statusEl = document.getElementById('mapStatus');
-            const coordPreview = document.getElementById('coordPreview');
-            const originText = document.getElementById('originCoordText');
-            const destText = document.getElementById('destCoordText');
-
-            function setStatus(text, color = 'text-gray-400') {
-                statusEl.textContent = text;
-                statusEl.className = `text-xs font-medium bg-gray-100 px-3 py-1 rounded-full ${color}`;
+            // Warna per role: origin=hijau, destination=merah, via=ungu
+            function iconForIndex(index, total) {
+                if (index === 0) return createIcon('#34d399'); // origin
+                if (index === total - 1) return createIcon('#f87171'); // destination
+                return createIcon('#a78bfa'); // via stop
             }
 
-            // ── Reverse geocode ────────────────────────────────────────
-            function reverseGeocode(lat, lng, inputId) {
+            function labelForIndex(index, total) {
+                if (index === 0) return 'Origin';
+                if (index === total - 1) return 'Destination';
+                return `Stop ${index}`;
+            }
+
+            // Rebuild semua marker dari array stops[]
+            function rebuildMarkers() {
+                stopMarkers.forEach(m => map.removeLayer(m));
+                stopMarkers = [];
+
+                stops.forEach((s, i) => {
+                    const marker = L.marker([s.lat, s.lng], {
+                            icon: iconForIndex(i, stops.length)
+                        })
+                        .addTo(map)
+                        .bindPopup(`<b>${labelForIndex(i, stops.length)}</b><br>${s.name}`);
+                    stopMarkers.push(marker);
+                });
+            }
+
+            // Sync hidden input → JSON yang diexpect backend
+            function syncHiddenInput() {
+                stopsInput.value = JSON.stringify(stops);
+            }
+
+            // ── Reverse geocode ───────────────────────────────────────────────
+            function reverseGeocode(lat, lng, callback) {
                 fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
                     .then(r => r.json())
-                    .then(data => {
-                        const name = data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-                        document.getElementById(inputId).value = name;
-                    })
-                    .catch(() => {
-                        document.getElementById(inputId).value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-                    });
+                    .then(data => callback(data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`))
+                    .catch(() => callback(`${lat.toFixed(5)}, ${lng.toFixed(5)}`));
             }
 
-            function handlePointSelection(lat, lng, source = 'map') {
+            // ── Core: tambah / ganti titik ────────────────────────────────────
+            function handlePointSelection(lat, lng, resolvedName = null, source = 'map') {
 
-                if (clickCount === 0) {
-                    if (originMarker) map.removeLayer(originMarker);
+                const addStop = (name) => {
+                    const stop = {
+                        name: name,
+                        address: name, // pakai display_name sebagai address; bisa dioverride
+                        lat: lat,
+                        lng: lng,
+                        is_pickup: true,
+                        is_dropoff: true
+                    };
 
-                    originMarker = L.marker([lat, lng], {
-                        icon: createIcon('#34d399')
-                    }).addTo(map).bindPopup('<b>Origin</b>').openPopup();
+                    if (clickCount === 0) {
+                        // Origin — selalu index 0
+                        stops[0] = stop;
+                        document.getElementById('origin_lat').value = lat;
+                        document.getElementById('origin_lng').value = lng;
+                        document.getElementById('origin_name').value = name;
+                        clickCount = 1;
+                        setStatus('Origin dipilih — pilih destination', 'text-emerald-600');
 
-                    document.getElementById('origin_lat').value = lat;
-                    document.getElementById('origin_lng').value = lng;
+                    } else if (clickCount === 1) {
+                        // Destination — selalu index 1 (atau geser yang lama ke via)
+                        stops[1] = stop;
+                        document.getElementById('destination_lat').value = lat;
+                        document.getElementById('destination_lng').value = lng;
+                        document.getElementById('destination_name').value = name;
+                        clickCount = 2;
+                        setStatus('Kedua titik dipilih ✓ — klik lagi untuk via-stop', 'text-blue-600');
 
-                    if (source === 'map') {
-                        reverseGeocode(lat, lng, 'origin_name');
+                        // Fit ke kedua titik
+                        const bounds = L.latLngBounds([stops[0].lat, stops[0].lng], [stops[1].lat, stops[1]
+                            .lng]);
+                        map.fitBounds(bounds, {
+                            padding: [50, 50]
+                        });
+
+                    } else {
+                        // Via stop — sisipkan sebelum destination (index terakhir)
+                        stops.splice(stops.length - 1, 0, stop);
+                        setStatus(`Via-stop ditambahkan (${stops.length - 2})`, 'text-purple-600');
                     }
 
-                    setStatus('Origin dipilih — pilih destination', 'text-emerald-600');
-                    clickCount = 1;
+                    rebuildMarkers();
+                    syncHiddenInput();
+                    renderStopsList();
+                };
 
-                } else if (clickCount === 1) {
-                    if (destinationMarker) map.removeLayer(destinationMarker);
-
-                    destinationMarker = L.marker([lat, lng], {
-                        icon: createIcon('#f87171')
-                    }).addTo(map).bindPopup('<b>Destination</b>').openPopup();
-
-                    document.getElementById('destination_lat').value = lat;
-                    document.getElementById('destination_lng').value = lng;
-
-                    if (source === 'map') {
-                        reverseGeocode(lat, lng, 'destination_name');
-                    }
-
-                    setStatus('Kedua titik dipilih ✓', 'text-blue-600');
-                    clickCount = 2;
-
-                    const bounds = L.latLngBounds(
-                        originMarker.getLatLng(),
-                        destinationMarker.getLatLng()
-                    );
-                    map.fitBounds(bounds, {
-                        padding: [50, 50]
-                    });
-
+                if (resolvedName) {
+                    addStop(resolvedName);
                 } else {
-                    const stopMarker = L.marker([lat, lng]).addTo(map);
-                    stopMarkers.push(stopMarker);
-                    stops.push({
-                        lat,
-                        lng
-                    });
-                    renderStops();
-
-                    setStatus(`Stop ditambahkan (${stops.length})`, 'text-purple-600');
+                    reverseGeocode(lat, lng, addStop);
                 }
             }
-            // ── Map click ─────────────────────────────────────────────
+
+            // ── Map events ────────────────────────────────────────────────────
             map.on('click', function(e) {
-                handlePointSelection(e.latlng.lat, e.latlng.lng, 'map');
-                // const {
-                //     lat,
-                //     lng
-                // } = e.latlng;
-
-                // if (clickCount === 0) {
-                //     // Set origin
-                //     if (originMarker) map.removeLayer(originMarker);
-                //     originMarker = L.marker([lat, lng], {
-                //             icon: createIcon('#34d399')
-                //         })
-                //         .addTo(map).bindPopup('<b>Origin</b>').openPopup();
-
-                //     document.getElementById('origin_lat').value = lat;
-                //     document.getElementById('origin_lng').value = lng;
-                //     originText.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-                //     coordPreview.classList.remove('hidden');
-                //     coordPreview.classList.add('grid');
-
-                //     reverseGeocode(lat, lng, 'origin_name');
-                //     setStatus('Origin dipilih — pilih destination', 'text-emerald-600');
-                //     clickCount = 1;
-
-                // } else if (clickCount === 1) {
-                //     // Set destination
-                //     if (destinationMarker) map.removeLayer(destinationMarker);
-                //     destinationMarker = L.marker([lat, lng], {
-                //             icon: createIcon('#f87171')
-                //         })
-                //         .addTo(map).bindPopup('<b>Destination</b>').openPopup();
-
-                //     document.getElementById('destination_lat').value = lat;
-                //     document.getElementById('destination_lng').value = lng;
-                //     destText.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-
-                //     reverseGeocode(lat, lng, 'destination_name');
-                //     setStatus('Kedua titik dipilih ✓', 'text-blue-600');
-                //     clickCount = 2;
-
-                //     // Fit map to both markers
-                //     const bounds = L.latLngBounds(originMarker.getLatLng(), destinationMarker.getLatLng());
-                //     map.fitBounds(bounds, {
-                //         padding: [50, 50]
-                //     });
-                // } else {
-                //     const stopMarker = L.marker([lat, lng]).addTo(map);
-                //     stopMarkers.push(stopMarker);
-                //     stops.push({
-                //         lat,
-                //         lng
-                //     });
-                //     renderStops();
-                //     setStatus(`Stop ditambahkan (${stops.length})`, 'text-purple-600');
-                // }
+                handlePointSelection(e.latlng.lat, e.latlng.lng, null, 'map');
             });
 
-            // ── Reset button (dbl-click) ───────────────────────────────
             map.on('dblclick', function() {
-                if (originMarker) {
-                    map.removeLayer(originMarker);
-                    originMarker = null;
-                }
-                if (destinationMarker) {
-                    map.removeLayer(destinationMarker);
-                    destinationMarker = null;
-                }
-                if (stops) {
-                    stopMarkers.forEach(m => map.removeLayer(m));
-                    stopMarkers = [];
-                    stops = [];
-                    clickCount = 0;
-                    renderStops();
-                }
+                resetAll();
+            });
+
+            // ── Reset ─────────────────────────────────────────────────────────
+            function resetAll() {
+                stopMarkers.forEach(m => map.removeLayer(m));
+                stopMarkers = [];
+                stops = [];
+                clickCount = 0;
+
                 if (routeLayer) {
                     map.removeLayer(routeLayer);
                     routeLayer = null;
@@ -437,21 +395,17 @@
                     document.getElementById(id).value = '';
                 });
 
-                coordPreview.classList.add('hidden');
-                coordPreview.classList.remove('grid');
-                originText.textContent = '—';
-                destText.textContent = '—';
-                clickCount = 0;
+                syncHiddenInput();
+                renderStopsList();
                 setStatus('Reset — pilih titik awal', 'text-gray-400');
-            });
-            // ── Render stops list ─────────────────────────────────────
+            }
+
+            // ── Render daftar stops (UI) ──────────────────────────────────────
             const stopsPreview = document.getElementById('stopsPreview');
             const stopsList = document.getElementById('stopsList');
-            const stopsInput = document.getElementById('stopsInput');
 
-            function renderStops() {
+            function renderStopsList() {
                 stopsList.innerHTML = '';
-                stopsInput.value = JSON.stringify(stops);
 
                 if (stops.length === 0) {
                     stopsPreview.classList.add('hidden');
@@ -461,45 +415,61 @@
                 stopsPreview.classList.remove('hidden');
 
                 stops.forEach((s, i) => {
+                    const isOrigin = i === 0;
+                    const isDest = i === stops.length - 1;
+                    const isVia = !isOrigin && !isDest;
+
+                    const label = isOrigin ? 'Origin' : isDest ? 'Destination' : `Via ${i}`;
+                    const color = isOrigin ? 'green' : isDest ? 'red' : 'purple';
+                    const colorMap = {
+                        green: 'text-emerald-600 bg-emerald-50 border-emerald-100',
+                        red: 'text-red-500 bg-red-50 border-red-100',
+                        purple: 'text-purple-600 bg-purple-50 border-purple-100',
+                    };
+
                     const row = document.createElement('div');
                     row.className =
-                        'flex items-center justify-between bg-purple-50 border border-purple-100 rounded-lg px-4 py-2.5';
+                        `flex items-center justify-between border rounded-lg px-4 py-2.5 ${colorMap[color]}`;
                     row.innerHTML = `
-            <div>
-                <span class="text-xs font-semibold text-purple-500 uppercase tracking-wide mr-2">Stop ${i + 1}</span>
-                <span class="text-sm font-mono text-purple-800">${s.lat.toFixed(6)}, ${s.lng.toFixed(6)}</span>
-            </div>
-            <button type="button" data-index="${i}"
-                class="remove-stop text-xs text-red-400 hover:text-red-600 transition ml-3">
-                Hapus
-            </button>
-        `;
+                <div class="flex-1 min-w-0">
+                    <span class="text-xs font-semibold uppercase tracking-wide mr-2">${label}</span>
+                    <span class="text-sm truncate block">${s.name}</span>
+                    <span class="text-xs font-mono opacity-60">${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</span>
+                </div>
+                ${isVia ? `<button type="button" data-index="${i}"
+                        class="remove-stop ml-3 text-xs text-red-400 hover:text-red-600 transition flex-shrink-0">Hapus</button>` : ''}
+            `;
                     stopsList.appendChild(row);
                 });
 
-                // Hapus stop individual
+                // Hapus via-stop individual
                 stopsList.querySelectorAll('.remove-stop').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const idx = parseInt(this.dataset.index);
-                        map.removeLayer(stopMarkers[idx]);
-                        stopMarkers.splice(idx, 1);
                         stops.splice(idx, 1);
-                        renderStops();
-                        setStatus(stops.length > 0 ? `Stop: ${stops.length}` :
-                            'Kedua titik dipilih ✓',
-                            stops.length > 0 ? 'text-purple-600' : 'text-blue-600');
+                        rebuildMarkers();
+                        syncHiddenInput();
+                        renderStopsList();
+                        const viaCount = stops.length - 2;
+                        setStatus(
+                            viaCount > 0 ? `Via-stop: ${viaCount}` : 'Kedua titik dipilih ✓',
+                            viaCount > 0 ? 'text-purple-600' : 'text-blue-600'
+                        );
                     });
                 });
             }
 
-            // Hapus semua stops
+            // ── Clear via-stops button ────────────────────────────────────────
             document.getElementById('clearStopsBtn').addEventListener('click', function() {
-                stopMarkers.forEach(m => map.removeLayer(m));
-                stopMarkers = [];
-                stops = [];
-                renderStops();
+                if (stops.length <= 2) return;
+                // Pertahankan hanya origin (index 0) & destination (index terakhir)
+                stops = [stops[0], stops[stops.length - 1]];
+                rebuildMarkers();
+                syncHiddenInput();
+                renderStopsList();
                 setStatus('Kedua titik dipilih ✓', 'text-blue-600');
             });
+
         });
     </script>
 @endpush

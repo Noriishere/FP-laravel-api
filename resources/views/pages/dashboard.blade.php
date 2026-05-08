@@ -65,8 +65,8 @@
             <div id="map" class="w-full h-64 rounded-lg"></div>
 
             <p class="text-xs text-gray-500 mt-2">
-                {{ $nextSchedule->route->origin_name }} →
-                {{ $nextSchedule->route->destination_name }}
+                {{ $nextSchedule->route->origin?->name }} →
+                {{ $nextSchedule->route->destination?->name }}
             </p>
         @else
             <p class="text-gray-400 text-sm">Tidak ada jadwal</p>
@@ -135,9 +135,9 @@
                         <tr class="border-b">
                             <td class="py-2">{{ $booking->user->name ?? '-' }}</td>
                             <td class="py-2">
-                                {{ $booking->schedule->route->origin_name ?? '-' }}
+                                {{ $booking->schedule->route->origin?->name ?? '-' }}
                                 →
-                                {{ $booking->schedule->route->destination_name ?? '-' }}
+                                {{ $booking->schedule->route->destination?->name ?? '-' }}
                             </td>
                             <td class="py-2">
                                 {{ $booking->created_at->format('d M Y') }}
@@ -228,8 +228,8 @@
         <script>
             document.addEventListener("DOMContentLoaded", function() {
                 const map = L.map('map').setView([
-                    {{ $nextSchedule->route->origin_lat }},
-                    {{ $nextSchedule->route->origin_lng }}
+                    {{ $nextSchedule->route->origin?->lat }},
+                    {{ $nextSchedule->route->origin?->lng }}
                 ], 6);
 
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);

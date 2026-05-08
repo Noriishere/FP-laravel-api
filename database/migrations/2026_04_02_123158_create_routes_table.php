@@ -13,9 +13,15 @@ return new class extends Migration
     {
         Schema::create('routes', function (Blueprint $table) {
             $table->id();
-            $table->string('origin_name');
-            $table->string('destination_name');
+
+            $table->string('name');
+
             $table->decimal('distance', 8, 2)->nullable();
+
+            $table->longText('polyline')->nullable();
+
+            $table->boolean('is_active')->default(true);
+
             $table->timestamps();
         });
     }
