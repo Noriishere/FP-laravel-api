@@ -25,43 +25,82 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        Route::factory()->count(3)->create()->each(function ($route) {
+        Route::factory()
+            ->count(3)
+            ->create()
+            ->each(function ($route) {
 
-            $polyline = json_decode($route->polyline, true);
+                $polyline = json_decode($route->polyline, true);
 
-            if (!$polyline || count($polyline) < 3) return;
+                if (!$polyline || count($polyline) < 3) {
+                    return;
+                }
 
-            $midIndex = floor(count($polyline) / 2);
-            $midPoint = $polyline[$midIndex];
+                $cities = [
+                    [
+                        'name' => 'Jakarta',
+                        'address' => 'Jakarta, Indonesia',
+                        'lat' => -6.200000,
+                        'lng' => 106.816666,
+                    ],
+                    [
+                        'name' => 'Bandung',
+                        'address' => 'Bandung, Jawa Barat, Indonesia',
+                        'lat' => -6.914744,
+                        'lng' => 107.609810,
+                    ],
+                    [
+                        'name' => 'Semarang',
+                        'address' => 'Semarang, Jawa Tengah, Indonesia',
+                        'lat' => -6.966667,
+                        'lng' => 110.416664,
+                    ],
+                    [
+                        'name' => 'Surabaya',
+                        'address' => 'Surabaya, Jawa Timur, Indonesia',
+                        'lat' => -7.257472,
+                        'lng' => 112.752090,
+                    ],
+                    [
+                        'name' => 'Cirebon',
+                        'address' => 'Cirebon, Jawa Barat, Indonesia',
+                        'lat' => -6.732023,
+                        'lng' => 108.552315,
+                    ],
+                    [
+                        'name' => 'Bekasi',
+                        'address' => 'Bekasi, Jawa Barat, Indonesia',
+                        'lat' => -6.234900,
+                        'lng' => 106.989601,
+                    ],
+                ];
 
-            $points = [
-                [
-                    'name' => $route->origin_name,
-                    'lat' => $route->origin_lat,
-                    'lng' => $route->origin_lng,
-                ],
-                [
-                    'name' => 'Stop Tengah',
-                    'lat' => $midPoint[0],
-                    'lng' => $midPoint[1],
-                ],
-                [
-                    'name' => $route->destination_name,
-                    'lat' => $route->destination_lat,
-                    'lng' => $route->destination_lng,
-                ],
-            ];
+                $selectedCities = collect($cities)
+                    ->shuffle()
+                    ->take(rand(3, 5))
+                    ->values();
 
-            foreach ($points as $index => $point) {
-                RouteStop::create([
-                    'route_id' => $route->id,
-                    'name' => $point['name'],
-                    'lat' => $point['lat'],
-                    'lng' => $point['lng'],
-                    'order' => $index
-                ]);
-            }
-        });
+                $stops = [];
+
+                foreach ($selectedCities as $index => $city) {
+
+                    $stops[] = [
+                        'route_id' => $route->id,
+                        'code' => strtoupper(fake()->unique()->bothify('STP###')),
+                        'name' => $city['name'],
+                        'address' => $city['address'],
+                        'lat' => $city['lat'],
+                        'lng' => $city['lng'],
+                        'order' => $index + 1,
+                        'is_pickup' => true,
+                        'is_dropoff' => true,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+
+                RouteStop::insert($stops);
+            });
         User::factory()->count(5)->create();
         $drivers = User::factory()->count(5)->create([
             'role' => 'driver'

@@ -10,36 +10,124 @@ class RouteFactory extends Factory
     public function definition(): array
     {
         $cities = [
-            ['name' => 'Jakarta', 'lat' => -6.200000, 'lng' => 106.816666],
-            ['name' => 'Bandung', 'lat' => -6.914744, 'lng' => 107.609810],
-            ['name' => 'Semarang', 'lat' => -6.966667, 'lng' => 110.416664],
-            ['name' => 'Surabaya', 'lat' => -7.257472, 'lng' => 112.752090],
+            [
+                'name' => 'Jakarta',
+                'address' => 'Jakarta, Indonesia',
+                'lat' => -6.200000,
+                'lng' => 106.816666,
+            ],
+            [
+                'name' => 'Bandung',
+                'address' => 'Bandung, Jawa Barat, Indonesia',
+                'lat' => -6.914744,
+                'lng' => 107.609810,
+            ],
+            [
+                'name' => 'Semarang',
+                'address' => 'Semarang, Jawa Tengah, Indonesia',
+                'lat' => -6.966667,
+                'lng' => 110.416664,
+            ],
+            [
+                'name' => 'Surabaya',
+                'address' => 'Surabaya, Jawa Timur, Indonesia',
+                'lat' => -7.257472,
+                'lng' => 112.752090,
+            ],
+            [
+                'name' => 'Cirebon',
+                'address' => 'Cirebon, Jawa Barat, Indonesia',
+                'lat' => -6.732023,
+                'lng' => 108.552315,
+            ],
+            [
+                'name' => 'Bekasi',
+                'address' => 'Bekasi, Jawa Barat, Indonesia',
+                'lat' => -6.234900,
+                'lng' => 106.989601,
+            ],
         ];
 
-        // 🔥 pilih 3-4 titik (origin + stops + destination)
         $points = collect($cities)
             ->shuffle()
-            ->take(rand(3, 4))
+            ->take(rand(3, 5))
             ->values()
             ->toArray();
 
-        $origin = $points[0];
-        $destination = end($points);
+        $routeName =
+            $points[0]['name'] .
+            ' - ' .
+            $points[count($points) - 1]['name'];
 
         $polyline = $this->generatePolyline($points);
 
         return [
-            'origin_name' => $origin['name'],
-            'origin_lat' => $origin['lat'],
-            'origin_lng' => $origin['lng'],
-
-            'destination_name' => $destination['name'],
-            'destination_lat' => $destination['lat'],
-            'destination_lng' => $destination['lng'],
-
+            'name' => $routeName,
             'distance' => rand(100, 800),
             'polyline' => json_encode($polyline),
+            'is_active' => true,
         ];
+    }
+
+    public function generateStops(): array
+    {
+        $cities = [
+            [
+                'name' => 'Jakarta',
+                'address' => 'Jakarta, Indonesia',
+                'lat' => -6.200000,
+                'lng' => 106.816666,
+            ],
+            [
+                'name' => 'Bandung',
+                'address' => 'Bandung, Jawa Barat, Indonesia',
+                'lat' => -6.914744,
+                'lng' => 107.609810,
+            ],
+            [
+                'name' => 'Semarang',
+                'address' => 'Semarang, Jawa Tengah, Indonesia',
+                'lat' => -6.966667,
+                'lng' => 110.416664,
+            ],
+            [
+                'name' => 'Surabaya',
+                'address' => 'Surabaya, Jawa Timur, Indonesia',
+                'lat' => -7.257472,
+                'lng' => 112.752090,
+            ],
+            [
+                'name' => 'Cirebon',
+                'address' => 'Cirebon, Jawa Barat, Indonesia',
+                'lat' => -6.732023,
+                'lng' => 108.552315,
+            ],
+            [
+                'name' => 'Bekasi',
+                'address' => 'Bekasi, Jawa Barat, Indonesia',
+                'lat' => -6.234900,
+                'lng' => 106.989601,
+            ],
+        ];
+
+        $points = collect($cities)
+            ->shuffle()
+            ->take(rand(3, 5))
+            ->values();
+
+        return $points->map(function ($point, $index) {
+
+            return [
+                'code' => strtoupper(fake()->unique()->bothify('STP###')),
+                'name' => $point['name'],
+                'address' => $point['address'],
+                'lat' => $point['lat'],
+                'lng' => $point['lng'],
+                'order' => $index + 1,
+                'is_pickup' => true,
+                'is_dropoff' => true,
+            ];
+        })->toArray();
     }
 
     private function generatePolyline($points)
@@ -56,18 +144,26 @@ class RouteFactory extends Factory
         ]);
 
         if (!$response->successful()) {
+
             return [
                 [$points[0]['lat'], $points[0]['lng']],
-                [$points[count($points)-1]['lat'], $points[count($points)-1]['lng']]
+                [
+                    $points[count($points) - 1]['lat'],
+                    $points[count($points) - 1]['lng']
+                ]
             ];
         }
 
         $data = $response->json();
 
         if (!isset($data['routes'][0]['geometry']['coordinates'])) {
+
             return [
                 [$points[0]['lat'], $points[0]['lng']],
-                [$points[count($points)-1]['lat'], $points[count($points)-1]['lng']]
+                [
+                    $points[count($points) - 1]['lat'],
+                    $points[count($points) - 1]['lng']
+                ]
             ];
         }
 

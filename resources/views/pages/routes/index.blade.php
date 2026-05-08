@@ -60,8 +60,8 @@
                                 <div class="flex items-center gap-2">
                                     <span class="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0"></span>
                                     <span class="font-medium text-gray-800 truncate max-w-[180px]"
-                                        title="{{ $route->origin_name }}">
-                                        {{ $route->origin_name }}
+                                        title="{{ $route->origin?->name }}">
+                                        {{ $route->origin?->name }}
                                     </span>
                                 </div>
                             </td>
@@ -69,17 +69,17 @@
                                 <div class="flex items-center gap-2">
                                     <span class="w-2 h-2 rounded-full bg-red-400 flex-shrink-0"></span>
                                     <span class="font-medium text-gray-800 truncate max-w-[180px]"
-                                        title="{{ $route->destination_name }}">
-                                        {{ $route->destination_name }}
+                                        title="{{ $route->destination?->name }}">
+                                        {{ $route->destination?->name }}
                                     </span>
                                 </div>
                             </td>
                             <td class="px-5 py-3.5 text-gray-500 font-mono text-xs">
-                                {{ number_format($route->origin_lat, 4) }}, {{ number_format($route->origin_lng, 4) }}
+                                {{ number_format($route->origin?->lat, 4) }}, {{ number_format($route->origin?->lng, 4) }}
                             </td>
                             <td class="px-5 py-3.5 text-gray-500 font-mono text-xs">
-                                {{ number_format($route->destination_lat, 4) }},
-                                {{ number_format($route->destination_lng, 4) }}
+                                {{ number_format($route->destination?->lat, 4) }},
+                                {{ number_format($route->destination?->lng, 4) }}
                             </td>
                             <td class="px-5 py-3.5">
                                 <span
