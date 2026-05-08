@@ -11,22 +11,28 @@ class ScheduleController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Schedule::with(['route', 'vehicle', 'driver']);
+        $query = Schedule::with([
+            'route.stops',
+            'vehicle',
+            'driver.user'
+        ]);
 
         if ($request->origin) {
-            $query->whereHas(
-                'route',
-                fn($q) =>
-                $q->where('origin_name', 'like', '%' . $request->origin . '%')
-            );
+
+            $query->whereHas('route.stops', function ($q) use ($request) {
+
+                $q->where('name', 'like', '%' . $request->origin . '%')
+                    ->where('is_pickup', true);
+            });
         }
 
         if ($request->destination) {
-            $query->whereHas(
-                'route',
-                fn($q) =>
-                $q->where('destination_name', 'like', '%' . $request->destination . '%')
-            );
+
+            $query->whereHas('route.stops', function ($q) use ($request) {
+
+                $q->where('name', 'like', '%' . $request->destination . '%')
+                    ->where('is_dropoff', true);
+            });
         }
 
         return response()->json([
@@ -38,9 +44,9 @@ class ScheduleController extends Controller
     public function show($id)
     {
         $schedule = Schedule::with([
-            'route',
+            'route.stops',
             'vehicle',
-            'driver'
+            'driver.user'
         ])->findOrFail($id);
 
         return response()->json([
@@ -50,25 +56,41 @@ class ScheduleController extends Controller
     }
     public function map($id)
     {
-        $schedule = Schedule::with(['route', 'driver'])
-            ->findOrFail($id);
+        $schedule = Schedule::with([
+            'route.stops',
+            'driver.user'
+        ])->findOrFail($id);
+
+        $origin = $schedule->route->origin;
+        $destination = $schedule->route->destination;
 
         return response()->json([
             'success' => true,
             'data' => [
+
                 'route' => [
+
+                    'name' => $schedule->route->name,
+
                     'origin' => [
-                        'name' => $schedule->route->origin_name,
-                        'lat' => (float) $schedule->route->origin_lat,
-                        'lng' => (float) $schedule->route->origin_lng,
+                        'name' => $origin?->name,
+                        'lat' => (float) $origin?->lat,
+                        'lng' => (float) $origin?->lng,
                     ],
+
                     'destination' => [
-                        'name' => $schedule->route->destination_name,
-                        'lat' => (float) $schedule->route->destination_lat,
-                        'lng' => (float) $schedule->route->destination_lng,
+                        'name' => $destination?->name,
+                        'lat' => (float) $destination?->lat,
+                        'lng' => (float) $destination?->lng,
                     ],
-                    'polyline' => json_decode($schedule->route->polyline),
+
+                    'stops' => $schedule->route->stops,
+
+                    'polyline' => json_decode(
+                        $schedule->route->polyline
+                    ),
                 ],
+
                 'driver' => [
                     'name' => $schedule->driver?->user?->name,
                 ]
@@ -77,27 +99,31 @@ class ScheduleController extends Controller
     }
     public function sorted(Request $request)
     {
-        $query = Schedule::with(['route', 'vehicle', 'driver']);
+        $query = Schedule::with([
+            'route.stops',
+            'vehicle',
+            'driver.user'
+        ]);
 
-        // optional filter (biar tetep bisa dipakai kayak index)
         if ($request->origin) {
-            $query->whereHas(
-                'route',
-                fn($q) =>
-                $q->where('origin_name', 'like', '%' . $request->origin . '%')
-            );
+
+            $query->whereHas('route.stops', function ($q) use ($request) {
+
+                $q->where('name', 'like', '%' . $request->origin . '%')
+                    ->where('is_pickup', true);
+            });
         }
 
         if ($request->destination) {
-            $query->whereHas(
-                'route',
-                fn($q) =>
-                $q->where('destination_name', 'like', '%' . $request->destination . '%')
-            );
+
+            $query->whereHas('route.stops', function ($q) use ($request) {
+
+                $q->where('name', 'like', '%' . $request->destination . '%')
+                    ->where('is_dropoff', true);
+            });
         }
 
-        // sorting
-        $direction = $request->get('direction', 'asc'); // asc / desc
+        $direction = $request->get('direction', 'asc');
 
         $query->orderBy('departure_time', $direction);
 
@@ -108,43 +134,70 @@ class ScheduleController extends Controller
     }
     public function sortedByDay(Request $request)
     {
-        $query = Schedule::with(['route', 'vehicle', 'driver']);
+        $query = Schedule::with([
+            'route.stops',
+            'vehicle',
+            'driver.user'
+        ]);
 
         if ($request->origin) {
-            $query->whereHas(
-                'route',
-                fn($q) =>
-                $q->where('origin_name', 'like', '%' . $request->origin . '%')
-            );
+
+            $query->whereHas('route.stops', function ($q) use ($request) {
+
+                $q->where('name', 'like', '%' . $request->origin . '%')
+                    ->where('is_pickup', true);
+            });
         }
 
         if ($request->destination) {
-            $query->whereHas(
-                'route',
-                fn($q) =>
-                $q->where('destination_name', 'like', '%' . $request->destination . '%')
-            );
+
+            $query->whereHas('route.stops', function ($q) use ($request) {
+
+                $q->where('name', 'like', '%' . $request->destination . '%')
+                    ->where('is_dropoff', true);
+            });
         }
 
         if ($request->origin_date) {
-            $start = Carbon::parse($request->origin_date)->startOfDay();
-            $end = Carbon::parse($request->origin_date)->endOfDay();
 
-            $query->whereBetween('departure_time', [$start, $end]);
+            $start = Carbon::parse($request->origin_date)
+                ->startOfDay();
+
+            $end = Carbon::parse($request->origin_date)
+                ->endOfDay();
+
+            $query->whereBetween(
+                'departure_time',
+                [$start, $end]
+            );
         }
 
         if ($request->destination_date) {
-            $start = Carbon::parse($request->destination_date)->startOfDay();
-            $end = Carbon::parse($request->destination_date)->endOfDay();
 
-            $query->whereBetween('arrival_time', [$start, $end]);
+            $start = Carbon::parse($request->destination_date)
+                ->startOfDay();
+
+            $end = Carbon::parse($request->destination_date)
+                ->endOfDay();
+
+            $query->whereBetween(
+                'arrival_time',
+                [$start, $end]
+            );
         }
 
         if ($request->from_date && $request->to_date) {
-            $start = Carbon::parse($request->from_date)->startOfDay();
-            $end = Carbon::parse($request->to_date)->endOfDay();
 
-            $query->whereBetween('departure_time', [$start, $end]);
+            $start = Carbon::parse($request->from_date)
+                ->startOfDay();
+
+            $end = Carbon::parse($request->to_date)
+                ->endOfDay();
+
+            $query->whereBetween(
+                'departure_time',
+                [$start, $end]
+            );
         }
 
         $direction = $request->get('direction', 'asc');

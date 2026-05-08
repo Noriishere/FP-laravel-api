@@ -21,7 +21,14 @@ class RouteController extends Controller
     {
         return view('pages.routes.create');
     }
+    public function show($id)
+    {
+        $route = Route::with([
+            'stops'
+        ])->findOrFail($id);
 
+        return view('pages.routes.show', compact('route'));
+    }
     public function store(Request $request)
     {
         $request->validate([

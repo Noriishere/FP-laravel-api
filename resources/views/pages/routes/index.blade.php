@@ -93,6 +93,10 @@
                                 </span>
                             </td>
                             <td class="px-5 py-3.5 text-right">
+                                <a href="{{ route('routes.show', $route->id) }}"
+                                    class="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition">
+                                    Detail
+                                </a>
                                 <div class="inline-flex items-center gap-1">
                                     <a href="{{ route('routes.edit', $route->id) }}"
                                         class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-600 hover:text-primary bg-gray-100 hover:bg-primary/10 px-3 py-1.5 rounded-lg transition">
