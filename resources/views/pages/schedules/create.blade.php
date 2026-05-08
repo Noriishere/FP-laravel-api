@@ -209,7 +209,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const arrivalPreview = document.getElementById('arrivalPreview');
     const arrivalTimeEl  = document.getElementById('arrivalTime');
 
-    // Nilai old() di-pass lewat @json agar aman (tidak raw echo di dalam JS)
     const oldDriverId  = @json(old('driver_id'));
     const oldVehicleId = @json(old('vehicle_id'));
 
