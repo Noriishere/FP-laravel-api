@@ -12,9 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('locations', function (Blueprint $table) {
-            $table->decimal('speed', 5, 2)->nullable()->after('longitude');
-            $table->decimal('heading', 5, 2)->nullable()->after('speed');
-
             $table->index(['schedule_id', 'recorded_at']);
         });
     }
