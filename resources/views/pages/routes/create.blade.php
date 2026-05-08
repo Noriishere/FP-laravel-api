@@ -34,24 +34,19 @@
                         </ul>
                     </div>
                 @endif
+
+                {{-- Route Name --}}
                 <div class="mb-5">
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                        Nama Route
-                    </label>
-
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Nama Route</label>
                     <input type="text" name="name" value="{{ old('name') }}" placeholder="Contoh: Bandung - Jakarta"
-                        class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm
-        @error('name') border-red-400 @enderror"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition @error('name') border-red-400 @enderror"
                         required>
-
                     @error('name')
-                        <p class="mt-1 text-xs text-red-500">
-                            {{ $message }}
-                        </p>
+                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
-                
-                {{-- Name Inputs --}}
+
+                {{-- Origin & Destination Search --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">
@@ -61,16 +56,12 @@
                             </span>
                         </label>
                         <div class="relative">
-                            <input type="text" name="origin_name" id="origin_name" value="{{ old('origin_name') }}"
-                                placeholder="Klik peta atau ketik nama lokasi..."
-                                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm">
-
+                            <input type="text" id="origin_name" placeholder="Klik peta atau ketik nama lokasi..."
+                                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 transition">
                             <div id="origin_suggestions"
-                                class="absolute z-50 bg-white border w-full mt-1 rounded shadow hidden"></div>
+                                class="absolute z-50 bg-white border border-gray-200 w-full mt-1 rounded-lg shadow-lg hidden max-h-52 overflow-y-auto">
+                            </div>
                         </div>
-                        @error('origin_name')
-                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                        @enderror
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">
@@ -79,30 +70,28 @@
                                 Titik Tujuan (Destination)
                             </span>
                         </label>
-                        <input type="text" name="destination_name" id="destination_name"
-                            value="{{ old('destination_name') }}" placeholder="Klik peta atau ketik nama lokasi..."
-                            class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition @error('destination_name') border-red-400 @enderror"
-                            required>
-                        <div id="destination_suggestions"
-                            class="absolute z-50 bg-white border w-full mt-1 rounded shadow hidden"></div>
-                        @error('destination_name')
-                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                        @enderror
+                        <div class="relative">
+                            <input type="text" id="destination_name" placeholder="Klik peta atau ketik nama lokasi..."
+                                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-400 transition">
+                            <div id="destination_suggestions"
+                                class="absolute z-50 bg-white border border-gray-200 w-full mt-1 rounded-lg shadow-lg hidden max-h-52 overflow-y-auto">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 {{-- Hidden Coordinate Fields --}}
-                <input type="hidden" name="origin_lat" id="origin_lat" value="{{ old('origin_lat') }}">
-                <input type="hidden" name="origin_lng" id="origin_lng" value="{{ old('origin_lng') }}">
-                <input type="hidden" name="destination_lat" id="destination_lat" value="{{ old('destination_lat') }}">
-                <input type="hidden" name="destination_lng" id="destination_lng" value="{{ old('destination_lng') }}">
+                <input type="hidden" id="origin_lat">
+                <input type="hidden" id="origin_lng">
+                <input type="hidden" id="destination_lat">
+                <input type="hidden" id="destination_lng">
 
-                {{-- Map Status Badge --}}
+                {{-- Map Status --}}
                 <div class="flex items-center justify-between mb-2">
                     <p class="text-xs text-gray-500">
-                        Klik pertama: <span class="text-emerald-600 font-medium">Origin</span> &nbsp;•&nbsp;
-                        Klik kedua: <span class="text-red-500 font-medium">Destination</span> &nbsp;•&nbsp;
-                        Klik berikutnya: <span class="text-purple-500 font-medium">Tambah Stop</span> &nbsp;•&nbsp;
+                        Klik 1×: <span class="text-emerald-600 font-medium">Origin</span> &nbsp;•&nbsp;
+                        Klik 2×: <span class="text-red-500 font-medium">Destination</span> &nbsp;•&nbsp;
+                        Klik 3×+: <span class="text-purple-500 font-medium">Via Stop</span> &nbsp;•&nbsp;
                         Double-click: <span class="text-gray-500 font-medium">Reset</span>
                     </p>
                     <div id="mapStatus" class="text-xs font-medium text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
@@ -114,33 +103,38 @@
                 <div id="map" class="w-full h-[420px] rounded-xl overflow-hidden border border-gray-200 mb-4 z-0">
                 </div>
 
-                {{-- Coordinate Preview --}}
-                <div id="coordPreview" class="hidden grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
-                    <div class="bg-emerald-50 border border-emerald-100 rounded-lg px-4 py-3">
-                        <p class="text-xs font-semibold text-emerald-600 mb-1 uppercase tracking-wide">Origin</p>
-                        <p id="originCoordText" class="text-sm font-mono text-emerald-800">—</p>
-                    </div>
-                    <div class="bg-red-50 border border-red-100 rounded-lg px-4 py-3">
-                        <p class="text-xs font-semibold text-red-500 mb-1 uppercase tracking-wide">Destination</p>
-                        <p id="destCoordText" class="text-sm font-mono text-red-700">—</p>
-                    </div>
+                {{-- Client-side validation error --}}
+                <div id="clientError" class="hidden mb-4 bg-red-50 border border-red-200 rounded-xl p-4">
+                    <p id="clientErrorMsg" class="text-sm text-red-600"></p>
                 </div>
-                {{-- Stops Preview --}}
+
+                {{-- Stops List (origin + via + destination) --}}
                 <div id="stopsPreview" class="hidden mb-5">
                     <div class="flex items-center justify-between mb-2">
-                        <p class="text-xs font-semibold text-purple-600 uppercase tracking-wide">
-                            Stops Tambahan
-                        </p>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Daftar Stop</p>
                         <button type="button" id="clearStopsBtn"
-                            class="text-xs text-red-400 hover:text-red-600 transition">
-                            Hapus semua stop
+                            class="text-xs text-red-400 hover:text-red-600 transition hidden">
+                            Hapus semua via-stop
                         </button>
                     </div>
+
+                    {{-- Legend --}}
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <span class="text-xs text-gray-400">Toggle per stop:</span>
+                        <span class="inline-flex items-center gap-1 text-xs text-blue-500">
+                            <span class="w-2 h-2 rounded-sm bg-blue-400 inline-block"></span> Pickup
+                        </span>
+                        <span class="inline-flex items-center gap-1 text-xs text-orange-500">
+                            <span class="w-2 h-2 rounded-sm bg-orange-400 inline-block"></span> Dropoff
+                        </span>
+                    </div>
+
                     <div id="stopsList" class="space-y-2"></div>
                 </div>
 
                 {{-- Hidden stops JSON --}}
                 <input type="hidden" name="stops" id="stopsInput" value="[]">
+
                 {{-- Submit --}}
                 <div class="flex items-center gap-3">
                     <button type="submit" id="submitBtn"
@@ -165,25 +159,6 @@
 
 @push('styles')
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        .leaflet-container {
-            font-family: inherit;
-        }
-
-        .origin-icon {
-            background: #34d399;
-            border: 3px solid white;
-            border-radius: 50%;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, .2);
-        }
-
-        .dest-icon {
-            background: #f87171;
-            border: 3px solid white;
-            border-radius: 50%;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, .2);
-        }
-    </style>
 @endpush
 
 @push('scripts')
@@ -191,150 +166,270 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
 
-            // ── Autocomplete helper ───────────────────────────────────────────
-            function setupAutocomplete(inputId, suggestionId, latId, lngId) {
-                const input = document.getElementById(inputId);
-                const box = document.getElementById(suggestionId);
-                let timeout = null;
+            // ─────────────────────────────────────────────────────────────────
+            // STATE
+            // stops[] = array of:
+            // { name, address, lat, lng, is_pickup, is_dropoff }
+            // index 0      = origin
+            // index last   = destination
+            // index 1..n-1 = via stops (inserted before destination)
+            // ─────────────────────────────────────────────────────────────────
+            let stops = [];
+            let stopMarkers = [];
+            let routeLayer = null;
+            let clickCount = 0; // 0=none, 1=origin set, 2+=both set
 
-                input.addEventListener('input', function() {
-                    clearTimeout(timeout);
-                    const query = input.value;
-                    if (query.length < 3) {
-                        box.classList.add('hidden');
-                        return;
-                    }
-
-                    timeout = setTimeout(() => {
-                        fetch(
-                                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1`
-                                )
-                            .then(res => res.json())
-                            .then(data => {
-                                box.innerHTML = '';
-                                data.slice(0, 5).forEach(place => {
-                                    const item = document.createElement('div');
-                                    item.className =
-                                        'p-2 text-sm hover:bg-gray-100 cursor-pointer';
-                                    item.textContent = place.display_name;
-                                    item.onclick = () => {
-                                        const lat = parseFloat(place.lat);
-                                        const lng = parseFloat(place.lon);
-                                        input.value = place.display_name;
-                                        document.getElementById(latId).value = lat;
-                                        document.getElementById(lngId).value = lng;
-                                        map.setView([lat, lng], 13);
-                                        handlePointSelection(lat, lng, place
-                                            .display_name, 'search');
-                                        box.classList.add('hidden');
-                                    };
-                                    box.appendChild(item);
-                                });
-                                box.classList.remove('hidden');
-                            });
-                    }, 400);
-                });
-
-                document.addEventListener('click', (e) => {
-                    if (!box.contains(e.target) && e.target !== input) box.classList.add('hidden');
-                });
-            }
-
-            // ── Map init ──────────────────────────────────────────────────────
+            // ─────────────────────────────────────────────────────────────────
+            // MAP INIT
+            // ─────────────────────────────────────────────────────────────────
             const map = L.map('map').setView([-2.5, 118.0], 5);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors',
                 maxZoom: 19
             }).addTo(map);
 
-            setupAutocomplete('origin_name', 'origin_suggestions', 'origin_lat', 'origin_lng');
-            setupAutocomplete('destination_name', 'destination_suggestions', 'destination_lat', 'destination_lng');
-
-            // ── State ─────────────────────────────────────────────────────────
-            /*
-             * stops[] — array of objects yang dikirim ke backend:
-             * {
-             *   name      : string,
-             *   address   : string|null,
-             *   lat       : number,
-             *   lng       : number,
-             *   is_pickup : boolean,
-             *   is_dropoff: boolean
-             * }
-             * Index 0 = origin, index 1 = destination, index 2+ = via-stops
-             */
-            let stops = []; // data stops (sesuai format backend)
-            let stopMarkers = []; // L.Marker untuk setiap stop
-            let routeLayer = null;
-            let clickCount = 0; // 0=belum ada, 1=origin dipilih, 2+=destination + via
-
+            // ─────────────────────────────────────────────────────────────────
+            // HELPERS
+            // ─────────────────────────────────────────────────────────────────
             const statusEl = document.getElementById('mapStatus');
-            const stopsInput = document.getElementById('stopsInput'); // hidden input
+            const stopsInput = document.getElementById('stopsInput');
+            const stopsPreview = document.getElementById('stopsPreview');
+            const stopsList = document.getElementById('stopsList');
+            const clearBtn = document.getElementById('clearStopsBtn');
+            const clientError = document.getElementById('clientError');
+            const clientErrorMsg = document.getElementById('clientErrorMsg');
 
-            // ── Helpers ───────────────────────────────────────────────────────
             function setStatus(text, color = 'text-gray-400') {
                 statusEl.textContent = text;
                 statusEl.className = `text-xs font-medium bg-gray-100 px-3 py-1 rounded-full ${color}`;
             }
 
+            function showError(msg) {
+                clientErrorMsg.textContent = msg;
+                clientError.classList.remove('hidden');
+            }
+
+            function hideError() {
+                clientError.classList.add('hidden');
+            }
+
             function createIcon(color) {
                 return L.divIcon({
                     className: '',
-                    html: `<div style="width:16px;height:16px;background:${color};border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.25);"></div>`,
+                    html: `<div style="width:16px;height:16px;background:${color};border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.3);"></div>`,
                     iconSize: [16, 16],
                     iconAnchor: [8, 8],
                     popupAnchor: [0, -12]
                 });
             }
 
-            // Warna per role: origin=hijau, destination=merah, via=ungu
-            function iconForIndex(index, total) {
-                if (index === 0) return createIcon('#34d399'); // origin
-                if (index === total - 1) return createIcon('#f87171'); // destination
-                return createIcon('#a78bfa'); // via stop
+            function iconForIndex(i, total) {
+                if (i === 0) return createIcon('#34d399'); // origin  — green
+                if (i === total - 1) return createIcon('#f87171'); // dest    — red
+                return createIcon('#a78bfa'); // via     — purple
             }
 
-            function labelForIndex(index, total) {
-                if (index === 0) return 'Origin';
-                if (index === total - 1) return 'Destination';
-                return `Stop ${index}`;
+            function labelForIndex(i, total) {
+                if (i === 0) return 'Origin';
+                if (i === total - 1) return 'Destination';
+                return `Via Stop ${i}`;
             }
 
-            // Rebuild semua marker dari array stops[]
-            function rebuildMarkers() {
-                stopMarkers.forEach(m => map.removeLayer(m));
-                stopMarkers = [];
-
-                stops.forEach((s, i) => {
-                    const marker = L.marker([s.lat, s.lng], {
-                            icon: iconForIndex(i, stops.length)
-                        })
-                        .addTo(map)
-                        .bindPopup(`<b>${labelForIndex(i, stops.length)}</b><br>${s.name}`);
-                    stopMarkers.push(marker);
-                });
-            }
-
-            // Sync hidden input → JSON yang diexpect backend
+            // ─────────────────────────────────────────────────────────────────
+            // SYNC
+            // ─────────────────────────────────────────────────────────────────
             function syncHiddenInput() {
                 stopsInput.value = JSON.stringify(stops);
             }
 
-            // ── Reverse geocode ───────────────────────────────────────────────
+            function rebuildMarkers() {
+                stopMarkers.forEach(m => map.removeLayer(m));
+                stopMarkers = [];
+                stops.forEach((s, i) => {
+                    const m = L.marker([s.lat, s.lng], {
+                            icon: iconForIndex(i, stops.length)
+                        })
+                        .addTo(map)
+                        .bindPopup(
+                            `<b>${labelForIndex(i, stops.length)}</b><br><span class="text-xs">${s.name}</span>`
+                            );
+                    stopMarkers.push(m);
+                });
+            }
+
+            // ─────────────────────────────────────────────────────────────────
+            // RENDER STOPS LIST UI
+            // ─────────────────────────────────────────────────────────────────
+            function renderStopsList() {
+                stopsList.innerHTML = '';
+
+                if (stops.length === 0) {
+                    stopsPreview.classList.add('hidden');
+                    clearBtn.classList.add('hidden');
+                    return;
+                }
+
+                stopsPreview.classList.remove('hidden');
+
+                // Show "clear via" only if there's at least 1 via stop
+                const hasVia = stops.length > 2;
+                clearBtn.classList.toggle('hidden', !hasVia);
+
+                stops.forEach((s, i) => {
+                    const isOrigin = i === 0;
+                    const isDest = i === stops.length - 1 && stops.length > 1;
+                    const isVia = !isOrigin && !isDest;
+
+                    const label = labelForIndex(i, stops.length);
+
+                    // Border/badge color
+                    const borderCls = isOrigin ? 'border-emerald-200 bg-emerald-50' :
+                        isDest ? 'border-red-200 bg-red-50' :
+                        'border-purple-200 bg-purple-50';
+                    const badgeCls = isOrigin ? 'text-emerald-700 bg-emerald-100' :
+                        isDest ? 'text-red-600 bg-red-100' :
+                        'text-purple-700 bg-purple-100';
+
+                    const row = document.createElement('div');
+                    row.className = `flex items-start gap-3 border rounded-xl px-4 py-3 ${borderCls}`;
+
+                    // Drag handle icon
+                    row.innerHTML = `
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${badgeCls}">${label}</span>
+                                ${isVia ? `
+                                        <button type="button" data-index="${i}"
+                                            class="remove-stop ml-auto text-xs text-red-400 hover:text-red-600 transition">
+                                            Hapus
+                                        </button>` : ''}
+                            </div>
+                            <p class="text-sm text-gray-700 truncate">${s.name}</p>
+                            <p class="text-xs font-mono text-gray-400 mt-0.5">${Number(s.lat).toFixed(5)}, ${Number(s.lng).toFixed(5)}</p>
+
+                            {{-- Pickup / Dropoff toggles --}}
+                            <div class="flex items-center gap-4 mt-2">
+                                <label class="inline-flex items-center gap-1.5 cursor-pointer select-none">
+                                    <input type="checkbox" class="pickup-toggle rounded accent-blue-500"
+                                        data-index="${i}" ${s.is_pickup ? 'checked' : ''}>
+                                    <span class="text-xs text-blue-600 font-medium">Pickup</span>
+                                </label>
+                                <label class="inline-flex items-center gap-1.5 cursor-pointer select-none">
+                                    <input type="checkbox" class="dropoff-toggle rounded accent-orange-500"
+                                        data-index="${i}" ${s.is_dropoff ? 'checked' : ''}>
+                                    <span class="text-xs text-orange-500 font-medium">Dropoff</span>
+                                </label>
+                            </div>
+                        </div>
+                    `;
+
+                    stopsList.appendChild(row);
+                });
+
+                // ── Pickup toggle ─────────────────────────────────────────────
+                stopsList.querySelectorAll('.pickup-toggle').forEach(cb => {
+                    cb.addEventListener('change', function() {
+                        const idx = parseInt(this.dataset.index);
+                        stops[idx].is_pickup = this.checked;
+                        syncHiddenInput();
+                        validateStops();
+                    });
+                });
+
+                // ── Dropoff toggle ────────────────────────────────────────────
+                stopsList.querySelectorAll('.dropoff-toggle').forEach(cb => {
+                    cb.addEventListener('change', function() {
+                        const idx = parseInt(this.dataset.index);
+                        stops[idx].is_dropoff = this.checked;
+                        syncHiddenInput();
+                        validateStops();
+                    });
+                });
+
+                // ── Remove via stop ───────────────────────────────────────────
+                stopsList.querySelectorAll('.remove-stop').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const idx = parseInt(this.dataset.index);
+                        stops.splice(idx, 1);
+                        rebuildMarkers();
+                        syncHiddenInput();
+                        renderStopsList();
+                        validateStops();
+                        const viaCount = stops.length - 2;
+                        setStatus(
+                            viaCount > 0 ? `Via-stop: ${viaCount}` : 'Kedua titik dipilih ✓',
+                            viaCount > 0 ? 'text-purple-600' : 'text-blue-600'
+                        );
+                    });
+                });
+            }
+
+            // ─────────────────────────────────────────────────────────────────
+            // CLIENT-SIDE VALIDATION (mirrors backend rules)
+            // ─────────────────────────────────────────────────────────────────
+            function validateStops() {
+                hideError();
+
+                if (stops.length < 2) return false;
+
+                // Check pickup exists
+                const hasPickup = stops.some(s => s.is_pickup);
+                const hasDropoff = stops.some(s => s.is_dropoff);
+
+                if (!hasPickup) {
+                    showError('Minimal harus ada satu stop bertipe Pickup.');
+                    return false;
+                }
+
+                if (!hasDropoff) {
+                    showError('Minimal harus ada satu stop bertipe Dropoff.');
+                    return false;
+                }
+
+                // Check duplicate names
+                const names = stops.map(s => s.name.trim().toLowerCase());
+                const hasDuplicate = names.some((n, i) => names.indexOf(n) !== i);
+                if (hasDuplicate) {
+                    showError('Terdapat stop dengan nama yang sama (duplicate). Ubah nama stop terlebih dahulu.');
+                    return false;
+                }
+
+                return true;
+            }
+
+            // ─────────────────────────────────────────────────────────────────
+            // FORM SUBMIT GUARD
+            // ─────────────────────────────────────────────────────────────────
+            document.getElementById('routeForm').addEventListener('submit', function(e) {
+                if (stops.length < 2) {
+                    e.preventDefault();
+                    showError('Pilih minimal origin dan destination di peta.');
+                    return;
+                }
+                if (!validateStops()) {
+                    e.preventDefault();
+                }
+            });
+
+            // ─────────────────────────────────────────────────────────────────
+            // REVERSE GEOCODE
+            // ─────────────────────────────────────────────────────────────────
             function reverseGeocode(lat, lng, callback) {
                 fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
                     .then(r => r.json())
-                    .then(data => callback(data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`))
+                    .then(d => callback(d.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`))
                     .catch(() => callback(`${lat.toFixed(5)}, ${lng.toFixed(5)}`));
             }
 
-            // ── Core: tambah / ganti titik ────────────────────────────────────
-            function handlePointSelection(lat, lng, resolvedName = null, source = 'map') {
+            // ─────────────────────────────────────────────────────────────────
+            // CORE: ADD / REPLACE POINT
+            // ─────────────────────────────────────────────────────────────────
+            function handlePointSelection(lat, lng, resolvedName, source = 'map') {
 
                 const addStop = (name) => {
                     const stop = {
                         name: name,
-                        address: name, // pakai display_name sebagai address; bisa dioverride
+                        address: name, // display_name doubles as address
                         lat: lat,
                         lng: lng,
                         is_pickup: true,
@@ -342,7 +437,7 @@
                     };
 
                     if (clickCount === 0) {
-                        // Origin — selalu index 0
+                        // ── Origin ────────────────────────────────────────────
                         stops[0] = stop;
                         document.getElementById('origin_lat').value = lat;
                         document.getElementById('origin_lng').value = lng;
@@ -351,7 +446,7 @@
                         setStatus('Origin dipilih — pilih destination', 'text-emerald-600');
 
                     } else if (clickCount === 1) {
-                        // Destination — selalu index 1 (atau geser yang lama ke via)
+                        // ── Destination ───────────────────────────────────────
                         stops[1] = stop;
                         document.getElementById('destination_lat').value = lat;
                         document.getElementById('destination_lng').value = lng;
@@ -359,23 +454,25 @@
                         clickCount = 2;
                         setStatus('Kedua titik dipilih ✓ — klik lagi untuk via-stop', 'text-blue-600');
 
-                        // Fit ke kedua titik
-                        const bounds = L.latLngBounds([stops[0].lat, stops[0].lng], [stops[1].lat, stops[1]
-                            .lng
-                        ]);
+                        const bounds = L.latLngBounds(
+                            [stops[0].lat, stops[0].lng],
+                            [stops[1].lat, stops[1].lng]
+                        );
                         map.fitBounds(bounds, {
                             padding: [50, 50]
                         });
 
                     } else {
-                        // Via stop — sisipkan sebelum destination (index terakhir)
+                        // ── Via stop (inserted before destination) ────────────
                         stops.splice(stops.length - 1, 0, stop);
-                        setStatus(`Via-stop ditambahkan (${stops.length - 2})`, 'text-purple-600');
+                        const viaCount = stops.length - 2;
+                        setStatus(`Via-stop ditambahkan (${viaCount})`, 'text-purple-600');
                     }
 
                     rebuildMarkers();
                     syncHiddenInput();
                     renderStopsList();
+                    validateStops();
                 };
 
                 if (resolvedName) {
@@ -385,7 +482,9 @@
                 }
             }
 
-            // ── Map events ────────────────────────────────────────────────────
+            // ─────────────────────────────────────────────────────────────────
+            // MAP EVENTS
+            // ─────────────────────────────────────────────────────────────────
             map.on('click', function(e) {
                 handlePointSelection(e.latlng.lat, e.latlng.lng, null, 'map');
             });
@@ -394,13 +493,14 @@
                 resetAll();
             });
 
-            // ── Reset ─────────────────────────────────────────────────────────
+            // ─────────────────────────────────────────────────────────────────
+            // RESET
+            // ─────────────────────────────────────────────────────────────────
             function resetAll() {
                 stopMarkers.forEach(m => map.removeLayer(m));
                 stopMarkers = [];
                 stops = [];
                 clickCount = 0;
-
                 if (routeLayer) {
                     map.removeLayer(routeLayer);
                     routeLayer = null;
@@ -415,78 +515,132 @@
 
                 syncHiddenInput();
                 renderStopsList();
+                hideError();
                 setStatus('Reset — pilih titik awal', 'text-gray-400');
             }
 
-            // ── Render daftar stops (UI) ──────────────────────────────────────
-            const stopsPreview = document.getElementById('stopsPreview');
-            const stopsList = document.getElementById('stopsList');
-
-            function renderStopsList() {
-                stopsList.innerHTML = '';
-
-                if (stops.length === 0) {
-                    stopsPreview.classList.add('hidden');
-                    return;
-                }
-
-                stopsPreview.classList.remove('hidden');
-
-                stops.forEach((s, i) => {
-                    const isOrigin = i === 0;
-                    const isDest = i === stops.length - 1;
-                    const isVia = !isOrigin && !isDest;
-
-                    const label = isOrigin ? 'Origin' : isDest ? 'Destination' : `Via ${i}`;
-                    const color = isOrigin ? 'green' : isDest ? 'red' : 'purple';
-                    const colorMap = {
-                        green: 'text-emerald-600 bg-emerald-50 border-emerald-100',
-                        red: 'text-red-500 bg-red-50 border-red-100',
-                        purple: 'text-purple-600 bg-purple-50 border-purple-100',
-                    };
-
-                    const row = document.createElement('div');
-                    row.className =
-                        `flex items-center justify-between border rounded-lg px-4 py-2.5 ${colorMap[color]}`;
-                    row.innerHTML = `
-                <div class="flex-1 min-w-0">
-                    <span class="text-xs font-semibold uppercase tracking-wide mr-2">${label}</span>
-                    <span class="text-sm truncate block">${s.name}</span>
-                    <span class="text-xs font-mono opacity-60">${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</span>
-                </div>
-                ${isVia ? `<button type="button" data-index="${i}"
-                            class="remove-stop ml-3 text-xs text-red-400 hover:text-red-600 transition flex-shrink-0">Hapus</button>` : ''}
-            `;
-                    stopsList.appendChild(row);
-                });
-
-                // Hapus via-stop individual
-                stopsList.querySelectorAll('.remove-stop').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const idx = parseInt(this.dataset.index);
-                        stops.splice(idx, 1);
-                        rebuildMarkers();
-                        syncHiddenInput();
-                        renderStopsList();
-                        const viaCount = stops.length - 2;
-                        setStatus(
-                            viaCount > 0 ? `Via-stop: ${viaCount}` : 'Kedua titik dipilih ✓',
-                            viaCount > 0 ? 'text-purple-600' : 'text-blue-600'
-                        );
-                    });
-                });
-            }
-
-            // ── Clear via-stops button ────────────────────────────────────────
-            document.getElementById('clearStopsBtn').addEventListener('click', function() {
+            // ─────────────────────────────────────────────────────────────────
+            // CLEAR VIA-STOPS BUTTON
+            // ─────────────────────────────────────────────────────────────────
+            clearBtn.addEventListener('click', function() {
                 if (stops.length <= 2) return;
-                // Pertahankan hanya origin (index 0) & destination (index terakhir)
                 stops = [stops[0], stops[stops.length - 1]];
                 rebuildMarkers();
                 syncHiddenInput();
                 renderStopsList();
+                validateStops();
                 setStatus('Kedua titik dipilih ✓', 'text-blue-600');
             });
+
+            // ─────────────────────────────────────────────────────────────────
+            // AUTOCOMPLETE
+            // ─────────────────────────────────────────────────────────────────
+            function setupAutocomplete(inputId, suggestionId, latId, lngId) {
+                const input = document.getElementById(inputId);
+                const box = document.getElementById(suggestionId);
+                let timeout = null;
+
+                input.addEventListener('input', function() {
+                    clearTimeout(timeout);
+                    const query = input.value.trim();
+                    if (query.length < 3) {
+                        box.classList.add('hidden');
+                        return;
+                    }
+
+                    timeout = setTimeout(() => {
+                        fetch(
+                                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`)
+                            .then(r => r.json())
+                            .then(data => {
+                                box.innerHTML = '';
+                                if (!data.length) {
+                                    box.classList.add('hidden');
+                                    return;
+                                }
+
+                                data.forEach(place => {
+                                    const item = document.createElement('div');
+                                    item.className =
+                                        'p-2.5 text-sm hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0';
+                                    item.textContent = place.display_name;
+                                    item.onclick = () => {
+                                        const lat = parseFloat(place.lat);
+                                        const lng = parseFloat(place.lon);
+                                        input.value = place.display_name;
+                                        document.getElementById(latId).value = lat;
+                                        document.getElementById(lngId).value = lng;
+                                        map.setView([lat, lng], 13);
+
+                                        // Determine which role this search fills
+                                        if (inputId === 'origin_name' &&
+                                            clickCount === 0) {
+                                            handlePointSelection(lat, lng, place
+                                                .display_name, 'search');
+                                        } else if (inputId === 'destination_name' &&
+                                            clickCount === 1) {
+                                            handlePointSelection(lat, lng, place
+                                                .display_name, 'search');
+                                        } else {
+                                            // Re-set existing origin/destination via search
+                                            if (inputId === 'origin_name') {
+                                                stops[0] = {
+                                                    name: place.display_name,
+                                                    address: place.display_name,
+                                                    lat,
+                                                    lng,
+                                                    is_pickup: stops[0]
+                                                        ?.is_pickup ?? true,
+                                                    is_dropoff: stops[0]
+                                                        ?.is_dropoff ?? true
+                                                };
+                                                rebuildMarkers();
+                                                syncHiddenInput();
+                                                renderStopsList();
+                                                validateStops();
+                                            } else if (inputId ===
+                                                'destination_name') {
+                                                const lastIdx = stops.length - 1;
+                                                if (lastIdx >= 1) {
+                                                    stops[lastIdx] = {
+                                                        name: place
+                                                            .display_name,
+                                                        address: place
+                                                            .display_name,
+                                                        lat,
+                                                        lng,
+                                                        is_pickup: stops[
+                                                                lastIdx]
+                                                            ?.is_pickup ?? true,
+                                                        is_dropoff: stops[
+                                                                lastIdx]
+                                                            ?.is_dropoff ?? true
+                                                    };
+                                                    rebuildMarkers();
+                                                    syncHiddenInput();
+                                                    renderStopsList();
+                                                    validateStops();
+                                                }
+                                            }
+                                        }
+
+                                        box.classList.add('hidden');
+                                    };
+                                    box.appendChild(item);
+                                });
+
+                                box.classList.remove('hidden');
+                            });
+                    }, 400);
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!box.contains(e.target) && e.target !== input) box.classList.add('hidden');
+                });
+            }
+
+            setupAutocomplete('origin_name', 'origin_suggestions', 'origin_lat', 'origin_lng');
+            setupAutocomplete('destination_name', 'destination_suggestions', 'destination_lat', 'destination_lng');
 
         });
     </script>

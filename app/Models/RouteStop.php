@@ -22,7 +22,13 @@ class RouteStop extends Model
         'is_pickup' => 'boolean',
         'is_dropoff' => 'boolean',
     ];
-
+    public function scheduleTimes()
+    {
+        return $this->hasMany(
+            ScheduleStopTime::class,
+            'route_stop_id'
+        );
+    }
     public function route()
     {
         return $this->belongsTo(Route::class);

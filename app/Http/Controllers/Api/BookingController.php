@@ -4,10 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Schedule;
+use App\Models\Seat;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
 {
@@ -15,145 +16,315 @@ class BookingController extends Controller
     {
         $request->validate([
             'schedule_id' => 'required|exists:schedules,id',
+
+            'pickup_stop_id' => 'required|exists:route_stops,id',
+            'dropoff_stop_id' => 'required|exists:route_stops,id',
+
             'seat_ids' => 'required|array|min:1',
             'seat_ids.*' => 'integer'
         ]);
 
-        $schedule = Schedule::findOrFail($request->schedule_id);
+        $schedule = Schedule::with([
+            'route.stops'
+        ])->findOrFail($request->schedule_id);
 
-        // 🔥 Ambil seat berdasarkan seat_number
-        $seats = \App\Models\Seat::where('schedule_id', $request->schedule_id)
+        $pickupStop = $schedule->route->stops
+            ->where('id', $request->pickup_stop_id)
+            ->first();
+
+        $dropoffStop = $schedule->route->stops
+            ->where('id', $request->dropoff_stop_id)
+            ->first();
+
+        if (!$pickupStop || !$dropoffStop) {
+
+            return response()->json([
+                'message' => 'Invalid stop selection'
+            ], 400);
+        }
+
+        if ($pickupStop->order >= $dropoffStop->order) {
+
+            return response()->json([
+                'message' => 'Invalid route segment'
+            ], 400);
+        }
+
+        $seats = Seat::where(
+            'schedule_id',
+            $request->schedule_id
+        )
             ->whereIn('seat_number', $request->seat_ids)
             ->get();
 
-        // ❗ Validasi: semua seat harus valid
         if ($seats->count() !== count($request->seat_ids)) {
+
             return response()->json([
                 'message' => 'Invalid seat selection'
             ], 400);
         }
 
-        // ❗ Duplicate request
-        if (count($request->seat_ids) !== count(array_unique($request->seat_ids))) {
+        if (
+            count($request->seat_ids)
+            !== count(array_unique($request->seat_ids))
+        ) {
+
             return response()->json([
                 'message' => 'Duplicate seat selection'
             ], 400);
         }
 
-        // 🔥 Mapping seat_number → seat_id
-        $seatMap = $seats->pluck('id', 'seat_number');
-        $seatIds = array_values($seatMap->toArray());
+        $seatMap = $seats->pluck(
+            'id',
+            'seat_number'
+        );
 
-        return DB::transaction(function () use ($request, $schedule, $seatIds) {
+        $seatIds = array_values(
+            $seatMap->toArray()
+        );
 
-            // 🔒 Lock seat biar aman race condition
+        return DB::transaction(function () use (
+            $request,
+            $schedule,
+            $seatIds,
+            $pickupStop,
+            $dropoffStop
+        ) {
+
             DB::table('seats')
                 ->whereIn('id', $seatIds)
                 ->lockForUpdate()
                 ->get();
 
-            // 🔥 Cek sudah dibooking
-            $bookedSeats = DB::table('booking_seats')
-                ->join('bookings', 'booking_seats.booking_id', '=', 'bookings.id')
-                ->where('bookings.schedule_id', $request->schedule_id)
-                ->whereIn('booking_seats.seat_id', $seatIds)
+            $existingBookings = Booking::with([
+                'pickupStop',
+                'dropoffStop',
+                'bookingSeats'
+            ])
+                ->where('schedule_id', $request->schedule_id)
                 ->where(function ($q) {
-                    $q->where('bookings.payment_status', 'paid')
+
+                    $q->where('payment_status', 'paid')
                         ->orWhere(function ($q2) {
-                            $q2->where('bookings.payment_status', 'pending')
-                                ->where('bookings.expired_at', '>', now());
+
+                            $q2->where(
+                                'payment_status',
+                                'pending'
+                            )
+                                ->where(
+                                    'expired_at',
+                                    '>',
+                                    now()
+                                );
                         });
                 })
-                ->pluck('booking_seats.seat_id')
-                ->toArray();
+                ->get();
 
-            if (count($bookedSeats) > 0) {
+            $conflictSeats = [];
+
+            foreach ($existingBookings as $booking) {
+
+                $segmentOverlap =
+                    $pickupStop->order
+                    < $booking->dropoffStop->order
+                    &&
+                    $dropoffStop->order
+                    > $booking->pickupStop->order;
+
+                if (!$segmentOverlap) {
+                    continue;
+                }
+
+                $bookedSeatIds = $booking->bookingSeats
+                    ->pluck('seat_id')
+                    ->toArray();
+
+                $intersection = array_intersect(
+                    $seatIds,
+                    $bookedSeatIds
+                );
+
+                if (!empty($intersection)) {
+
+                    $conflictSeats = array_merge(
+                        $conflictSeats,
+                        $intersection
+                    );
+                }
+            }
+
+            if (count($conflictSeats) > 0) {
+
                 return response()->json([
-                    'message' => 'Seat already booked',
-                    'conflict_seats' => $bookedSeats
+                    'message' => 'Seat already booked on this segment',
+                    'conflict_seats' => array_values(
+                        array_unique($conflictSeats)
+                    )
                 ], 409);
             }
 
-            // ❗ Cegah double pending booking
-            $existing = Booking::where('user_id', Auth::id())
-                ->where('schedule_id', $request->schedule_id)
-                ->where('payment_status', 'pending')
-                ->where('expired_at', '>', now())
+            $existing = Booking::where(
+                'user_id',
+                Auth::id()
+            )
+                ->where(
+                    'schedule_id',
+                    $request->schedule_id
+                )
+                ->where(
+                    'payment_status',
+                    'pending'
+                )
+                ->where(
+                    'expired_at',
+                    '>',
+                    now()
+                )
                 ->exists();
 
             if ($existing) {
+
                 return response()->json([
                     'message' => 'You still have unpaid booking for this schedule'
                 ], 400);
             }
 
-            $orderId = 'INV-' . now()->format('YmdHis') . '-' . uniqid();
+            $segmentDistance =
+                $dropoffStop->order
+                - $pickupStop->order;
+
+            $pricePerSegment =
+                $schedule->price
+                / max(
+                    1,
+                    $schedule->route->stops->count() - 1
+                );
+
+            $totalPrice =
+                $pricePerSegment
+                * $segmentDistance
+                * count($seatIds);
+
+            $orderId =
+                'INV-'
+                . now()->format('YmdHis')
+                . '-'
+                . uniqid();
 
             $booking = Booking::create([
                 'user_id' => Auth::id(),
+
                 'schedule_id' => $request->schedule_id,
+
+                'pickup_stop_id' => $pickupStop->id,
+
+                'dropoff_stop_id' => $dropoffStop->id,
+
                 'order_id' => $orderId,
-                'total_seat' => count($request->seat_ids),
-                'total_price' => count($request->seat_ids) * $schedule->price,
+
+                'total_seat' => count($seatIds),
+
+                'total_price' => $totalPrice,
+
                 'status' => 'pending',
+
                 'payment_status' => 'pending',
+
                 'payment_provider' => null,
+
                 'expired_at' => now()->addMinutes(15)
             ]);
 
             foreach ($seatIds as $seatId) {
+
                 DB::table('booking_seats')->insert([
                     'booking_id' => $booking->id,
                     'seat_id' => $seatId,
-                    'schedule_id' => $booking->schedule_id
+                    'schedule_id' => $booking->schedule_id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
 
             return response()->json([
                 'message' => 'Booking created, waiting payment',
+
                 'booking_id' => $booking->id,
+
                 'order_id' => $booking->order_id,
-                'total_price' => $booking->total_price
+
+                'total_price' => $booking->total_price,
+
+                'segment' => [
+                    'pickup' => $pickupStop->name,
+                    'dropoff' => $dropoffStop->name,
+                ]
             ]);
         });
     }
+
     public function scan(Request $request)
     {
         $user = auth('api')->user();
+
         $request->validate([
             'order_id' => 'required|string'
         ]);
 
-        $booking = Booking::with(['schedule.route', 'user'])
+        $booking = Booking::with([
+            'schedule.route.stops',
+            'pickupStop',
+            'dropoffStop',
+            'user',
+            'bookingSeats.seat'
+        ])
             ->where('order_id', $request->order_id)
             ->first();
 
         if (!$booking) {
+
             return response()->json([
                 'message' => 'Booking not found'
             ], 404);
         }
 
-        if ($booking->payment_status === 'pending' && $booking->expired_at < now()) {
+        if (
+            $booking->payment_status === 'pending'
+            &&
+            $booking->expired_at < now()
+        ) {
+
             return response()->json([
                 'message' => 'Booking expired'
             ], 400);
         }
 
         if ($booking->payment_status !== 'paid') {
+
             return response()->json([
                 'message' => 'Payment not completed'
             ], 400);
         }
 
         if ($booking->checked_at) {
+
             return response()->json([
                 'message' => 'Ticket already used',
+
                 'data' => [
+
                     'user' => $booking->user->name,
-                    'route' => $booking->schedule->route->origin_name . ' - ' . $booking->schedule->route->destination_name,
+
+                    'route' =>
+                        $booking->pickupStop?->name
+                        . ' - '
+                        . $booking->dropoffStop?->name,
+
                     'total_seat' => $booking->total_seat,
-                    'seat_numbers' => $booking->seats->pluck('seat_number')
+
+                    'seat_numbers' => $booking
+                        ->bookingSeats
+                        ->pluck('seat.seat_number')
                 ]
             ], 400);
         }
@@ -165,11 +336,21 @@ class BookingController extends Controller
 
         return response()->json([
             'message' => 'Valid ticket',
+
             'data' => [
+
                 'user' => $booking->user->name,
-                'route' => $booking->schedule->route->origin_name . ' - ' . $booking->schedule->route->destination_name,
+
+                'route' =>
+                    $booking->pickupStop?->name
+                    . ' - '
+                    . $booking->dropoffStop?->name,
+
                 'total_seat' => $booking->total_seat,
-                'seat_numbers' => $booking->seats->pluck('seat_number')
+
+                'seat_numbers' => $booking
+                    ->bookingSeats
+                    ->pluck('seat.seat_number')
             ]
         ]);
     }

@@ -35,7 +35,13 @@ return new class extends Migration
                 'expired',
                 'cancelled'
             ])->default('pending');
+            $table->foreignId('pickup_stop_id')
+                ->constrained('route_stops')
+                ->cascadeOnDelete();
 
+            $table->foreignId('dropoff_stop_id')
+                ->constrained('route_stops')
+                ->cascadeOnDelete();
             $table->string('payment_provider')->nullable();
             $table->string('payment_method')->nullable();
             $table->string('payment_ref')->nullable();

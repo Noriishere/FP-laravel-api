@@ -11,33 +11,104 @@ class ScheduleController extends Controller
 {
     public function index(Request $request)
     {
+        $origin = strtolower($request->origin ?? '');
+        $destination = strtolower($request->destination ?? '');
         $query = Schedule::with([
             'route.stops',
             'vehicle',
             'driver.user'
         ]);
 
-        if ($request->origin) {
+        if ($request->origin && $request->destination) {
+
+            $origin = strtolower($request->origin);
+            $destination = strtolower($request->destination);
+
+            $query->whereHas('route', function ($routeQuery) use (
+                $origin,
+                $destination
+            ) {
+
+                $routeQuery
+                    ->whereHas('stops', function ($q) use ($origin) {
+
+                        $q->where(
+                            'name',
+                            'like',
+                            "%{$origin}%"
+                        )->where('is_pickup', true);
+                    })
+                    ->whereHas('stops', function ($q) use ($destination) {
+
+                        $q->where(
+                            'name',
+                            'like',
+                            "%{$destination}%"
+                        )->where('is_dropoff', true);
+                    });
+            });
+        } elseif ($request->origin) {
 
             $query->whereHas('route.stops', function ($q) use ($request) {
 
-                $q->where('name', 'like', '%' . $request->origin . '%')
-                    ->where('is_pickup', true);
+                $q->where(
+                    'name',
+                    'like',
+                    '%' . $request->origin . '%'
+                )->where('is_pickup', true);
+            });
+        } elseif ($request->destination) {
+
+            $query->whereHas('route.stops', function ($q) use ($request) {
+
+                $q->where(
+                    'name',
+                    'like',
+                    '%' . $request->destination . '%'
+                )->where('is_dropoff', true);
             });
         }
 
-        if ($request->destination) {
+        $schedules = $query->get();
 
-            $query->whereHas('route.stops', function ($q) use ($request) {
+        if ($request->origin && $request->destination) {
 
-                $q->where('name', 'like', '%' . $request->destination . '%')
-                    ->where('is_dropoff', true);
-            });
+            $schedules = $schedules->filter(function ($schedule) use (
+                $origin,
+                $destination
+            ) {
+
+                $originStop = $schedule->route->stops
+                    ->filter(function ($stop) use ($origin) {
+
+                        return str_contains(
+                            strtolower($stop->name),
+                            $origin
+                        );
+                    })
+                    ->first();
+
+                $destinationStop = $schedule->route->stops
+                    ->filter(function ($stop) use ($destination) {
+
+                        return str_contains(
+                            strtolower($stop->name),
+                            $destination
+                        );
+                    })
+                    ->first();
+
+                if (!$originStop || !$destinationStop) {
+                    return false;
+                }
+
+                return $originStop->order < $destinationStop->order;
+            })->values();
         }
 
         return response()->json([
             'success' => true,
-            'data' => $query->get()
+            'data' => $schedules
         ]);
     }
 
@@ -46,7 +117,8 @@ class ScheduleController extends Controller
         $schedule = Schedule::with([
             'route.stops',
             'vehicle',
-            'driver.user'
+            'driver.user',
+            'stopTimes.stop'
         ])->findOrFail($id);
 
         return response()->json([
@@ -54,11 +126,13 @@ class ScheduleController extends Controller
             'data' => $schedule
         ]);
     }
+
     public function map($id)
     {
         $schedule = Schedule::with([
             'route.stops',
-            'driver.user'
+            'driver.user',
+            'stopTimes.stop'
         ])->findOrFail($id);
 
         $origin = $schedule->route->origin;
@@ -86,6 +160,8 @@ class ScheduleController extends Controller
 
                     'stops' => $schedule->route->stops,
 
+                    'stop_times' => $schedule->stopTimes,
+
                     'polyline' => json_decode(
                         $schedule->route->polyline
                     ),
@@ -97,6 +173,7 @@ class ScheduleController extends Controller
             ]
         ]);
     }
+
     public function sorted(Request $request)
     {
         $query = Schedule::with([
@@ -109,8 +186,11 @@ class ScheduleController extends Controller
 
             $query->whereHas('route.stops', function ($q) use ($request) {
 
-                $q->where('name', 'like', '%' . $request->origin . '%')
-                    ->where('is_pickup', true);
+                $q->where(
+                    'name',
+                    'like',
+                    '%' . $request->origin . '%'
+                )->where('is_pickup', true);
             });
         }
 
@@ -118,12 +198,19 @@ class ScheduleController extends Controller
 
             $query->whereHas('route.stops', function ($q) use ($request) {
 
-                $q->where('name', 'like', '%' . $request->destination . '%')
-                    ->where('is_dropoff', true);
+                $q->where(
+                    'name',
+                    'like',
+                    '%' . $request->destination . '%'
+                )->where('is_dropoff', true);
             });
         }
 
         $direction = $request->get('direction', 'asc');
+
+        if (!in_array($direction, ['asc', 'desc'])) {
+            $direction = 'asc';
+        }
 
         $query->orderBy('departure_time', $direction);
 
@@ -132,6 +219,7 @@ class ScheduleController extends Controller
             'data' => $query->get()
         ]);
     }
+
     public function sortedByDay(Request $request)
     {
         $query = Schedule::with([
@@ -144,8 +232,11 @@ class ScheduleController extends Controller
 
             $query->whereHas('route.stops', function ($q) use ($request) {
 
-                $q->where('name', 'like', '%' . $request->origin . '%')
-                    ->where('is_pickup', true);
+                $q->where(
+                    'name',
+                    'like',
+                    '%' . $request->origin . '%'
+                )->where('is_pickup', true);
             });
         }
 
@@ -153,8 +244,11 @@ class ScheduleController extends Controller
 
             $query->whereHas('route.stops', function ($q) use ($request) {
 
-                $q->where('name', 'like', '%' . $request->destination . '%')
-                    ->where('is_dropoff', true);
+                $q->where(
+                    'name',
+                    'like',
+                    '%' . $request->destination . '%'
+                )->where('is_dropoff', true);
             });
         }
 
