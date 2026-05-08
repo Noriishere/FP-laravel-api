@@ -32,9 +32,9 @@
 
                             {{-- ROUTE --}}
                             <td class="py-3">
-                                {{ $schedule->route->origin_name ?? '-' }}
+                                {{ $schedule->route->origin?->name ?? '-' }}
                                 →
-                                {{ $schedule->route->destination_name ?? '-' }}
+                                {{ $schedule->route->destination?->name ?? '-' }}
                             </td>
 
                             {{-- DRIVER --}}
@@ -71,7 +71,8 @@
                             {{-- AKSI --}}
                             <td class="py-3">
                                 <div class="flex gap-2 items-center">
-                                    <a href="{{ route('schedules.show', $schedule->id) }}" class="text-blue-600 text-xs">Detail</a>
+                                    <a href="{{ route('schedules.show', $schedule->id) }}"
+                                        class="text-blue-600 text-xs">Detail</a>
                                     <a href="#" class="text-yellow-600 text-xs">Edit</a>
 
                                     <form action="{{ route('schedules.destroy', $schedule->id) }}" method="POST"
