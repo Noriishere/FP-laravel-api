@@ -99,16 +99,14 @@ class AuthController extends Controller
         return view('driver.profile.index', compact('user'));
     }
 
-    public function logout(Request $request)
+    public function logout()
     {
         Auth::logout();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
         return redirect()
-            ->route('driver.driver.login');
+            ->route('driver.login');
     }
+
     public function verify(Request $request, $id, $hash)
     {
         $user = User::find($id);
