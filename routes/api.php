@@ -18,6 +18,8 @@ Route::post('/email/resend', [AuthController::class, 'resendVerification']);
 Route::post('/drivers/register', [DriverAuthController::class, 'register']);
 Route::post('/drivers/login', [DriverAuthController::class, 'login']);
 Route::post('/payment/pakasir/webhook', [PaymentController::class, 'webhook']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
     ->middleware(['signed'])
