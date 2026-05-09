@@ -12,33 +12,6 @@ use Illuminate\Auth\Events\Verified;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6'
-        ]);
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => 'driver'
-        ]);
-
-        Driver::create([
-            'user_id' => $user->id,
-            'status' => 'offline',
-            'verification_status' => 'pending'
-        ]);
-
-        event(new Registered($user));
-
-        return response()->json([
-            'message' => 'Driver registered successfully. Please verify your email.'
-        ], 201);
-    }
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
