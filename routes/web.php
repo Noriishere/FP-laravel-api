@@ -19,6 +19,9 @@ Route::prefix('driver')
     ->group(function () {
 
         Route::middleware('guest')->group(function () {
+            Route::get('/', function () {
+                return view('driver.home');
+            });
 
             Route::get('/login', [
                 AuthController::class,
