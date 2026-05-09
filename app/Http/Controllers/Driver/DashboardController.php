@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Driver;
 use App\Models\DriverDocument;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class DashboardController extends Controller
 {
@@ -84,9 +85,52 @@ class DashboardController extends Controller
 
         if ($existing) {
 
-            return back()->withErrors([
-                'file' => 'Dokumen sudah diupload'
-            ]);
+            if ($existing->status === 'pending') {
+
+                return back()->withErrors([
+                    'file' => 'Dokumen sedang menunggu verifikasi'
+                ]);
+            }
+
+            if ($existing->status === 'approved') {
+
+                return back()->withErrors([
+                    'file' => 'Dokumen sudah disetujui'
+                ]);
+            }
+
+            if ($existing->status === 'rejected') {
+
+                if (
+                    Storage::disk('public')->exists(
+                        $existing->file_path
+                    )
+                ) {
+
+                    Storage::disk('public')->delete(
+                        $existing->file_path
+                    );
+                }
+
+                $filePath = $request->file('file')
+                    ->store(
+                        'driver_documents',
+                        'public'
+                    );
+
+                $existing->update([
+                    'file_path' => $filePath,
+                    'status' => 'pending',
+                    'note' => null,
+                ]);
+
+                return redirect()
+                    ->route('driver.documents')
+                    ->with(
+                        'success',
+                        'Dokumen berhasil dikirim ulang'
+                    );
+            }
         }
 
         $filePath = $request->file('file')
