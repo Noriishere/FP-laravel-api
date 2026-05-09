@@ -14,6 +14,13 @@ use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/reset-password/{token}', function ($token) {
+    return view('auth.reset-password', [
+        'token' => $token,
+        'email' => request('email')
+    ]);
+})->name('password.reset');
+
 Route::prefix('driver')
     ->name('driver.')
     ->group(function () {
