@@ -22,12 +22,24 @@ class DashboardController extends Controller
             auth()->id()
         )->first();
 
+        $isVerified = false;
+
+        if ($driver) {
+
+            $approvedCount = $driver->documents
+                ->where('status', 'approved')
+                ->count();
+
+            $isVerified = $approvedCount >= 3;
+        }
+
         return view(
             'driver.dashboard',
             compact(
                 'title',
                 'navtitle',
-                'driver'
+                'driver',
+                'isVerified'
             )
         );
     }
