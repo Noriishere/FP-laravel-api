@@ -3,8 +3,7 @@
 @section('content')
     <div class="max-w-5xl mx-auto">
 
-        <div class="grid md:grid-cols-2 gap-6">
-
+        <div class="space-y-7">
             <div class="bg-white rounded-2xl shadow p-8">
 
                 <div class="mb-6">
