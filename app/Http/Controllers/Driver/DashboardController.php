@@ -85,21 +85,25 @@ class DashboardController extends Controller
 
         if ($existing) {
 
-            if ($existing->status === 'pending') {
+            $status = trim(
+                strtolower($existing->status)
+            );
+
+            if ($status === 'pending') {
 
                 return back()->withErrors([
                     'file' => 'Dokumen sedang menunggu verifikasi'
                 ]);
             }
 
-            if ($existing->status === 'approved') {
+            if ($status === 'approved') {
 
                 return back()->withErrors([
                     'file' => 'Dokumen sudah disetujui'
                 ]);
             }
 
-            if ($existing->status === 'rejected') {
+            if ($status === 'rejected') {
 
                 if (
                     Storage::disk('public')->exists(
@@ -143,7 +147,8 @@ class DashboardController extends Controller
             'driver_id' => $driver->id,
             'type' => $request->type,
             'file_path' => $filePath,
-            'status' => 'pending'
+            'status' => 'pending',
+            'note' => null,
         ]);
 
         return redirect()
