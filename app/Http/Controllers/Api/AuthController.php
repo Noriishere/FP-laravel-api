@@ -94,6 +94,39 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logged out']);
     }
 
+    public function updateMe(Request $request)
+    {
+        $user = auth('api')->user();
+
+        $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'password' => 'nullable|string|min:6'
+        ]);
+
+        $user->name = $request->name ?? $user->name;
+
+        if ($request->filled('password')) {
+            $user->password = bcrypt($request->password);
+        }
+
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile updated successfully',
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'email_verified_at' => $user->email_verified_at,
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at,
+            ]
+        ]);
+    }
+
+
     public function refresh()
     {
         return $this->respondWithToken(auth('api')->refresh());
@@ -139,5 +172,5 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Verification email resent'
         ]);
-    }   
+    }
 }

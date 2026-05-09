@@ -59,6 +59,7 @@ Route::middleware(['auth:api', 'role:driver'])->group(function () {
 Route::middleware(['auth:api'])->group(function () {
 
     Route::get('/me', [AuthController::class, 'me']);
+    Route::put('/me', [AuthController::class, 'updateMe']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
 
