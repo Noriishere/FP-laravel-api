@@ -26,7 +26,7 @@ Route::prefix('driver')
             Route::get('/login', [
                 AuthController::class,
                 'showLogin'
-            ])->name('driver.login');
+            ])->name('login');
 
             Route::post('/login', [
                 AuthController::class,
@@ -36,7 +36,7 @@ Route::prefix('driver')
             Route::get('/register', [
                 AuthController::class,
                 'showRegister'
-            ])->name('driver.register');
+            ])->name('register');
 
             Route::post('/register', [
                 AuthController::class,
