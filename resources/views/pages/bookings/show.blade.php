@@ -59,9 +59,9 @@
                 </p>
 
                 <h3 class="text-lg font-semibold">
-                    {{ $booking->schedule->route->origin_name }}
+                    {{ $booking->schedule->route->origin?->name }}
                     →
-                    {{ $booking->schedule->route->destination_name }}
+                    {{ $booking->schedule->route->destination?->name }}
                 </h3>
 
             </div>
