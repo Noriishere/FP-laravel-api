@@ -2,135 +2,124 @@
 
 @section('content')
 
-<div class="space-y-5">
+<div class="space-y-6">
 
-    {{-- HEADER --}}
     <div class="flex items-center justify-between">
 
         <div>
-            <h1 class="text-2xl font-semibold text-gray-800">
-                {{ $route->name }}
+
+            <h1 class="text-2xl font-bold text-gray-800">
+                Schedule Detail
             </h1>
 
             <p class="text-sm text-gray-500 mt-1">
-                Detail route perjalanan shuttle
+                Detail perjalanan dan booking segment kursi
             </p>
+
         </div>
 
-        <a href="{{ route('routes.index') }}"
-            class="bg-gray-100 hover:bg-gray-200 text-sm px-4 py-2 rounded-lg transition">
+        <a href="{{ route('schedules.index') }}"
+            class="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-xl text-sm transition">
             Kembali
         </a>
 
     </div>
 
-    {{-- INFO --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
-        <div class="bg-white rounded-xl shadow p-5">
+        <div class="bg-white rounded-2xl shadow p-5">
 
-            <p class="text-xs text-gray-400 uppercase mb-1">
-                Origin
+            <p class="text-xs uppercase text-gray-400 mb-1">
+                Route
             </p>
 
-            <h3 class="text-lg font-semibold text-emerald-600">
-                {{ $route->origin?->name }}
+            <h3 class="font-semibold text-lg">
+                {{ $schedule->route->origin_name }}
+                →
+                {{ $schedule->route->destination_name }}
             </h3>
 
         </div>
 
-        <div class="bg-white rounded-xl shadow p-5">
+        <div class="bg-white rounded-2xl shadow p-5">
 
-            <p class="text-xs text-gray-400 uppercase mb-1">
-                Destination
+            <p class="text-xs uppercase text-gray-400 mb-1">
+                Driver
             </p>
 
-            <h3 class="text-lg font-semibold text-red-500">
-                {{ $route->destination?->name }}
+            <h3 class="font-semibold text-lg">
+                {{ $schedule->driver?->user?->name }}
             </h3>
 
         </div>
 
-        <div class="bg-white rounded-xl shadow p-5">
+        <div class="bg-white rounded-2xl shadow p-5">
 
-            <p class="text-xs text-gray-400 uppercase mb-1">
-                Distance
+            <p class="text-xs uppercase text-gray-400 mb-1">
+                Vehicle
             </p>
 
-            <h3 class="text-lg font-semibold text-blue-600">
-                {{ $route->distance }} km
+            <h3 class="font-semibold text-lg">
+                {{ $schedule->vehicle?->name }}
+            </h3>
+
+        </div>
+
+        <div class="bg-white rounded-2xl shadow p-5">
+
+            <p class="text-xs uppercase text-gray-400 mb-1">
+                Departure
+            </p>
+
+            <h3 class="font-semibold text-lg">
+                {{ \Carbon\Carbon::parse($schedule->departure_time)->format('d M Y H:i') }}
             </h3>
 
         </div>
 
     </div>
 
-    {{-- MAP --}}
-    <div class="bg-white rounded-xl shadow p-5">
+    <div class="bg-white rounded-2xl shadow p-6">
 
-        <h3 class="text-sm font-semibold text-gray-700 mb-4">
-            Route Map
-        </h3>
+        <div class="flex items-center justify-between mb-6">
 
-        <div id="map"
-            class="w-full h-[500px] rounded-xl border border-gray-200">
+            <div>
+
+                <h2 class="text-xl font-bold">
+                    Route Stops
+                </h2>
+
+                <p class="text-sm text-gray-500 mt-1">
+                    Titik pemberhentian perjalanan
+                </p>
+
+            </div>
+
         </div>
 
-    </div>
+        <div class="flex flex-wrap items-center gap-3">
 
-    {{-- STOPS --}}
-    <div class="bg-white rounded-xl shadow p-5">
+            @foreach($schedule->route->stops as $index => $stop)
 
-        <h3 class="text-sm font-semibold text-gray-700 mb-4">
-            Stops
-        </h3>
+                <div class="flex items-center gap-3">
 
-        <div class="space-y-3">
-
-            @foreach($route->stops as $index => $stop)
-
-                <div class="flex items-start gap-4">
-
-                    <div class="
-                        w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold
-                        {{ $index === 0 ? 'bg-emerald-500' : '' }}
-                        {{ $index === $route->stops->count() - 1 ? 'bg-red-500' : '' }}
-                        {{ $index !== 0 && $index !== $route->stops->count() - 1 ? 'bg-purple-500' : '' }}
+                    <div class="px-4 py-2 rounded-xl
+                        @if($index === 0)
+                            bg-green-100 text-green-700
+                        @elseif($index === $schedule->route->stops->count() - 1)
+                            bg-red-100 text-red-700
+                        @else
+                            bg-blue-100 text-blue-700
+                        @endif
                     ">
-                        {{ $index + 1 }}
+                        {{ $stop->name }}
                     </div>
 
-                    <div class="flex-1">
+                    @if(!$loop->last)
 
-                        <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-right text-gray-400"></i>
 
-                            <h4 class="font-medium text-gray-800">
-                                {{ $stop->name }}
-                            </h4>
-
-                            @if($stop->is_pickup)
-                                <span class="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full">
-                                    Pickup
-                                </span>
-                            @endif
-
-                            @if($stop->is_dropoff)
-                                <span class="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
-                                    Dropoff
-                                </span>
-                            @endif
-
-                        </div>
-
-                        <p class="text-sm text-gray-500 mt-1">
-                            {{ $stop->address }}
-                        </p>
-
-                        <p class="text-xs text-gray-400 mt-1 font-mono">
-                            {{ $stop->lat }}, {{ $stop->lng }}
-                        </p>
-
-                    </div>
+                    @endif
 
                 </div>
 
@@ -140,98 +129,170 @@
 
     </div>
 
+    <div class="bg-white rounded-2xl shadow p-6">
+
+        <div class="mb-6">
+
+            <h2 class="text-xl font-bold">
+                Booking Segments
+            </h2>
+
+            <p class="text-sm text-gray-500 mt-1">
+                Detail kursi berdasarkan segment perjalanan
+            </p>
+
+        </div>
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full text-sm">
+
+                <thead>
+
+                    <tr class="border-b text-left text-gray-500">
+
+                        <th class="pb-3">
+                            Customer
+                        </th>
+
+                        <th class="pb-3">
+                            Seat
+                        </th>
+
+                        <th class="pb-3">
+                            Pickup
+                        </th>
+
+                        <th class="pb-3">
+                            Dropoff
+                        </th>
+
+                        <th class="pb-3">
+                            Segment
+                        </th>
+
+                        <th class="pb-3">
+                            Status
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @forelse($activeBookings as $booking)
+
+                        <tr class="border-b hover:bg-gray-50">
+
+                            <td class="py-4">
+
+                                <div>
+
+                                    <h4 class="font-medium">
+                                        {{ $booking->user?->name }}
+                                    </h4>
+
+                                    <p class="text-xs text-gray-400 mt-1">
+                                        {{ $booking->order_id }}
+                                    </p>
+
+                                </div>
+
+                            </td>
+
+                            <td class="py-4">
+
+                                <div class="flex flex-wrap gap-2">
+
+                                    @foreach($booking->bookingSeats as $bookingSeat)
+
+                                        <span class="px-3 py-1 bg-primary/10 text-primary rounded-lg text-xs font-medium">
+                                            Seat {{ $bookingSeat->seat->seat_number }}
+                                        </span>
+
+                                    @endforeach
+
+                                </div>
+
+                            </td>
+
+                            <td class="py-4">
+
+                                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-medium">
+                                    {{ $booking->pickupStop?->name }}
+                                </span>
+
+                            </td>
+
+                            <td class="py-4">
+
+                                <span class="px-3 py-1 bg-red-100 text-red-700 rounded-lg text-xs font-medium">
+                                    {{ $booking->dropoffStop?->name }}
+                                </span>
+
+                            </td>
+
+                            <td class="py-4">
+
+                                @php
+
+                                    $segment =
+                                        ($booking->dropoffStop?->order ?? 0)
+                                        -
+                                        ($booking->pickupStop?->order ?? 0);
+
+                                @endphp
+
+                                <span class="text-sm font-semibold">
+                                    {{ $segment }} Segment
+                                </span>
+
+                            </td>
+
+                            <td class="py-4">
+
+                                @if($booking->payment_status === 'paid')
+
+                                    <span class="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-medium">
+                                        Paid
+                                    </span>
+
+                                @else
+
+                                    <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-lg text-xs font-medium">
+                                        Pending
+                                    </span>
+
+                                @endif
+
+                            </td>
+
+                        </tr>
+
+                    @empty
+
+                        <tr>
+
+                            <td colspan="6"
+                                class="py-10 text-center text-gray-400">
+
+                                Belum ada booking
+
+                            </td>
+
+                        </tr>
+
+                    @endforelse
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
 </div>
 
 @endsection
-
-@push('styles')
-
-<link rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-
-@endpush
-
-@push('scripts')
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<script>
-
-    document.addEventListener('DOMContentLoaded', function () {
-
-        const polyline = {!! $route->polyline !!};
-
-        const stops = @json($route->stops);
-
-        const map = L.map('map');
-
-        L.tileLayer(
-            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            {
-                attribution: '© OpenStreetMap contributors'
-            }
-        ).addTo(map);
-
-        const line = L.polyline(polyline, {
-            color: '#2563eb',
-            weight: 5
-        }).addTo(map);
-
-        stops.forEach((stop, index) => {
-
-            let color = '#9333ea';
-
-            if (index === 0) {
-                color = '#16a34a';
-            }
-
-            if (index === stops.length - 1) {
-                color = '#dc2626';
-            }
-
-            const icon = L.divIcon({
-                className: '',
-                html: `
-                    <div style="
-                        background:${color};
-                        color:white;
-                        width:30px;
-                        height:30px;
-                        border-radius:50%;
-                        display:flex;
-                        align-items:center;
-                        justify-content:center;
-                        font-size:12px;
-                        font-weight:bold;
-                        border:2px solid white;
-                        box-shadow:0 2px 6px rgba(0,0,0,.3);
-                    ">
-                        ${index + 1}
-                    </div>
-                `,
-                iconSize: [30, 30],
-                iconAnchor: [15, 15]
-            });
-
-            L.marker([stop.lat, stop.lng], {
-                icon
-            })
-            .addTo(map)
-            .bindPopup(`
-                <div>
-                    <strong>${stop.name}</strong>
-                    <br>
-                    <small>${stop.address ?? '-'}</small>
-                </div>
-            `);
-        });
-
-        map.fitBounds(line.getBounds(), {
-            padding: [40, 40]
-        });
-
-    });
-
-</script>
-
-@endpush

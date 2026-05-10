@@ -3,15 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Schedule;
-use App\Models\Route;
 use App\Models\Driver;
+use App\Models\Route;
+use App\Models\Schedule;
+use App\Models\ScheduleStopTimes as ScheduleStopTime;
 use App\Models\Seat;
 use App\Models\Vehicle;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Models\ScheduleStopTimes as ScheduleStopTime;
 
 class ScheduleController extends Controller
 {
@@ -21,7 +21,7 @@ class ScheduleController extends Controller
             'route.stops',
             'driver.user',
             'vehicle',
-            'stopTimes.stop'
+            'stopTimes.stop',
         ])
             ->latest()
             ->get();
@@ -35,7 +35,7 @@ class ScheduleController extends Controller
     public function create()
     {
         $routes = Route::with([
-            'stops'
+            'stops',
         ])->where(
             'is_active',
             true
@@ -61,11 +61,11 @@ class ScheduleController extends Controller
 
             'duration' => 'required|integer|min:1',
 
-            'price' => 'required|numeric|min:0'
+            'price' => 'required|numeric|min:0',
         ]);
 
         $route = Route::with([
-            'stops'
+            'stops',
         ])->findOrFail(
             $request->route_id
         );
@@ -73,8 +73,7 @@ class ScheduleController extends Controller
         if ($route->stops->count() < 2) {
 
             return back()->withErrors([
-                'route' =>
-                'Route minimal harus memiliki 2 stop'
+                'route' => 'Route minimal harus memiliki 2 stop',
             ]);
         }
 
@@ -132,8 +131,7 @@ class ScheduleController extends Controller
         if ($driverBusy) {
 
             return back()->withErrors([
-                'driver' =>
-                'Driver sedang digunakan di waktu tersebut'
+                'driver' => 'Driver sedang digunakan di waktu tersebut',
             ]);
         }
 
@@ -182,8 +180,7 @@ class ScheduleController extends Controller
         if ($vehicleBusy) {
 
             return back()->withErrors([
-                'vehicle' =>
-                'Kendaraan sedang digunakan di waktu tersebut'
+                'vehicle' => 'Kendaraan sedang digunakan di waktu tersebut',
             ]);
         }
 
@@ -216,7 +213,7 @@ class ScheduleController extends Controller
 
                 'price' => $request->price,
 
-                'status' => 'scheduled'
+                'status' => 'scheduled',
             ]);
 
             /*
@@ -265,11 +262,11 @@ class ScheduleController extends Controller
 
                 $arrival =
                     $start->copy()
-                    ->addMinutes(
-                        floor(
-                            $durationPerSegment * $index
-                        )
-                    );
+                        ->addMinutes(
+                            floor(
+                                $durationPerSegment * $index
+                            )
+                        );
 
                 $departure =
                     $arrival->copy()->addMinutes(5);
@@ -353,7 +350,7 @@ class ScheduleController extends Controller
             ->pluck('driver_id');
 
         $drivers = Driver::with([
-            'user'
+            'user',
         ])
             ->whereNotIn(
                 'id',
@@ -414,6 +411,7 @@ class ScheduleController extends Controller
 
         return response()->json($vehicles);
     }
+
     public function destroy($id)
     {
         $schedule = Schedule::findOrFail($id);
@@ -428,28 +426,46 @@ class ScheduleController extends Controller
         return redirect()->route('schedules.index')
             ->with('success', 'Jadwal berhasil dihapus.');
     }
+
     public function show($id)
     {
         $schedule = Schedule::with([
-            'route',
+            'route.stops',
             'vehicle',
-            'driver.user'
+            'driver.user',
+            'stopTimes.stop',
+            'bookings.user',
+            'bookings.pickupStop',
+            'bookings.dropoffStop',
+            'bookings.bookingSeats.seat',
         ])->findOrFail($id);
 
-        // ambil seat yang sudah dibooking
-        $bookedSeatNumbers = DB::table('booking_seats')
-            ->join('bookings', 'booking_seats.booking_id', '=', 'bookings.id')
-            ->join('seats', 'booking_seats.seat_id', '=', 'seats.id')
-            ->where('bookings.schedule_id', $id)
-            ->where(function ($q) {
-                $q->where('bookings.payment_status', 'paid')
-                    ->orWhere(function ($q2) {
-                        $q2->where('bookings.payment_status', 'pending')
-                            ->where('bookings.expired_at', '>', now());
-                    });
-            })
-            ->pluck('seats.seat_number')
-            ->toArray();
-        return view('pages.schedules.show', compact('schedule', 'bookedSeatNumbers'));
+        $activeBookings = $schedule->bookings
+            ->filter(function ($booking) {
+
+                if ($booking->payment_status === 'paid') {
+                    return true;
+                }
+
+                if (
+                    $booking->payment_status === 'pending'
+                    &&
+                    $booking->expired_at
+                    &&
+                    $booking->expired_at > now()
+                ) {
+                    return true;
+                }
+
+                return false;
+            });
+
+        return view(
+            'pages.schedules.show',
+            compact(
+                'schedule',
+                'activeBookings'
+            )
+        );
     }
 }
