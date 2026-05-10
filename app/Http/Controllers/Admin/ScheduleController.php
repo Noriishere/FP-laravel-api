@@ -352,10 +352,6 @@ class ScheduleController extends Controller
         $drivers = Driver::with([
             'user',
         ])
-            ->where(
-                'verification_status',
-                'approved'
-            )
             ->whereNotIn(
                 'id',
                 $busyDriverIds
