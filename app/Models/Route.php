@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Route extends Model
 {
@@ -29,6 +29,18 @@ class Route extends Model
     public function schedules()
     {
         return $this->hasMany(Schedule::class);
+    }
+
+    public function origin()
+    {
+        return $this->hasOne(RouteStop::class)
+            ->orderBy('order');
+    }
+
+    public function destination()
+    {
+        return $this->hasOne(RouteStop::class)
+            ->orderByDesc('order');
     }
 
     public function getOriginAttribute()
