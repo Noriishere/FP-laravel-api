@@ -54,7 +54,7 @@ Route::middleware(['auth:api', 'role:driver'])->group(function () {
     Route::post('/scan-booking', [BookingController::class, 'scan']);
     Route::post('/drivers/create', [DriverController::class, 'create']);
     Route::post('/drivers/{id}/documents', [DriverController::class, 'uploadDocument']);
-    Route::get('/me/schedules', [UserController::class, 'schedules']);
+    Route::get('/me/schedules', [UserController::class, 'mySchedules']);
     Route::post('/location', [LocationController::class, 'update']);
 });
 
