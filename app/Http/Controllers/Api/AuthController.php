@@ -49,7 +49,18 @@ class AuthController extends Controller
         }
 
         $user = auth('api')->user();
+        if ($user->role !== 'customer') {
 
+            auth('api')->logout();
+
+            return response()->json([
+                
+                'message' => 'Unauthorized role',
+                'errors' => [
+                    'role' => ['Login ini khusus customer']
+                ]
+            ], 403);
+        }
         if (! $user->hasVerifiedEmail()) {
             auth('api')->logout();
 
