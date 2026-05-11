@@ -70,7 +70,7 @@ class ScheduleController extends Controller
         }
 
         $schedules = $query->get();
-
+        
         if ($request->origin && $request->destination) {
 
             $schedules = $schedules->filter(function ($schedule) use (

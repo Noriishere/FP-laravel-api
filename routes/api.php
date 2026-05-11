@@ -36,6 +36,7 @@ Route::get('/schedules/sortedByDay', [ScheduleController::class, 'sortedByDay'])
 
 Route::get('/schedules/{id}', [ScheduleController::class, 'show']);
 Route::get('/schedules/{id}/seats', [SeatController::class, 'availability']);
+Route::get('/schedules/{id}/check-seat', [SeatController::class, 'checkSeat']);
 Route::get('/schedules/{id}/map', [ScheduleController::class, 'map']);
 
 Route::middleware(['auth:api', 'role:customer'])
