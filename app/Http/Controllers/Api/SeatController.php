@@ -10,109 +10,19 @@ use Illuminate\Http\Request;
 
 class SeatController extends Controller
 {
-    public function availability(
-        Request $request,
-        $id
-    ) {
-
-        $request->validate([
-            'pickup_stop_id' => 'required|exists:route_stops,id',
-            'dropoff_stop_id' => 'required|exists:route_stops,id',
-        ]);
-
+    public function availability($id)
+    {
         $schedule = Schedule::with([
+            'vehicle',
             'seats',
         ])->findOrFail($id);
 
-        $pickupStop = RouteStop::findOrFail(
-            $request->pickup_stop_id
-        );
-
-        $dropoffStop = RouteStop::findOrFail(
-            $request->dropoff_stop_id
-        );
-
-        if (
-            $pickupStop->order >= $dropoffStop->order
-        ) {
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid route segment',
-            ], 422);
-        }
-
-        $bookings = Booking::with([
-            'pickupStop',
-            'dropoffStop',
-            'bookingSeats',
-        ])
-            ->where(
-                'schedule_id',
-                $schedule->id
-            )
-            ->whereIn('payment_status', [
-                'paid',
-                'pending',
-            ])
-            ->get();
-
-        $unavailableSeatIds = [];
-
-        foreach ($bookings as $booking) {
-
-            if (
-                ! $booking->pickupStop
-                ||
-                ! $booking->dropoffStop
-            ) {
-                continue;
-            }
-
-            $existingPickup =
-                $booking->pickupStop->order;
-
-            $existingDropoff =
-                $booking->dropoffStop->order;
-
-            $isOverlap =
-                $pickupStop->order
-                <
-                $existingDropoff
-                &&
-                $dropoffStop->order
-                >
-                $existingPickup;
-
-            if ($isOverlap) {
-
-                foreach (
-                    $booking->bookingSeats as $bookingSeat
-                ) {
-
-                    $unavailableSeatIds[] =
-                        $bookingSeat->seat_id;
-                }
-            }
-        }
-
         $seats = $schedule->seats
-            ->map(function ($seat) use (
-                $unavailableSeatIds
-            ) {
+            ->map(function ($seat) {
 
                 return [
-
                     'id' => $seat->id,
-
                     'seat_number' => $seat->seat_number,
-
-                    'status' => in_array(
-                        $seat->id,
-                        $unavailableSeatIds
-                    )
-                            ? 'booked'
-                            : 'available',
                 ];
             });
 
@@ -124,31 +34,13 @@ class SeatController extends Controller
 
                 'schedule_id' => $schedule->id,
 
-                'pickup_stop' => [
-                    'id' => $pickupStop->id,
-                    'name' => $pickupStop->name,
-                ],
-
-                'dropoff_stop' => [
-                    'id' => $dropoffStop->id,
-                    'name' => $dropoffStop->name,
+                'vehicle' => [
+                    'id' => $schedule->vehicle?->id,
+                    'name' => $schedule->vehicle?->name,
+                    'plate_number' => $schedule->vehicle?->plate_number,
                 ],
 
                 'total_seats' => $schedule->seats->count(),
-
-                'available_seats' => $seats
-                    ->where(
-                        'status',
-                        'available'
-                    )
-                    ->count(),
-
-                'booked_seats' => $seats
-                    ->where(
-                        'status',
-                        'booked'
-                    )
-                    ->count(),
 
                 'seats' => $seats,
             ],
