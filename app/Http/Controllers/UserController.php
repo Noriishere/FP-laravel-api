@@ -42,10 +42,7 @@ class UserController extends Controller
         ], 404);
     }
 
-    $schedules = \App\Models\Schedule::where(
-        'driver_id',
-        $driver->id
-    )
+    $schedules = $driver->schedules()
         ->with([
 
             'route.origin',

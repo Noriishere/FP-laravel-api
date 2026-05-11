@@ -4,11 +4,8 @@ namespace App\Http\Controllers\Api\Driver;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Driver;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
+use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
@@ -16,12 +13,12 @@ class AuthController extends Controller
     {
         $credentials = $request->only('email', 'password');
 
-        if (!$token = auth('api')->attempt($credentials)) {
+        if (! $token = auth('api')->attempt($credentials)) {
             return response()->json([
                 'message' => 'Invalid credentials',
                 'errors' => [
-                    'email' => ['Email atau password salah']
-                ]
+                    'email' => ['Email atau password salah'],
+                ],
             ], 401);
         }
 
@@ -29,21 +26,23 @@ class AuthController extends Controller
 
         if ($user->role !== 'driver') {
             auth('api')->logout();
+
             return response()->json([
                 'message' => 'Unauthorized role',
                 'errors' => [
-                    'role' => ['User bukan driver']
-                ]
+                    'role' => ['User bukan driver'],
+                ],
             ], 403);
         }
 
-        if (!$user->hasVerifiedEmail()) {
+        if (! $user->hasVerifiedEmail()) {
             auth('api')->logout();
+
             return response()->json([
                 'message' => 'Email not verified',
                 'errors' => [
-                    'email' => ['Silakan verifikasi email terlebih dahulu']
-                ]
+                    'email' => ['Silakan verifikasi email terlebih dahulu'],
+                ],
             ], 403);
         }
 
@@ -56,30 +55,32 @@ class AuthController extends Controller
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth('api')->factory()->getTTL() * 60,
-            'user' => auth('api')->user()
+            'user' => auth('api')->user(),
         ]);
     }
 
     public function me()
     {
-        $user = auth('api')->user();
+        $user = auth('api')->user()->load('driver');
 
         return response()->json([
             'success' => true,
             'data' => [
                 'id' => $user->id,
+                'driver_id' => $user->driver?->id,
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->role,
                 'email_verified_at' => $user->email_verified_at,
                 'created_at' => $user->created_at,
-            ]
+            ],
         ]);
     }
 
     public function logout()
     {
         auth('api')->logout();
+
         return response()->json(['message' => 'Logged out']);
     }
 
@@ -92,11 +93,11 @@ class AuthController extends Controller
     {
         $user = User::find($id);
 
-        if (!$user) {
+        if (! $user) {
             return response()->json(['message' => 'User not found'], 404);
         }
 
-        if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+        if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
             return response()->json(['message' => 'Invalid verification link'], 400);
         }
 
@@ -122,7 +123,7 @@ class AuthController extends Controller
         $user->sendEmailVerificationNotification();
 
         return response()->json([
-            'message' => 'Verification email sent'
+            'message' => 'Verification email sent',
         ]);
     }
 }
