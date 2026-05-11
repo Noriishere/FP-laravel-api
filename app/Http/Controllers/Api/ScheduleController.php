@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use App\Models\Schedule;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class ScheduleController extends Controller
         $query = Schedule::with([
             'route.stops',
             'vehicle',
-            'driver.user'
+            'driver.user',
         ]);
 
         if ($request->origin && $request->destination) {
@@ -54,7 +55,7 @@ class ScheduleController extends Controller
                 $q->where(
                     'name',
                     'like',
-                    '%' . $request->origin . '%'
+                    '%'.$request->origin.'%'
                 )->where('is_pickup', true);
             });
         } elseif ($request->destination) {
@@ -64,13 +65,13 @@ class ScheduleController extends Controller
                 $q->where(
                     'name',
                     'like',
-                    '%' . $request->destination . '%'
+                    '%'.$request->destination.'%'
                 )->where('is_dropoff', true);
             });
         }
 
         $schedules = $query->get();
-        
+
         if ($request->origin && $request->destination) {
 
             $schedules = $schedules->filter(function ($schedule) use (
@@ -98,7 +99,7 @@ class ScheduleController extends Controller
                     })
                     ->first();
 
-                if (!$originStop || !$destinationStop) {
+                if (! $originStop || ! $destinationStop) {
                     return false;
                 }
 
@@ -108,7 +109,7 @@ class ScheduleController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $schedules
+            'data' => $schedules,
         ]);
     }
 
@@ -118,12 +119,12 @@ class ScheduleController extends Controller
             'route.stops',
             'vehicle',
             'driver.user',
-            'stopTimes.stop'
+            'stopTimes.stop',
         ])->findOrFail($id);
 
         return response()->json([
             'success' => true,
-            'data' => $schedule
+            'data' => $schedule,
         ]);
     }
 
@@ -132,7 +133,7 @@ class ScheduleController extends Controller
         $schedule = Schedule::with([
             'route.stops',
             'driver.user',
-            'stopTimes.stop'
+            'stopTimes.stop',
         ])->findOrFail($id);
 
         $origin = $schedule->route->origin;
@@ -169,8 +170,8 @@ class ScheduleController extends Controller
 
                 'driver' => [
                     'name' => $schedule->driver?->user?->name,
-                ]
-            ]
+                ],
+            ],
         ]);
     }
 
@@ -179,7 +180,8 @@ class ScheduleController extends Controller
         $query = Schedule::with([
             'route.stops',
             'vehicle',
-            'driver.user'
+            'driver.user',
+            'seats',
         ]);
 
         if ($request->origin) {
@@ -189,7 +191,7 @@ class ScheduleController extends Controller
                 $q->where(
                     'name',
                     'like',
-                    '%' . $request->origin . '%'
+                    '%'.$request->origin.'%'
                 )->where('is_pickup', true);
             });
         }
@@ -201,22 +203,178 @@ class ScheduleController extends Controller
                 $q->where(
                     'name',
                     'like',
-                    '%' . $request->destination . '%'
+                    '%'.$request->destination.'%'
                 )->where('is_dropoff', true);
             });
         }
 
-        $direction = $request->get('direction', 'asc');
+        $direction = $request->get(
+            'direction',
+            'asc'
+        );
 
-        if (!in_array($direction, ['asc', 'desc'])) {
+        if (
+            ! in_array(
+                $direction,
+                ['asc', 'desc']
+            )
+        ) {
+
             $direction = 'asc';
         }
 
-        $query->orderBy('departure_time', $direction);
+        $query->orderBy(
+            'departure_time',
+            $direction
+        );
+
+        $schedules = $query->get()
+            ->map(function ($schedule) {
+
+                $stops = $schedule->route?->stops
+                    ?->sortBy('order')
+                    ?->values();
+
+                $segmentAvailability = [];
+
+                $totalSeats = $schedule->seats
+                    ->count();
+
+                $bookings = Booking::with([
+                    'pickupStop',
+                    'dropoffStop',
+                    'bookingSeats',
+                ])
+                    ->where(
+                        'schedule_id',
+                        $schedule->id
+                    )
+                    ->whereIn(
+                        'payment_status',
+                        [
+                            'paid',
+                            'pending',
+                        ]
+                    )
+                    ->get();
+
+                if (
+                    ! $stops
+                    ||
+                    $stops->count() < 2
+                ) {
+
+                    $schedule->segment_availability = [];
+
+                    return $schedule;
+                }
+
+                for (
+                    $i = 0;
+                    $i < $stops->count() - 1;
+                    $i++
+                ) {
+
+                    $from = $stops[$i];
+
+                    $to = $stops[$i + 1];
+
+                    $usedSeatIds = [];
+
+                    foreach ($bookings as $booking) {
+
+                        if (
+                            ! $booking->pickupStop
+                            ||
+                            ! $booking->dropoffStop
+                        ) {
+                            continue;
+                        }
+
+                        $bookingPickup =
+                            $booking->pickupStop->order;
+
+                        $bookingDropoff =
+                            $booking->dropoffStop->order;
+
+                        $segmentOverlap =
+                            $from->order
+                            <
+                            $bookingDropoff
+                            &&
+                            $to->order
+                            >
+                            $bookingPickup;
+
+                        if ($segmentOverlap) {
+
+                            foreach (
+                                $booking->bookingSeats as $bookingSeat
+                            ) {
+
+                                $usedSeatIds[] =
+                                    $bookingSeat->seat_id;
+                            }
+                        }
+                    }
+
+                    $usedSeatIds = array_unique(
+                        $usedSeatIds
+                    );
+
+                    $segmentSeats = $schedule->seats
+                        ->map(function ($seat) use (
+                            $usedSeatIds
+                        ) {
+
+                            return [
+
+                                'id' => $seat->id,
+
+                                'seat_number' => $seat->seat_number,
+
+                                'status' => in_array(
+                                    $seat->id,
+                                    $usedSeatIds
+                                )
+                                        ? 'booked'
+                                        : 'available',
+                            ];
+                        });
+
+                    $segmentAvailability[] = [
+
+                        'from_stop' => [
+                            'id' => $from->id,
+                            'name' => $from->name,
+                        ],
+
+                        'to_stop' => [
+                            'id' => $to->id,
+                            'name' => $to->name,
+                        ],
+
+                        'used_seats' => count(
+                            $usedSeatIds
+                        ),
+
+                        'available_seats' => $totalSeats
+                            -
+                            count($usedSeatIds),
+
+                        'seats' => $segmentSeats,
+                    ];
+                }
+
+                $schedule->segment_availability =
+                    $segmentAvailability;
+
+                return $schedule;
+            });
 
         return response()->json([
             'success' => true,
-            'data' => $query->get()
+            'data' => $schedules,
         ]);
     }
 
@@ -225,7 +383,8 @@ class ScheduleController extends Controller
         $query = Schedule::with([
             'route.stops',
             'vehicle',
-            'driver.user'
+            'driver.user',
+            'seats',
         ]);
 
         if ($request->origin) {
@@ -235,7 +394,7 @@ class ScheduleController extends Controller
                 $q->where(
                     'name',
                     'like',
-                    '%' . $request->origin . '%'
+                    '%'.$request->origin.'%'
                 )->where('is_pickup', true);
             });
         }
@@ -247,18 +406,20 @@ class ScheduleController extends Controller
                 $q->where(
                     'name',
                     'like',
-                    '%' . $request->destination . '%'
+                    '%'.$request->destination.'%'
                 )->where('is_dropoff', true);
             });
         }
 
         if ($request->origin_date) {
 
-            $start = Carbon::parse($request->origin_date)
-                ->startOfDay();
+            $start = Carbon::parse(
+                $request->origin_date
+            )->startOfDay();
 
-            $end = Carbon::parse($request->origin_date)
-                ->endOfDay();
+            $end = Carbon::parse(
+                $request->origin_date
+            )->endOfDay();
 
             $query->whereBetween(
                 'departure_time',
@@ -268,11 +429,13 @@ class ScheduleController extends Controller
 
         if ($request->destination_date) {
 
-            $start = Carbon::parse($request->destination_date)
-                ->startOfDay();
+            $start = Carbon::parse(
+                $request->destination_date
+            )->startOfDay();
 
-            $end = Carbon::parse($request->destination_date)
-                ->endOfDay();
+            $end = Carbon::parse(
+                $request->destination_date
+            )->endOfDay();
 
             $query->whereBetween(
                 'arrival_time',
@@ -280,13 +443,19 @@ class ScheduleController extends Controller
             );
         }
 
-        if ($request->from_date && $request->to_date) {
+        if (
+            $request->from_date
+            &&
+            $request->to_date
+        ) {
 
-            $start = Carbon::parse($request->from_date)
-                ->startOfDay();
+            $start = Carbon::parse(
+                $request->from_date
+            )->startOfDay();
 
-            $end = Carbon::parse($request->to_date)
-                ->endOfDay();
+            $end = Carbon::parse(
+                $request->to_date
+            )->endOfDay();
 
             $query->whereBetween(
                 'departure_time',
@@ -294,17 +463,173 @@ class ScheduleController extends Controller
             );
         }
 
-        $direction = $request->get('direction', 'asc');
+        $direction = $request->get(
+            'direction',
+            'asc'
+        );
 
-        if (!in_array($direction, ['asc', 'desc'])) {
+        if (
+            ! in_array(
+                $direction,
+                ['asc', 'desc']
+            )
+        ) {
+
             $direction = 'asc';
         }
 
-        $query->orderBy('departure_time', $direction);
+        $query->orderBy(
+            'departure_time',
+            $direction
+        );
+
+        $schedules = $query->get()
+            ->map(function ($schedule) {
+
+                $stops = $schedule->route?->stops
+                    ?->sortBy('order')
+                    ?->values();
+
+                $segmentAvailability = [];
+
+                $totalSeats = $schedule->seats
+                    ->count();
+
+                $bookings = Booking::with([
+                    'pickupStop',
+                    'dropoffStop',
+                    'bookingSeats',
+                ])
+                    ->where(
+                        'schedule_id',
+                        $schedule->id
+                    )
+                    ->whereIn(
+                        'payment_status',
+                        [
+                            'paid',
+                            'pending',
+                        ]
+                    )
+                    ->get();
+
+                if (
+                    ! $stops
+                    ||
+                    $stops->count() < 2
+                ) {
+
+                    $schedule->segment_availability = [];
+
+                    return $schedule;
+                }
+
+                for (
+                    $i = 0;
+                    $i < $stops->count() - 1;
+                    $i++
+                ) {
+
+                    $from = $stops[$i];
+
+                    $to = $stops[$i + 1];
+
+                    $usedSeatIds = [];
+
+                    foreach ($bookings as $booking) {
+
+                        if (
+                            ! $booking->pickupStop
+                            ||
+                            ! $booking->dropoffStop
+                        ) {
+                            continue;
+                        }
+
+                        $bookingPickup =
+                            $booking->pickupStop->order;
+
+                        $bookingDropoff =
+                            $booking->dropoffStop->order;
+
+                        $segmentOverlap =
+                            $from->order
+                            <
+                            $bookingDropoff
+                            &&
+                            $to->order
+                            >
+                            $bookingPickup;
+
+                        if ($segmentOverlap) {
+
+                            foreach (
+                                $booking->bookingSeats as $bookingSeat
+                            ) {
+
+                                $usedSeatIds[] =
+                                    $bookingSeat->seat_id;
+                            }
+                        }
+                    }
+
+                    $usedSeatIds = array_unique(
+                        $usedSeatIds
+                    );
+
+                    $segmentSeats = $schedule->seats
+                        ->map(function ($seat) use (
+                            $usedSeatIds
+                        ) {
+
+                            return [
+
+                                'id' => $seat->id,
+
+                                'seat_number' => $seat->seat_number,
+
+                                'status' => in_array(
+                                    $seat->id,
+                                    $usedSeatIds
+                                )
+                                        ? 'booked'
+                                        : 'available',
+                            ];
+                        });
+
+                    $segmentAvailability[] = [
+
+                        'from_stop' => [
+                            'id' => $from->id,
+                            'name' => $from->name,
+                        ],
+
+                        'to_stop' => [
+                            'id' => $to->id,
+                            'name' => $to->name,
+                        ],
+
+                        'used_seats' => count(
+                            $usedSeatIds
+                        ),
+
+                        'available_seats' => $totalSeats
+                            -
+                            count($usedSeatIds),
+
+                        'seats' => $segmentSeats,
+                    ];
+                }
+
+                $schedule->segment_availability =
+                    $segmentAvailability;
+
+                return $schedule;
+            });
 
         return response()->json([
             'success' => true,
-            'data' => $query->get()
+            'data' => $schedules,
         ]);
     }
 }
