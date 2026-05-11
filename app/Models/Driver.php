@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Driver extends Model
 {
@@ -15,8 +15,14 @@ class Driver extends Model
     {
         return $this->belongsTo(User::class);
     }
+
     public function documents()
     {
         return $this->hasMany(DriverDocument::class, 'driver_id');
+    }
+
+    public function schedules()
+    {
+        return $this->hasMany(Schedule::class);
     }
 }
