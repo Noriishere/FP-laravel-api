@@ -663,9 +663,9 @@ class ScheduleController extends Controller
                 ) {
 
                     $sub->selectRaw(1)
-                        ->from('stops as pickup')
+                        ->from('route_stops as pickup')
                         ->join(
-                            'stops as dropoff',
+                            'route_stops as dropoff',
                             'pickup.route_id',
                             '=',
                             'dropoff.route_id'
