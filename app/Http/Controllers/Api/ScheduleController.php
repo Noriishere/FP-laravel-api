@@ -638,8 +638,6 @@ class ScheduleController extends Controller
         $request->validate([
             'origin' => 'required|string',
             'destination' => 'required|string',
-            'date' => 'nullable|date',
-            'direction' => 'nullable|in:asc,desc',
         ]);
 
         $origin = strtolower(
@@ -650,33 +648,13 @@ class ScheduleController extends Controller
             trim($request->destination)
         );
 
-        $direction = $request->get(
-            'direction',
-            'asc'
-        );
-
-        $query = Schedule::with([
+        $schedules = Schedule::with([
             'stopTimes.stop',
             'route',
             'vehicle',
             'driver.user',
             'seats',
-        ]);
-
-        if ($request->date) {
-
-            $query->whereDate(
-                'departure_time',
-                $request->date
-            );
-        }
-
-        $schedules = $query
-            ->orderBy(
-                'departure_time',
-                $direction
-            )
-            ->get();
+        ])->get();
 
         $filtered = $schedules->filter(
             function ($schedule) use ($origin, $destination) {
@@ -684,54 +662,69 @@ class ScheduleController extends Controller
                 $stops = $schedule->stopTimes;
 
                 $originStop = $stops->first(
-                    fn ($stop) => $stop->stop
-                    &&
+                    function ($stopTime) use ($origin) {
 
-                    (
-                        str_contains(
-                            strtolower($stop->stop->name),
-                            $origin
-                        )
+                        if (! $stopTime->stop) {
+                            return false;
+                        }
 
-                        ||
+                        return
+                            str_contains(
+                                strtolower(
+                                    $stopTime->stop->name
+                                ),
+                                $origin
+                            )
 
-                        str_contains(
-                            strtolower($stop->stop->address),
-                            $origin
-                        )
-                    )
+                            ||
+
+                            str_contains(
+                                strtolower(
+                                    $stopTime->stop->address
+                                ),
+                                $origin
+                            );
+                    }
                 );
 
                 $destinationStop = $stops->first(
-                    fn ($stop) => $stop->stop
-                    &&
+                    function ($stopTime) use ($destination) {
 
-                    (
-                        str_contains(
-                            strtolower($stop->stop->name),
-                            $destination
-                        )
+                        if (! $stopTime->stop) {
+                            return false;
+                        }
 
-                        ||
+                        return
+                            str_contains(
+                                strtolower(
+                                    $stopTime->stop->name
+                                ),
+                                $destination
+                            )
 
-                        str_contains(
-                            strtolower($stop->stop->address),
-                            $destination
-                        )
-                    )
+                            ||
+
+                            str_contains(
+                                strtolower(
+                                    $stopTime->stop->address
+                                ),
+                                $destination
+                            );
+                    }
                 );
 
                 if (
-                    ! $originStop ||
+                    ! $originStop
+                    ||
                     ! $destinationStop
                 ) {
                     return false;
                 }
 
                 return
-                    $originStop->stop->order
-<
-$destinationStop->stop->order;
+                    $originStop->stop_order
+                    <
+                    $destinationStop->stop_order;
             }
         )->values();
 
