@@ -656,7 +656,7 @@ class ScheduleController extends Controller
         );
 
         $query = Schedule::with([
-            'stopTimes',
+            'stopTimes.stop',
             'route',
             'vehicle',
             'driver.user',
@@ -729,9 +729,9 @@ class ScheduleController extends Controller
                 }
 
                 return
-                    $originStop->stop_order
-                    <
-                    $destinationStop->stop_order;
+                    $originStop->stop->order
+<
+$destinationStop->stop->order;
             }
         )->values();
 
