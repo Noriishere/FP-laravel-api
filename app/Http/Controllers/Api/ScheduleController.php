@@ -718,6 +718,21 @@ class ScheduleController extends Controller
                     ||
                     ! $destinationStop
                 ) {
+                    dd([
+                        'origin' => $origin,
+                        'destination' => $destination,
+                        'stops' => $stops->map(function ($s) {
+
+                            return [
+                                'name' => $s->stop?->name,
+                                'address' => $s->stop?->address,
+                                'order' => $s->stop_order,
+                            ];
+                        }),
+                        'originStop' => $originStop,
+                        'destinationStop' => $destinationStop,
+                    ]);
+
                     return false;
                 }
 
