@@ -684,16 +684,40 @@ class ScheduleController extends Controller
                 $stops = $schedule->stopTimes;
 
                 $originStop = $stops->first(
-                    fn ($stop) => str_contains(
-                        strtolower($stop->stop_name),
-                        $origin
+                    fn ($stop) => $stop->stop
+                    &&
+
+                    (
+                        str_contains(
+                            strtolower($stop->stop->name),
+                            $origin
+                        )
+
+                        ||
+
+                        str_contains(
+                            strtolower($stop->stop->address),
+                            $origin
+                        )
                     )
                 );
 
                 $destinationStop = $stops->first(
-                    fn ($stop) => str_contains(
-                        strtolower($stop->stop_name),
-                        $destination
+                    fn ($stop) => $stop->stop
+                    &&
+
+                    (
+                        str_contains(
+                            strtolower($stop->stop->name),
+                            $destination
+                        )
+
+                        ||
+
+                        str_contains(
+                            strtolower($stop->stop->address),
+                            $destination
+                        )
                     )
                 );
 
