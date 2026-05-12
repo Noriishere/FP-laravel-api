@@ -14,41 +14,43 @@ class PaymentController extends Controller
 {
     public function create(Request $request)
     {
-        $booking = Booking::findOrFail($request->booking_id);
+        $booking = Booking::where('id', $request->booking_id)
+            ->where('user_id', auth('api')->id())
+            ->firstOrFail();
 
         if ($booking->payment_status === 'paid') {
             return response()->json([
-                'message' => 'Booking already paid'
+                'message' => 'Booking already paid',
             ], 400);
         }
 
         if ($booking->expired_at && $booking->expired_at < now()) {
             return response()->json([
-                'message' => 'Booking expired'
+                'message' => 'Booking expired',
             ], 400);
         }
 
         $response = Http::post(
             'https://app.pakasir.com/api/transactioncreate/qris',
             [
-                "project" => config('pakasir.project'),
-                "order_id" => $booking->order_id,
-                "amount" => (int) $booking->total_price,
-                "api_key" => config('pakasir.api_key'),
+                'project' => config('pakasir.project'),
+                'order_id' => $booking->order_id,
+                'amount' => (int) $booking->total_price,
+                'api_key' => config('pakasir.api_key'),
             ]
         );
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             return response()->json([
-                'message' => 'Failed to create payment'
+                'message' => 'Failed to create payment',
             ], 500);
         }
 
         $data = $response->json();
 
-        if (!isset($data['payment'])) {
+        if (! isset($data['payment'])) {
             return response()->json([
-                'message' => 'Invalid response from payment gateway'
+                'message' => 'Invalid response from payment gateway',
             ], 500);
         }
 
@@ -65,9 +67,10 @@ class PaymentController extends Controller
 
         return response()->json([
             'type' => 'qr',
-            'payment' => $payment
+            'payment' => $payment,
         ]);
     }
+
     public function webhook(Request $request)
     {
         Log::info('Webhook Pakasir', $request->all());
@@ -78,7 +81,7 @@ class PaymentController extends Controller
 
         $booking = Booking::where('order_id', $orderId)->first();
 
-        if (!$booking) {
+        if (! $booking) {
             return response()->json(['message' => 'Booking not found'], 404);
         }
 
@@ -88,6 +91,11 @@ class PaymentController extends Controller
 
         if ($booking->total_price != $amount) {
             return response()->json(['message' => 'Invalid amount'], 400);
+        }
+        if ($booking->expired_at < now()) {
+            return response()->json([
+                'message' => 'Booking expired',
+            ], 400);
         }
 
         if ($status === 'completed') {
@@ -106,7 +114,7 @@ class PaymentController extends Controller
 
                 if ($conflict) {
                     Log::warning('Seat conflict after payment', [
-                        'booking_id' => $booking->id
+                        'booking_id' => $booking->id,
                     ]);
 
                     // ❗ jangan force paid kalau sudah diambil orang lain
@@ -116,7 +124,7 @@ class PaymentController extends Controller
                 $booking->update([
                     'status' => 'paid',
                     'payment_status' => 'paid',
-                    'payment_method' => $request->payment_method
+                    'payment_method' => $request->payment_method,
                 ]);
 
                 DB::table('seats')
@@ -127,6 +135,7 @@ class PaymentController extends Controller
 
         return response()->json(['success' => true]);
     }
+
     public function callback(Request $request)
     {
         $orderId = $request->order_id;
@@ -134,7 +143,7 @@ class PaymentController extends Controller
 
         $booking = Booking::where('order_id', $orderId)->first();
 
-        if (!$booking) {
+        if (! $booking) {
             return response()->json(['message' => 'Not found'], 404);
         }
 
@@ -145,17 +154,20 @@ class PaymentController extends Controller
 
         return response()->json(['message' => 'OK']);
     }
+
     public function cancel(Request $request)
     {
         try {
 
-            $booking = Booking::findOrFail($request->booking_id);
+            $booking = Booking::where('id', $request->booking_id)
+                ->where('user_id', auth('api')->id())
+                ->firstOrFail();
 
             DB::transaction(function () use ($booking) {
 
                 $booking->update([
                     'status' => 'cancelled',
-                    'payment_status' => 'cancelled'
+                    'payment_status' => 'cancelled',
                 ]);
 
                 $seatIds = DB::table('booking_seats')
@@ -168,13 +180,13 @@ class PaymentController extends Controller
             });
 
             return response()->json([
-                'message' => 'Booking cancelled successfully'
+                'message' => 'Booking cancelled successfully',
             ]);
         } catch (\Throwable $e) {
 
             return response()->json([
                 'error' => $e->getMessage(),
-                'line' => $e->getLine()
+                'line' => $e->getLine(),
             ], 500);
         }
     }
