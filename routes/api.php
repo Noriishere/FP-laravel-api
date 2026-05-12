@@ -28,6 +28,7 @@ Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
 Route::post('/debug', function () {
     return response()->json(['masuk' => true]);
 });
+Route::get('/schedules/search',[ScheduleController::class, 'search']);
 
 Route::get('/schedules', [ScheduleController::class, 'index']);
 

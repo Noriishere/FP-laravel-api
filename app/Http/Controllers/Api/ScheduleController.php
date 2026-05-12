@@ -632,4 +632,99 @@ class ScheduleController extends Controller
             'data' => $schedules,
         ]);
     }
+
+    public function search(Request $request)
+    {
+        $origin = strtolower(
+            $request->origin ?? ''
+        );
+
+        $destination = strtolower(
+            $request->destination ?? ''
+        );
+
+        $query = Schedule::with([
+            'route.stops',
+            'vehicle',
+            'driver.user',
+            'seats',
+        ]);
+
+        if ($origin && $destination) {
+
+            $query->whereHas('route', function ($routeQuery) use (
+                $origin,
+                $destination
+            ) {
+
+                $routeQuery->whereExists(function ($sub) use (
+                    $origin,
+                    $destination
+                ) {
+
+                    $sub->selectRaw(1)
+                        ->from('stops as pickup')
+                        ->join(
+                            'stops as dropoff',
+                            'pickup.route_id',
+                            '=',
+                            'dropoff.route_id'
+                        )
+                        ->whereColumn(
+                            'pickup.route_id',
+                            'routes.id'
+                        )
+                        ->where(
+                            'pickup.name',
+                            'like',
+                            "%{$origin}%"
+                        )
+                        ->where(
+                            'dropoff.name',
+                            'like',
+                            "%{$destination}%"
+                        )
+                        ->where(
+                            'pickup.is_pickup',
+                            true
+                        )
+                        ->where(
+                            'dropoff.is_dropoff',
+                            true
+                        )
+                        ->whereColumn(
+                            'pickup.order',
+                            '<',
+                            'dropoff.order'
+                        );
+                });
+            });
+        }
+
+        if ($request->date) {
+
+            $query->whereDate(
+                'departure_time',
+                $request->date
+            );
+        }
+
+        $direction = $request->get(
+            'direction',
+            'asc'
+        );
+
+        $query->orderBy(
+            'departure_time',
+            $direction
+        );
+
+        $schedules = $query->get();
+
+        return response()->json([
+            'success' => true,
+            'count' => $schedules->count(),
+            'data' => $schedules,
+        ]);
+    }
 }
