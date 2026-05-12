@@ -636,95 +636,65 @@ class ScheduleController extends Controller
     public function search(Request $request)
     {
         $origin = strtolower(
-            $request->origin ?? ''
+            trim($request->origin ?? '')
         );
 
         $destination = strtolower(
-            $request->destination ?? ''
+            trim($request->destination ?? '')
         );
 
-        $query = Schedule::with([
+        $schedules = Schedule::with([
             'route.stops',
             'vehicle',
             'driver.user',
-            'seats',
-        ]);
+        ])->get();
 
-        if ($origin && $destination) {
+        $filtered = $schedules->filter(function ($schedule) use (
+            $origin,
+            $destination
+        ) {
 
-            $query->whereHas('route', function ($routeQuery) use (
-                $origin,
-                $destination
-            ) {
+            $stops = $schedule->route->stops
+                ->sortBy('order')
+                ->values();
 
-                $routeQuery->whereExists(function ($sub) use (
-                    $origin,
-                    $destination
-                ) {
+            $originStop = $stops->first(function ($stop) use ($origin) {
 
-                    $sub->selectRaw(1)
-                        ->from('route_stops as pickup')
-                        ->join(
-                            'route_stops as dropoff',
-                            'pickup.route_id',
-                            '=',
-                            'dropoff.route_id'
-                        )
-                        ->whereColumn(
-                            'pickup.route_id',
-                            'routes.id'
-                        )
-                        ->where(
-                            'pickup.name',
-                            'like',
-                            "%{$origin}%"
-                        )
-                        ->where(
-                            'dropoff.name',
-                            'like',
-                            "%{$destination}%"
-                        )
-                        ->where(
-                            'pickup.is_pickup',
-                            true
-                        )
-                        ->where(
-                            'dropoff.is_dropoff',
-                            true
-                        )
-                        ->whereColumn(
-                            'pickup.order',
-                            '<',
-                            'dropoff.order'
-                        );
-                });
+                return str_contains(
+                    strtolower($stop->name),
+                    $origin
+                )
+                &&
+                $stop->is_pickup;
             });
-        }
 
-        if ($request->date) {
+            $destinationStop = $stops->first(function ($stop) use ($destination) {
 
-            $query->whereDate(
-                'departure_time',
-                $request->date
-            );
-        }
+                return str_contains(
+                    strtolower($stop->name),
+                    $destination
+                )
+                &&
+                $stop->is_dropoff;
+            });
 
-        $direction = $request->get(
-            'direction',
-            'asc'
-        );
+            if (
+                ! $originStop
+                ||
+                ! $destinationStop
+            ) {
+                return false;
+            }
 
-        $query->orderBy(
-            'departure_time',
-            $direction
-        );
-
-        $schedules = $query->get();
+            return $originStop->order
+                <
+                $destinationStop->order;
+        })->values();
 
         return response()->json([
             'success' => true,
-            'count' => $schedules->count(),
-            'data' => $schedules,
+            'count' => $filtered->count(),
+            'data' => $filtered,
         ]);
     }
 }
