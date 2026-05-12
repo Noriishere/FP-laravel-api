@@ -635,61 +635,81 @@ class ScheduleController extends Controller
 
     public function search(Request $request)
     {
+        $request->validate([
+            'origin' => 'required|string',
+            'destination' => 'required|string',
+            'date' => 'nullable|date',
+            'direction' => 'nullable|in:asc,desc',
+        ]);
+
         $origin = strtolower(
-            trim($request->origin ?? '')
+            trim($request->origin)
         );
 
         $destination = strtolower(
-            trim($request->destination ?? '')
+            trim($request->destination)
         );
 
-        $schedules = Schedule::with([
-            'route.stops',
+        $direction = $request->get(
+            'direction',
+            'asc'
+        );
+
+        $query = Schedule::with([
+            'stopTimes',
+            'route',
             'vehicle',
             'driver.user',
-        ])->get();
+            'seats',
+        ]);
 
-        $filtered = $schedules->filter(function ($schedule) use (
-            $origin,
-            $destination
-        ) {
+        if ($request->date) {
 
-            $stops = $schedule->route->stops
-                ->sortBy('order')
-                ->values();
+            $query->whereDate(
+                'departure_time',
+                $request->date
+            );
+        }
 
-            $originStop = $stops->first(function ($stop) use ($origin) {
+        $schedules = $query
+            ->orderBy(
+                'departure_time',
+                $direction
+            )
+            ->get();
 
-                return str_contains(
-                    strtolower($stop->name),
-                    $origin
-                )
-                &&
-                $stop->is_pickup;
-            });
+        $filtered = $schedules->filter(
+            function ($schedule) use ($origin, $destination) {
 
-            $destinationStop = $stops->first(function ($stop) use ($destination) {
+                $stops = $schedule->stopTimes;
 
-                return str_contains(
-                    strtolower($stop->name),
-                    $destination
-                )
-                &&
-                $stop->is_dropoff;
-            });
+                $originStop = $stops->first(
+                    fn ($stop) => str_contains(
+                        strtolower($stop->stop_name),
+                        $origin
+                    )
+                );
 
-            if (
-                ! $originStop
-                ||
-                ! $destinationStop
-            ) {
-                return false;
+                $destinationStop = $stops->first(
+                    fn ($stop) => str_contains(
+                        strtolower($stop->stop_name),
+                        $destination
+                    )
+                );
+
+                if (
+                    ! $originStop ||
+                    ! $destinationStop
+                ) {
+                    return false;
+                }
+
+                return
+                    $originStop->stop_order
+                    <
+                    $destinationStop->stop_order;
             }
-
-            return $originStop->order
-                <
-                $destinationStop->order;
-        })->values();
+        )->values();
 
         return response()->json([
             'success' => true,
