@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Driver;
 
 use App\Http\Controllers\Controller;
+use App\Models\BookingSeat;
 use App\Models\Driver;
 use App\Models\DriverDocument;
 use App\Models\Schedule;
@@ -248,6 +249,125 @@ class DriverController extends Controller
                         ];
                     }),
             ],
+        ]);
+    }
+
+    public function mySchedules()
+    {
+        $user = auth('api')->user();
+
+        $driver = $user->driver;
+
+        if (! $driver) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Driver not found',
+            ], 404);
+        }
+
+        $schedules = Schedule::with([
+
+            'vehicle',
+
+            'route.stops',
+
+            'bookings',
+
+        ])
+            ->where(
+                'driver_id',
+                $driver->id
+            )
+            ->latest()
+            ->get()
+            ->map(function ($schedule) {
+
+                $totalSeats =
+                    $schedule->seats()
+                        ->count();
+
+                $bookedSeats =
+                    BookingSeat::whereHas(
+                        'booking',
+                        function ($q) use ($schedule) {
+
+                            $q->where(
+                                'schedule_id',
+                                $schedule->id
+                            )->whereIn(
+                                'payment_status',
+                                [
+                                    'paid',
+                                    'pending',
+                                ]
+                            );
+                        }
+                    )->count();
+
+                return [
+
+                    'id' => $schedule->id,
+
+                    'departure_time' => $schedule->departure_time,
+
+                    'arrival_time' => $schedule->arrival_time,
+
+                    'status' => $schedule->status,
+
+                    'price' => $schedule->price,
+
+                    'vehicle' => [
+                        'id' => $schedule->vehicle?->id,
+
+                        'name' => $schedule->vehicle?->name,
+
+                        'plate_number' => $schedule->vehicle?->plate_number,
+                    ],
+
+                    'route' => [
+
+                        'id' => $schedule->route?->id,
+
+                        'name' => $schedule->route?->name,
+
+                        'total_stops' => $schedule->route?->stops
+                            ?->count(),
+
+                        'stops' => $schedule->route?->stops
+                            ?->sortBy('order')
+                            ?->values()
+                            ?->map(function ($stop) {
+
+                                return [
+                                    'id' => $stop->id,
+                                    'name' => $stop->name,
+                                    'order' => $stop->order,
+                                ];
+                            }),
+                    ],
+
+                    'booking_count' => $schedule->bookings
+                        ->count(),
+
+                    'seat_summary' => [
+
+                    'total_seats' => $totalSeats,
+
+                    'booked_seats' => $bookedSeats,
+
+                    'available_seats' => $totalSeats
+                            -
+                            $bookedSeats,
+                ],
+                ];
+            });
+
+        return response()->json([
+
+            'success' => true,
+
+            'data' => $schedules,
         ]);
     }
 }
