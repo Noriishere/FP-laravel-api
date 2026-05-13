@@ -13,6 +13,7 @@ use App\Http\Controllers\Driver\AuthController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 
 Route::get('/reset-password/{token}', function ($token) {
     return view('auth.reset-password', [
@@ -92,6 +93,17 @@ Route::prefix('driver')
 Route::get('/admin/', function () {
     return view('pages.home');
 });
+
+
+Route::get('/reset-password/{token}', function (
+    Request $request,
+    string $token
+) {
+    return view('auth.reset-password', [
+        'token' => $token,
+        'email' => $request->email,
+    ]);
+})->name('password.reset');
 
 Route::get('/', function () {
     return view('pages.landing-pages');
