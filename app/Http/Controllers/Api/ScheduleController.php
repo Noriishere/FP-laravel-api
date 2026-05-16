@@ -121,10 +121,42 @@ class ScheduleController extends Controller
             'driver.user',
             'stopTimes.stop',
         ])->findOrFail($id);
+        $stops = $schedule->route->stops
+            ->sortBy('order')
+            ->values();
+
+        $totalSegments = max(
+            1,
+            $stops->count() - 1
+        );
+
+        $pricePerSegment =
+            $schedule->price / $totalSegments;
+
+        $segmentPrices = [];
+
+        for ($i = 0; $i < $stops->count() - 1; $i++) {
+
+            $segmentPrices[] = [
+
+                'from_stop' => [
+                    'id' => $stops[$i]->id,
+                    'name' => $stops[$i]->name,
+                ],
+
+                'to_stop' => [
+                    'id' => $stops[$i + 1]->id,
+                    'name' => $stops[$i + 1]->name,
+                ],
+
+                'price' => $pricePerSegment,
+            ];
+        }
 
         return response()->json([
             'success' => true,
             'data' => $schedule,
+            'segment_prices' => $segmentPrices,
         ]);
     }
 
