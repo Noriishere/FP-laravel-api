@@ -259,10 +259,14 @@ class PaymentController extends Controller
 
     public function callback(Request $request)
     {
+        Log::info('Payment Callback', [
+            'payload' => $request->all(),
+        ]);
+
         $orderId = $request->order_id;
 
-        $status = strtoupper(
-            $request->status
+        $status = strtolower(
+            trim($request->status)
         );
 
         $booking = Booking::where(
@@ -277,15 +281,38 @@ class PaymentController extends Controller
             ], 404);
         }
 
-        if ($status === 'PAID') {
+        if (
+            in_array(
+                $status,
+                [
+                    'paid',
+                    'completed',
+                    'success',
+                ]
+            )
+        ) {
 
             $booking->update([
+
                 'status' => 'paid',
+
                 'payment_status' => 'paid',
             ]);
 
             return response()->json([
+
+                'success' => true,
+
                 'message' => 'Payment successful',
+
+                'data' => [
+
+                    'order_id' => $booking->order_id,
+
+                    'payment_status' => $booking->payment_status,
+
+                    'status' => $booking->status,
+                ],
             ]);
         }
 
@@ -293,42 +320,81 @@ class PaymentController extends Controller
             in_array(
                 $status,
                 [
-                    'PENDING',
-                    'UNPAID',
-                    'WAITING',
-                ]
-            )
-        ) {
-
-            return response()->json([
-                'message' => 'Payment not completed yet',
-            ], 400);
-        }
-
-        if (
-            in_array(
-                $status,
-                [
-                    'FAILED',
-                    'EXPIRED',
-                    'CANCELLED',
+                    'pending',
+                    'waiting',
+                    'unpaid',
                 ]
             )
         ) {
 
             $booking->update([
-                'status' => 'cancelled',
-                'payment_status' => strtolower($status),
+
+                'status' => 'pending',
+
+                'payment_status' => 'pending',
             ]);
 
             return response()->json([
+
+                'success' => false,
+
+                'message' => 'Payment not completed yet',
+
+                'data' => [
+
+                    'order_id' => $booking->order_id,
+
+                    'payment_status' => $booking->payment_status,
+
+                    'status' => $booking->status,
+                ],
+            ], 400);
+        }
+
+        if (
+            in_array(
+                $status,
+                [
+                    'failed',
+                    'expired',
+                    'cancelled',
+                ]
+            )
+        ) {
+
+            $booking->update([
+
+                'status' => 'cancelled',
+
+                'payment_status' => $status,
+            ]);
+
+            return response()->json([
+
+                'success' => false,
+
                 'message' => 'Payment failed or expired',
+
+                'data' => [
+
+                    'order_id' => $booking->order_id,
+
+                    'payment_status' => $booking->payment_status,
+
+                    'status' => $booking->status,
+                ],
             ], 400);
         }
 
         return response()->json([
+
+            'success' => false,
+
             'message' => 'Unknown payment status',
-            'status' => $status,
+
+            'received_status' => $request->status,
+
+            'normalized_status' => $status,
         ], 400);
     }
 
