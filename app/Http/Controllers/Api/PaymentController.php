@@ -73,26 +73,63 @@ class PaymentController extends Controller
 
     public function webhook(Request $request)
     {
-        Log::info('Webhook Pakasir', $request->all());
+        Log::info(
+            'Webhook Pakasir',
+            $request->all()
+        );
 
         $orderId = $request->order_id;
+
         $amount = $request->amount;
+
         $status = $request->status;
 
-        $booking = Booking::where('order_id', $orderId)->first();
+        $booking = Booking::with([
+            'pickupStop',
+            'dropoffStop',
+            'bookingSeats',
+        ])
+            ->where(
+                'order_id',
+                $orderId
+            )
+            ->first();
 
         if (! $booking) {
-            return response()->json(['message' => 'Booking not found'], 404);
+
+            return response()->json([
+                'message' => 'Booking not found',
+            ], 404);
         }
 
-        if ($booking->payment_status === 'paid') {
-            return response()->json(['message' => 'Already processed']);
+        if (
+            $booking->payment_status
+            ===
+            'paid'
+        ) {
+
+            return response()->json([
+                'message' => 'Already processed',
+            ]);
         }
 
-        if ($booking->total_price != $amount) {
-            return response()->json(['message' => 'Invalid amount'], 400);
+        if (
+            $booking->total_price
+            !=
+            $amount
+        ) {
+
+            return response()->json([
+                'message' => 'Invalid amount',
+            ], 400);
         }
-        if ($booking->expired_at < now()) {
+
+        if (
+            $booking->expired_at
+            &&
+            $booking->expired_at < now()
+        ) {
+
             return response()->json([
                 'message' => 'Booking expired',
             ], 400);
@@ -100,40 +137,124 @@ class PaymentController extends Controller
 
         if ($status === 'completed') {
 
-            DB::transaction(function () use ($booking, $request) {
+            DB::transaction(function () use (
+                $booking,
+                $request
+            ) {
 
-                $seatIds = DB::table('booking_seats')
-                    ->where('booking_id', $booking->id)
+                $seatIds = $booking->bookingSeats
                     ->pluck('seat_id');
 
-                // 🔥 cek apakah seat masih available
-                $conflict = DB::table('seats')
-                    ->whereIn('id', $seatIds)
-                    ->where('status', 'booked')
-                    ->exists();
+                $pickupOrder =
+                    $booking->pickupStop?->order;
+
+                $dropoffOrder =
+                    $booking->dropoffStop?->order;
+
+                $conflict = Booking::with([
+                    'pickupStop',
+                    'dropoffStop',
+                    'bookingSeats',
+                ])
+                    ->where(
+                        'schedule_id',
+                        $booking->schedule_id
+                    )
+                    ->where(
+                        'id',
+                        '!=',
+                        $booking->id
+                    )
+                    ->whereIn(
+                        'payment_status',
+                        [
+                            'paid',
+                            'pending',
+                        ]
+                    )
+                    ->get()
+                    ->contains(function ($existingBooking) use (
+                        $pickupOrder,
+                        $dropoffOrder,
+                        $seatIds
+                    ) {
+
+                        if (
+                            ! $existingBooking->pickupStop
+                            ||
+                            ! $existingBooking->dropoffStop
+                        ) {
+                            return false;
+                        }
+
+                        $existingPickup =
+                            $existingBooking
+                                ->pickupStop
+                                ->order;
+
+                        $existingDropoff =
+                            $existingBooking
+                                ->dropoffStop
+                                ->order;
+
+                        $segmentOverlap =
+                            $pickupOrder
+                            <
+                            $existingDropoff
+                            &&
+                            $dropoffOrder
+                            >
+                            $existingPickup;
+
+                        if (! $segmentOverlap) {
+                            return false;
+                        }
+
+                        $existingSeatIds =
+                            $existingBooking
+                                ->bookingSeats
+                                ->pluck('seat_id');
+
+                        return $seatIds
+                            ->intersect(
+                                $existingSeatIds
+                            )
+                            ->isNotEmpty();
+                    });
 
                 if ($conflict) {
-                    Log::warning('Seat conflict after payment', [
-                        'booking_id' => $booking->id,
+
+                    Log::warning(
+                        'Seat conflict after payment',
+                        [
+                            'booking_id' => $booking->id,
+                        ]
+                    );
+
+                    $booking->update([
+
+                        'status' => 'cancelled',
+
+                        'payment_status' => 'failed',
                     ]);
 
-                    // ❗ jangan force paid kalau sudah diambil orang lain
                     return;
                 }
 
                 $booking->update([
+
                     'status' => 'paid',
+
                     'payment_status' => 'paid',
+
                     'payment_method' => $request->payment_method,
                 ]);
-
-                DB::table('seats')
-                    ->whereIn('id', $seatIds)
-                    ->update(['status' => 'booked']);
             });
         }
 
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true,
+        ]);
     }
 
     public function callback(Request $request)

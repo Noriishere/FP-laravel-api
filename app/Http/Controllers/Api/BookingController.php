@@ -241,8 +241,6 @@ class BookingController extends Controller
                     'booking_id' => $booking->id,
                     'seat_id' => $seatId,
                     'schedule_id' => $booking->schedule_id,
-                    'created_at' => now(),
-                    'updated_at' => now(),
                 ]);
             }
 
