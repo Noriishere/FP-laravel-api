@@ -28,7 +28,7 @@ Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
 Route::post('/debug', function () {
     return response()->json(['masuk' => true]);
 });
-Route::get('/schedules/search',[ScheduleController::class, 'search']);
+Route::get('/schedules/search', [ScheduleController::class, 'search']);
 
 Route::get('/schedules', [ScheduleController::class, 'index']);
 
@@ -46,6 +46,7 @@ Route::middleware(['auth:api', 'role:customer'])
         Route::post('/payment/callback', [PaymentController::class, 'callback']);
         Route::post('/payment/cancel', [PaymentController::class, 'cancel']);
         Route::get('/me/bookings', [UserController::class, 'myBookings']);
+        Route::get('/bookings/{id}',[BookingController::class, 'show']);
         Route::get('/schedules/{id}/tracking', [LocationController::class, 'tracking']);
         Route::get('/schedules/{id}/route', [ScheduleController::class, 'map']);
         Route::get('/vehicles', [VehicleController::class, 'index']);
@@ -58,8 +59,8 @@ Route::middleware(['auth:api', 'role:driver'])->group(function () {
     Route::post('/drivers/{id}/documents', [DriverController::class, 'uploadDocument']);
     Route::get('/me/schedules', [UserController::class, 'mySchedules']);
     Route::post('/location', [LocationController::class, 'update']);
-    Route::get('/driver/schedules/{id}/route',[DriverController::class, 'routeDetail']);
-    Route::get('/driver/schedules',[DriverController::class, 'mySchedules']);
+    Route::get('/driver/schedules/{id}/route', [DriverController::class, 'routeDetail']);
+    Route::get('/driver/schedules', [DriverController::class, 'mySchedules']);
 });
 
 Route::middleware(['auth:api'])->group(function () {

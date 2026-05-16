@@ -260,20 +260,76 @@ class PaymentController extends Controller
     public function callback(Request $request)
     {
         $orderId = $request->order_id;
-        $status = $request->status;
 
-        $booking = Booking::where('order_id', $orderId)->first();
+        $status = strtoupper(
+            $request->status
+        );
+
+        $booking = Booking::where(
+            'order_id',
+            $orderId
+        )->first();
 
         if (! $booking) {
-            return response()->json(['message' => 'Not found'], 404);
+
+            return response()->json([
+                'message' => 'Booking not found',
+            ], 404);
         }
 
         if ($status === 'PAID') {
-            $booking->status = 'paid';
-            $booking->save();
+
+            $booking->update([
+                'status' => 'paid',
+                'payment_status' => 'paid',
+            ]);
+
+            return response()->json([
+                'message' => 'Payment successful',
+            ]);
         }
 
-        return response()->json(['message' => 'OK']);
+        if (
+            in_array(
+                $status,
+                [
+                    'PENDING',
+                    'UNPAID',
+                    'WAITING',
+                ]
+            )
+        ) {
+
+            return response()->json([
+                'message' => 'Payment not completed yet',
+            ], 400);
+        }
+
+        if (
+            in_array(
+                $status,
+                [
+                    'FAILED',
+                    'EXPIRED',
+                    'CANCELLED',
+                ]
+            )
+        ) {
+
+            $booking->update([
+                'status' => 'cancelled',
+                'payment_status' => strtolower($status),
+            ]);
+
+            return response()->json([
+                'message' => 'Payment failed or expired',
+            ], 400);
+        }
+
+        return response()->json([
+            'message' => 'Unknown payment status',
+            'status' => $status,
+        ], 400);
     }
 
     public function cancel(Request $request)

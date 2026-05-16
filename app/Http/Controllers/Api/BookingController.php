@@ -21,11 +21,11 @@ class BookingController extends Controller
             'dropoff_stop_id' => 'required|exists:route_stops,id',
 
             'seat_ids' => 'required|array|min:1',
-            'seat_ids.*' => 'integer'
+            'seat_ids.*' => 'integer',
         ]);
 
         $schedule = Schedule::with([
-            'route.stops'
+            'route.stops',
         ])->findOrFail($request->schedule_id);
 
         $pickupStop = $schedule->route->stops
@@ -36,17 +36,17 @@ class BookingController extends Controller
             ->where('id', $request->dropoff_stop_id)
             ->first();
 
-        if (!$pickupStop || !$dropoffStop) {
+        if (! $pickupStop || ! $dropoffStop) {
 
             return response()->json([
-                'message' => 'Invalid stop selection'
+                'message' => 'Invalid stop selection',
             ], 400);
         }
 
         if ($pickupStop->order >= $dropoffStop->order) {
 
             return response()->json([
-                'message' => 'Invalid route segment'
+                'message' => 'Invalid route segment',
             ], 400);
         }
 
@@ -60,7 +60,7 @@ class BookingController extends Controller
         if ($seats->count() !== count($request->seat_ids)) {
 
             return response()->json([
-                'message' => 'Invalid seat selection'
+                'message' => 'Invalid seat selection',
             ], 400);
         }
 
@@ -70,7 +70,7 @@ class BookingController extends Controller
         ) {
 
             return response()->json([
-                'message' => 'Duplicate seat selection'
+                'message' => 'Duplicate seat selection',
             ], 400);
         }
 
@@ -99,7 +99,7 @@ class BookingController extends Controller
             $existingBookings = Booking::with([
                 'pickupStop',
                 'dropoffStop',
-                'bookingSeats'
+                'bookingSeats',
             ])
                 ->where('schedule_id', $request->schedule_id)
                 ->where(function ($q) {
@@ -131,7 +131,7 @@ class BookingController extends Controller
                     $dropoffStop->order
                     > $booking->pickupStop->order;
 
-                if (!$segmentOverlap) {
+                if (! $segmentOverlap) {
                     continue;
                 }
 
@@ -144,7 +144,7 @@ class BookingController extends Controller
                     $bookedSeatIds
                 );
 
-                if (!empty($intersection)) {
+                if (! empty($intersection)) {
 
                     $conflictSeats = array_merge(
                         $conflictSeats,
@@ -159,7 +159,7 @@ class BookingController extends Controller
                     'message' => 'Seat already booked on this segment',
                     'conflict_seats' => array_values(
                         array_unique($conflictSeats)
-                    )
+                    ),
                 ], 409);
             }
 
@@ -185,7 +185,7 @@ class BookingController extends Controller
             if ($existing) {
 
                 return response()->json([
-                    'message' => 'You still have unpaid booking for this schedule'
+                    'message' => 'You still have unpaid booking for this schedule',
                 ], 400);
             }
 
@@ -207,9 +207,9 @@ class BookingController extends Controller
 
             $orderId =
                 'INV-'
-                . now()->format('YmdHis')
-                . '-'
-                . uniqid();
+                .now()->format('YmdHis')
+                .'-'
+                .uniqid();
 
             $booking = Booking::create([
                 'user_id' => Auth::id(),
@@ -232,7 +232,7 @@ class BookingController extends Controller
 
                 'payment_provider' => null,
 
-                'expired_at' => now()->addMinutes(15)
+                'expired_at' => now()->addMinutes(15),
             ]);
 
             foreach ($seatIds as $seatId) {
@@ -256,7 +256,7 @@ class BookingController extends Controller
                 'segment' => [
                     'pickup' => $pickupStop->name,
                     'dropoff' => $dropoffStop->name,
-                ]
+                ],
             ]);
         });
     }
@@ -266,7 +266,7 @@ class BookingController extends Controller
         $user = auth('api')->user();
 
         $request->validate([
-            'order_id' => 'required|string'
+            'order_id' => 'required|string',
         ]);
 
         $booking = Booking::with([
@@ -274,15 +274,15 @@ class BookingController extends Controller
             'pickupStop',
             'dropoffStop',
             'user',
-            'bookingSeats.seat'
+            'bookingSeats.seat',
         ])
             ->where('order_id', $request->order_id)
             ->first();
 
-        if (!$booking) {
+        if (! $booking) {
 
             return response()->json([
-                'message' => 'Booking not found'
+                'message' => 'Booking not found',
             ], 404);
         }
 
@@ -293,14 +293,14 @@ class BookingController extends Controller
         ) {
 
             return response()->json([
-                'message' => 'Booking expired'
+                'message' => 'Booking expired',
             ], 400);
         }
 
         if ($booking->payment_status !== 'paid') {
 
             return response()->json([
-                'message' => 'Payment not completed'
+                'message' => 'Payment not completed',
             ], 400);
         }
 
@@ -313,23 +313,22 @@ class BookingController extends Controller
 
                     'user' => $booking->user->name,
 
-                    'route' =>
-                        $booking->pickupStop?->name
-                        . ' - '
-                        . $booking->dropoffStop?->name,
+                    'route' => $booking->pickupStop?->name
+                        .' - '
+                        .$booking->dropoffStop?->name,
 
                     'total_seat' => $booking->total_seat,
 
                     'seat_numbers' => $booking
                         ->bookingSeats
-                        ->pluck('seat.seat_number')
-                ]
+                        ->pluck('seat.seat_number'),
+                ],
             ], 400);
         }
 
         $booking->update([
             'checked_at' => now(),
-            'checked_by' => $user->id
+            'checked_by' => $user->id,
         ]);
 
         return response()->json([
@@ -339,17 +338,133 @@ class BookingController extends Controller
 
                 'user' => $booking->user->name,
 
-                'route' =>
-                    $booking->pickupStop?->name
-                    . ' - '
-                    . $booking->dropoffStop?->name,
+                'route' => $booking->pickupStop?->name
+                    .' - '
+                    .$booking->dropoffStop?->name,
 
                 'total_seat' => $booking->total_seat,
 
                 'seat_numbers' => $booking
                     ->bookingSeats
-                    ->pluck('seat.seat_number')
-            ]
+                    ->pluck('seat.seat_number'),
+            ],
+        ]);
+    }
+
+    public function show($id)
+    {
+        $booking = Booking::with([
+
+            'user',
+
+            'schedule.route',
+
+            'schedule.vehicle',
+
+            'schedule.driver.user',
+
+            'pickupStop',
+
+            'dropoffStop',
+
+            'bookingSeats.seat',
+        ])
+            ->where(
+                'user_id',
+                auth('api')->id()
+            )
+            ->findOrFail($id);
+
+        return response()->json([
+
+            'success' => true,
+
+            'data' => [
+
+                'id' => $booking->id,
+
+                'order_id' => $booking->order_id,
+
+                'status' => $booking->status,
+
+                'payment_status' => $booking->payment_status,
+
+                'payment_method' => $booking->payment_method,
+
+                'payment_provider' => $booking->payment_provider,
+
+                'total_seat' => $booking->total_seat,
+
+                'total_price' => $booking->total_price,
+
+                'expired_at' => $booking->expired_at,
+
+                'checked_at' => $booking->checked_at,
+
+                'created_at' => $booking->created_at,
+
+                'schedule' => [
+
+                    'id' => $booking->schedule?->id,
+
+                    'departure_time' => $booking->schedule?->departure_time,
+
+                    'arrival_time' => $booking->schedule?->arrival_time,
+
+                    'vehicle' => [
+
+                        'name' => $booking->schedule
+                            ?->vehicle
+                            ?->name,
+                    ],
+
+                    'driver' => [
+
+                        'name' => $booking->schedule
+                            ?->driver
+                            ?->user
+                            ?->name,
+                    ],
+
+                    'route' => [
+
+                        'name' => $booking->schedule
+                            ?->route
+                            ?->name,
+                    ],
+                ],
+
+                'segment' => [
+
+                    'pickup' => [
+
+                        'id' => $booking->pickupStop?->id,
+
+                        'name' => $booking->pickupStop?->name,
+                    ],
+
+                    'dropoff' => [
+
+                        'id' => $booking->dropoffStop?->id,
+
+                        'name' => $booking->dropoffStop?->name,
+                    ],
+                ],
+
+                'seats' => $booking
+                    ->bookingSeats
+                    ->map(function ($bookingSeat) {
+
+                        return [
+
+                            'id' => $bookingSeat->seat?->id,
+
+                            'seat_number' => $bookingSeat
+                                ->seat
+                                ?->seat_number,
+                        ];
+                    }),
+            ],
         ]);
     }
 }
