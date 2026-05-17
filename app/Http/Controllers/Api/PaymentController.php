@@ -72,37 +72,12 @@ class PaymentController extends Controller
         ]);
     }
 
-    public function checkTransaction($bookingId)
+    public function checkTransaction($orderId)
     {
-        $booking = Booking::findOrFail($bookingId);
-
-        $response = Http::get(
-            'https://app.pakasir.com/api/transactiondetail',
-            [
-                'project' => config('pakasir.project'),
-                'amount' => (int) $booking->total_price,
-                'order_id' => $booking->order_id,
-                'api_key' => config('pakasir.api_key'),
-            ]
-        );
-
-        if (! $response->successful()) {
-
-            return response()->json([
-                'message' => 'Failed check transaction',
-            ], 500);
-        }
-
-        $data = $response->json();
-
-        if (! isset($data['transaction'])) {
-
-            return response()->json([
-                'message' => 'Transaction not found',
-            ], 404);
-        }
-
-        $transaction = $data['transaction'];
+        $booking = Booking::where(
+            'order_id',
+            $orderId
+        )->firstOrFail();
 
         return response()->json([
 
@@ -110,17 +85,19 @@ class PaymentController extends Controller
 
             'data' => [
 
-                'order_id' => $transaction['order_id'],
+                'order_id' => $booking->order_id,
 
-                'status' => $transaction['status'],
+                'status' => $booking->payment_status,
 
-                'payment_method' => $transaction['payment_method'],
+                'payment_method' => $booking->payment_method,
 
-                'completed_at' => $transaction['completed_at'] ?? null,
-
-                'is_paid' => $transaction['status']
+                'is_paid' => $booking->payment_status
                     ===
-                    'completed',
+                    'paid',
+
+                'completed_at' => $booking->updated_at,
+
+                'expired_at' => $booking->expired_at,
             ],
         ]);
     }
