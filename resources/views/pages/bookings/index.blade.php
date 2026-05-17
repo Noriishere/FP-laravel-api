@@ -34,7 +34,7 @@
                             </td>
 
                             {{-- ROUTE --}}
-                            <td class="py-3 max-w-[300px]">
+                            <td class="py-3 max-w-[100px]">
                                 <div class="truncate">
                                     {{ $booking->schedule->route->origin?->name ?? '-' }}
                                     →
