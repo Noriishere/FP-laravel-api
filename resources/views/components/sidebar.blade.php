@@ -1,106 +1,188 @@
-<aside class="w-64 bg-white border-r hidden md:flex flex-col">
+{{--
+    SIDEBAR COMPONENT
+    Dipakai di layout: @include('components.sidebar')
+    
+    Desktop : bisa collapse jadi icon-only (64px) via tombol ☰ di header sidebar
+    Mobile  : off-canvas, dibuka via tombol hamburger di navbar (lihat navbar.blade.php)
+    
+    State collapse disimpan di localStorage agar persist setelah refresh.
+    Alpine.js state di-share ke parent lewat $store('sidebar').
+--}}
 
-    {{-- HEADER --}}
-    <div class="px-6 py-4 border-b">
-        <h2 class="text-lg font-bold text-primary">
-            Admin <i>Gassin!</i>
-        </h2>
+<aside
+    id="sidebar"
+    :class="{
+        'w-16': $store.sidebar.collapsed && !isMobile(),
+        'w-64': !$store.sidebar.collapsed || isMobile(),
+        '-translate-x-full': isMobile() && !$store.sidebar.mobileOpen,
+        'translate-x-0':  !isMobile() || $store.sidebar.mobileOpen
+    }"
+    class="fixed md:relative z-50 flex flex-col h-full bg-white border-r
+           transition-all duration-300 ease-in-out overflow-hidden flex-shrink-0">
+
+    {{-- ── BRAND HEADER ── --}}
+    <div class="flex items-center justify-between border-b flex-shrink-0"
+         :class="$store.sidebar.collapsed && !isMobile() ? 'px-0 py-4 justify-center' : 'px-5 py-4'">
+
+        {{-- Logo / Brand --}}
+        <a href="{{ url('/admin/dashboard') }}"
+           class="flex items-center gap-2 overflow-hidden"
+           :class="$store.sidebar.collapsed && !isMobile() ? 'hidden' : ''">
+            <div class="w-7 h-7 bg-primary rounded-md flex items-center justify-center flex-shrink-0">
+                <i class="fa-solid fa-shuttle-van text-white text-xs"></i>
+            </div>
+            <h2 class="text-base font-bold text-primary whitespace-nowrap">Admin <i>Gassin!</i></h2>
+        </a>
+
+        {{-- Collapsed brand icon (desktop only) --}}
+        <div x-show="$store.sidebar.collapsed && !isMobile()"
+             class="w-7 h-7 bg-primary rounded-md flex items-center justify-center mx-auto">
+            <i class="fa-solid fa-shuttle-van text-white text-xs"></i>
+        </div>
+
+        {{-- Desktop toggle button --}}
+        <button @click="$store.sidebar.toggle()"
+                class="hidden md:flex items-center justify-center w-8 h-8 rounded-md
+                       hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition flex-shrink-0"
+                :class="$store.sidebar.collapsed ? 'mx-auto' : ''"
+                title="Toggle sidebar">
+            <i class="fa-solid text-sm"
+               :class="$store.sidebar.collapsed ? 'fa-angles-right' : 'fa-angles-left'"></i>
+        </button>
     </div>
 
-    <nav class="flex-1 px-3 py-6 space-y-1 text-sm">
+    {{-- ── NAVIGATION ── --}}
+    <nav class="flex-1 py-4 space-y-0.5 text-sm overflow-y-auto overflow-x-hidden"
+         :class="$store.sidebar.collapsed && !isMobile() ? 'px-2' : 'px-3'">
+
+        {{-- NAV SECTION LABEL --}}
+        <p class="px-3 pb-1 text-[10px] font-semibold text-gray-400 uppercase tracking-widest transition-all"
+           :class="$store.sidebar.collapsed && !isMobile() ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100'">
+            Menu
+        </p>
 
         {{-- DASHBOARD --}}
-        <a href="{{ url('/admin/dashboard') }}"
-           class="flex items-center gap-2 px-4 py-2 rounded-md transition
-           {{ request()->is('admin/dashboard') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
-            <i class="fa-solid fa-chart-line w-4"></i>
-            Dashboard
-        </a>
+        <x-sidebar-link
+            href="{{ url('/admin/dashboard') }}"
+            icon="fa-chart-line"
+            label="Dashboard"
+            :active="request()->is('admin/dashboard')" />
 
         {{-- USERS --}}
-        <a href="{{ url('/admin/users') }}"
-           class="flex items-center gap-2 px-4 py-2 rounded-md transition
-           {{ request()->is('admin/users*') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
-            <i class="fa-solid fa-users w-4"></i>
-            Users
-        </a>
+        <x-sidebar-link
+            href="{{ url('/admin/users') }}"
+            icon="fa-users"
+            label="Users"
+            :active="request()->is('admin/users*')" />
 
-        {{-- DRIVERS --}}
-        <div>
+        {{-- DRIVERS (submenu) --}}
+        <div x-data="{ open: {{ request()->is('admin/drivers*') || request()->is('admin/driver-documents*') ? 'true' : 'false' }} }">
 
-            <button onclick="toggleDriversMenu(this)" 
-                class="w-full flex items-center justify-between px-4 py-2 rounded-md transition
-                {{ request()->is('admin/drivers*') || request()->is('admin/driver-documents*') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
+            {{-- Parent button --}}
+            <button @click="!($store.sidebar.collapsed && !isMobile()) && (open = !open)"
+                    class="w-full flex items-center rounded-md transition-colors duration-150 group relative"
+                    :class="[
+                        $store.sidebar.collapsed && !isMobile() ? 'justify-center px-0 py-2.5' : 'px-3 py-2 justify-between',
+                        '{{ request()->is('admin/drivers*') || request()->is('admin/driver-documents*') ? 'bg-primary text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900' }}'
+                    ]">
 
-                <span class="flex items-center gap-2">
-                    <i class="fa-solid fa-id-card w-4"></i>
-                    Drivers
+                <span class="flex items-center"
+                      :class="$store.sidebar.collapsed && !isMobile() ? 'gap-0' : 'gap-3'">
+                    <i class="fa-solid fa-id-card w-4 flex-shrink-0 text-center"></i>
+                    <span :class="$store.sidebar.collapsed && !isMobile() ? 'hidden' : ''"
+                          class="whitespace-nowrap font-medium">Drivers</span>
                 </span>
 
-                <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200 toggle-icon"></i>
+                <i x-show="!($store.sidebar.collapsed && !isMobile())"
+                   class="fa-solid fa-chevron-down text-xs transition-transform duration-200"
+                   :class="{ 'rotate-180': open }"></i>
+
+                {{-- Tooltip when collapsed --}}
+                <span x-show="$store.sidebar.collapsed && !isMobile()"
+                      class="absolute left-full ml-3 px-2 py-1 text-xs bg-gray-900 text-white rounded-md
+                             whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                    Drivers
+                </span>
             </button>
 
-            {{-- SUBMENU --}}
-            <div class="driversMenu ml-6 mt-1 space-y-1
-                {{ request()->is('admin/drivers*') || request()->is('admin/driver-documents*') ? '' : 'hidden' }}">
+            {{-- Submenu --}}
+            <div x-show="open && !($store.sidebar.collapsed && !isMobile())"
+                 x-transition:enter="transition ease-out duration-150"
+                 x-transition:enter-start="opacity-0 -translate-y-1"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-100"
+                 x-transition:leave-end="opacity-0"
+                 class="ml-7 mt-0.5 space-y-0.5">
 
                 <a href="{{ url('/admin/drivers') }}"
-                   class="block px-3 py-2 rounded-md text-sm transition
-                   {{ request()->is('admin/drivers*') ? 'bg-gray-200' : 'hover:bg-gray-100' }}">
+                   class="block px-3 py-1.5 rounded-md text-sm transition-colors
+                   {{ request()->is('admin/drivers') && !request()->is('admin/driver-documents*')
+                      ? 'bg-gray-100 text-gray-900 font-medium'
+                      : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900' }}">
                     Driver List
                 </a>
 
                 <a href="{{ url('/admin/driver-documents') }}"
-                   class="block px-3 py-2 rounded-md text-sm transition
-                   {{ request()->is('admin/driver-documents*') ? 'bg-gray-200' : 'hover:bg-gray-100' }}">
+                   class="block px-3 py-1.5 rounded-md text-sm transition-colors
+                   {{ request()->is('admin/driver-documents*')
+                      ? 'bg-gray-100 text-gray-900 font-medium'
+                      : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900' }}">
                     Driver Documents
                 </a>
 
             </div>
-
         </div>
 
         {{-- VEHICLES --}}
-        <a href="{{ url('/admin/vehicles') }}"
-           class="flex items-center gap-2 px-4 py-2 rounded-md transition
-           {{ request()->is('admin/vehicles*') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
-            <i class="fa-solid fa-bus w-4"></i>
-            Vehicles
-        </a>
-        
-        {{-- VEHICLES --}}
-        <a href="{{ url('/admin/routes') }}"
-           class="flex items-center gap-2 px-4 py-2 rounded-md transition
-           {{ request()->is('admin/routes*') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
-            <i class="fa-solid fa-map-marker-alt w-4"></i>
-            Routes
-        </a>
+        <x-sidebar-link
+            href="{{ url('/admin/vehicles') }}"
+            icon="fa-bus"
+            label="Vehicles"
+            :active="request()->is('admin/vehicles*')" />
+
+        {{-- ROUTES --}}
+        <x-sidebar-link
+            href="{{ url('/admin/routes') }}"
+            icon="fa-map-marker-alt"
+            label="Routes"
+            :active="request()->is('admin/routes*')" />
 
         {{-- SCHEDULES --}}
-        <a href="{{ url('/admin/schedules') }}"
-           class="flex items-center gap-2 px-4 py-2 rounded-md transition
-           {{ request()->is('admin/schedules*') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
-            <i class="fa-solid fa-calendar w-4"></i>
-            Schedules
-        </a>
+        <x-sidebar-link
+            href="{{ url('/admin/schedules') }}"
+            icon="fa-calendar"
+            label="Schedules"
+            :active="request()->is('admin/schedules*')" />
 
         {{-- BOOKINGS --}}
-        <a href="{{ url('/admin/bookings') }}"
-           class="flex items-center gap-2 px-4 py-2 rounded-md transition
-           {{ request()->is('admin/bookings*') ? 'bg-primary text-white' : 'hover:bg-gray-100' }}">
-            <i class="fa-solid fa-ticket w-4"></i>
-            Bookings
-        </a>
+        <x-sidebar-link
+            href="{{ url('/admin/bookings') }}"
+            icon="fa-ticket"
+            label="Bookings"
+            :active="request()->is('admin/bookings*')" />
 
     </nav>
 
-    {{-- LOGOUT --}}
-    <div class="p-4 border-t">
+    {{-- ── LOGOUT ── --}}
+    <div class="border-t flex-shrink-0"
+         :class="$store.sidebar.collapsed && !isMobile() ? 'p-2' : 'p-3'">
         <form method="POST" action="{{ route('logout') }}">
             @csrf
-            <button class="flex items-center gap-2 text-sm text-red-600 hover:underline">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                Logout
+            <button class="w-full flex items-center rounded-md text-sm text-red-500
+                           hover:bg-red-50 hover:text-red-700 transition-colors group relative"
+                    :class="$store.sidebar.collapsed && !isMobile()
+                        ? 'justify-center px-0 py-2.5'
+                        : 'gap-3 px-3 py-2'">
+                <i class="fa-solid fa-right-from-bracket w-4 text-center flex-shrink-0"></i>
+                <span :class="$store.sidebar.collapsed && !isMobile() ? 'hidden' : ''"
+                      class="whitespace-nowrap">Logout</span>
+
+                {{-- Tooltip when collapsed --}}
+                <span x-show="$store.sidebar.collapsed && !isMobile()"
+                      class="absolute left-full ml-3 px-2 py-1 text-xs bg-gray-900 text-white rounded-md
+                             whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                    Logout
+                </span>
             </button>
         </form>
     </div>

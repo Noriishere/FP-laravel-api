@@ -1,8 +1,24 @@
+{{--
+    NAVBAR COMPONENT
+    @include('components.navbar', ['title' => $title ?? 'Dashboard'])
+--}}
 <header class="bg-white border-b px-6 py-4 flex items-center justify-between">
 
-    <h1 class="text-lg font-semibold text-gray-800">
-        {{ $navtitle ?? 'Dashboard' }}
-    </h1>
+    <div class="flex items-center gap-3">
+
+        {{-- Hamburger: mobile only --}}
+        <button @click="$store.sidebar.toggleMobile()"
+                class="md:hidden flex items-center justify-center w-8 h-8 rounded-md
+                       hover:bg-gray-100 text-gray-500 transition"
+                aria-label="Toggle menu">
+            <i class="fa-solid fa-bars text-base"></i>
+        </button>
+
+        <h1 class="text-lg font-semibold text-gray-800">
+            {{ $navtitle ?? $title ?? 'Dashboard' }}
+        </h1>
+
+    </div>
 
     <!-- PROFILE DROPDOWN -->
     <div x-data="{ open: false }" class="relative">

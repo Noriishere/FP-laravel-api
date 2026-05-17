@@ -3,9 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <title>{{ $title ?? 'Shuttle System' }}</title>
-
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,51 +13,67 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        primary: '#C00707',
-                    }
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: { primary: '#C00707' }
                 }
             }
-        }   
+        }
     </script>
 </head>
-
 <body class="bg-gray-100 font-sans">
 
-<div class="flex h-screen overflow-hidden">
+{{-- Alpine Store: shared sidebar state --}}
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.store('sidebar', {
+            collapsed: localStorage.getItem('sidebarCollapsed') === 'true',
+            mobileOpen: false,
+            toggle() {
+                this.collapsed = !this.collapsed;
+                localStorage.setItem('sidebarCollapsed', this.collapsed);
+            },
+            toggleMobile() {
+                this.mobileOpen = !this.mobileOpen;
+            },
+            closeMobile() {
+                this.mobileOpen = false;
+            }
+        });
+    });
 
-    <!-- SIDEBAR -->
+    function isMobile() {
+        return window.innerWidth < 768;
+    }
+</script>
+
+<div class="flex h-screen overflow-hidden" x-data>
+
+    {{-- MOBILE OVERLAY --}}
+    <div x-show="$store.sidebar.mobileOpen"
+         @click="$store.sidebar.closeMobile()"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-black/40 z-40 md:hidden">
+    </div>
+
+    {{-- SIDEBAR --}}
     @include('components.sidebar')
 
-    <!-- MAIN -->
-    <div class="flex-1 flex flex-col">
-
-        <!-- NAVBAR -->
+    {{-- MAIN --}}
+    <div class="flex-1 flex flex-col min-w-0">
         @include('components.navbar', ['title' => $title ?? 'Dashboard'])
-
-        <!-- CONTENT -->
         <main class="flex-1 p-6 overflow-y-auto">
             @yield('content')
         </main>
-
     </div>
 
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script>
-function toggleDriversMenu(el) {
-    const parent = el.parentElement;
-    const menu = parent.querySelector('.driversMenu');
-    const icon = el.querySelector('.toggle-icon');
-
-    menu.classList.toggle('hidden');
-    icon.classList.toggle('rotate-180');
-}
-</script>
 @stack('scripts')
 </body>
 </html>
