@@ -70,7 +70,61 @@ class PaymentController extends Controller
             'payment' => $payment,
         ]);
     }
+    public function checkTransaction($bookingId)
+    {
+        $booking = Booking::findOrFail($bookingId);
 
+        $response = Http::get(
+            'https://app.pakasir.com/api/transactiondetail',
+            [
+                'project' => config('pakasir.project'),
+                'amount' => (int) $booking->total_price,
+                'order_id' => $booking->order_id,
+                'api_key' => config('pakasir.api_key'),
+            ]
+        );
+
+        if (! $response->successful()) {
+
+            return response()->json([
+                'message' => 'Failed check transaction'
+            ], 500);
+        }
+
+        $data = $response->json();
+
+        if (! isset($data['transaction'])) {
+
+            return response()->json([
+                'message' => 'Transaction not found'
+            ], 404);
+        }
+
+        $transaction = $data['transaction'];
+
+        return response()->json([
+
+            'success' => true,
+
+            'data' => [
+
+                'order_id' => $transaction['order_id'],
+
+                'status' => $transaction['status'],
+
+                'payment_method' =>
+                    $transaction['payment_method'],
+
+                'completed_at' =>
+                    $transaction['completed_at'] ?? null,
+
+                'is_paid' =>
+                    $transaction['status']
+                    ===
+                    'completed',
+            ]
+        ]);
+    }
     public function webhook(Request $request)
     {
         Log::info(

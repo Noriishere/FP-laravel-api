@@ -51,6 +51,7 @@ Route::middleware(['auth:api', 'role:customer'])
         Route::get('/schedules/{id}/route', [ScheduleController::class, 'map']);
         Route::get('/vehicles', [VehicleController::class, 'index']);
         Route::get('/vehicles/{id}', [VehicleController::class, 'show']);
+        Route::get('/payment/check/{bookingId}',[PaymentController::class, 'checkTransaction']);
     });
 
 Route::middleware(['auth:api', 'role:driver'])->group(function () {
