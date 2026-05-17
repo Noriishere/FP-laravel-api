@@ -78,7 +78,7 @@
                             @elseif($booking->payment_status == 'pending')
                                 <span class="text-yellow-600 text-xs">● Pending</span>
                             @else
-                                <span class="text-red-600 text-xs">● Failed</span>
+                                <span class="text-red-600 text-xs">● Expired</span>
                             @endif
                         </td>
 
