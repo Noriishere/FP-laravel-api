@@ -103,6 +103,46 @@
                 <div id="map" class="w-full h-[420px] rounded-xl overflow-hidden border border-gray-200 mb-4 z-0">
                 </div>
 
+                {{-- VIA STOP SEARCH (BARU) --}}
+                <div id="viaSearchWrapper" class="hidden mb-5">
+                    <div class="bg-purple-50 border border-purple-100 rounded-xl p-4">
+                        <div class="flex items-center gap-2 mb-2.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-purple-500" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span class="text-sm font-medium text-purple-700">Tambah Via Stop</span>
+                            <span
+                                class="text-xs bg-purple-100 text-purple-500 px-2 py-0.5 rounded-full ml-1">opsional</span>
+                        </div>
+
+                        <div class="flex gap-2 items-start">
+                            <div class="relative flex-1">
+                                {{-- Search icon --}}
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                    class="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+                                </svg>
+                                <input type="text" id="viaSearchInput"
+                                    placeholder="Cari lokasi via stop... (min 3 karakter)"
+                                    class="w-full border border-purple-200 bg-white rounded-lg pl-8 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-400 transition">
+                                {{-- Suggestions dropdown --}}
+                                <div id="viaSuggestions"
+                                    class="absolute z-50 bg-white border border-gray-200 w-full mt-1 rounded-lg shadow-lg hidden max-h-52 overflow-y-auto">
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="text-xs text-purple-400 mt-2">
+                            Via stop disisipkan secara otomatis sebelum titik tujuan. Atau klik langsung di peta.
+                        </p>
+                    </div>
+                </div>
+
                 {{-- Client-side validation error --}}
                 <div id="clientError" class="hidden mb-4 bg-red-50 border border-red-200 rounded-xl p-4">
                     <p id="clientErrorMsg" class="text-sm text-red-600"></p>
@@ -198,6 +238,9 @@
             const clearBtn = document.getElementById('clearStopsBtn');
             const clientError = document.getElementById('clientError');
             const clientErrorMsg = document.getElementById('clientErrorMsg');
+            const viaSearchWrapper = document.getElementById('viaSearchWrapper');
+            const viaSearchInput = document.getElementById('viaSearchInput');
+            const viaSuggestions = document.getElementById('viaSuggestions');
 
             function setStatus(text, color = 'text-gray-400') {
                 statusEl.textContent = text;
@@ -252,7 +295,7 @@
                         .addTo(map)
                         .bindPopup(
                             `<b>${labelForIndex(i, stops.length)}</b><br><span class="text-xs">${s.name}</span>`
-                            );
+                        );
                     stopMarkers.push(m);
                 });
             }
@@ -271,7 +314,6 @@
 
                 stopsPreview.classList.remove('hidden');
 
-                // Show "clear via" only if there's at least 1 via stop
                 const hasVia = stops.length > 2;
                 clearBtn.classList.toggle('hidden', !hasVia);
 
@@ -282,7 +324,6 @@
 
                     const label = labelForIndex(i, stops.length);
 
-                    // Border/badge color
                     const borderCls = isOrigin ? 'border-emerald-200 bg-emerald-50' :
                         isDest ? 'border-red-200 bg-red-50' :
                         'border-purple-200 bg-purple-50';
@@ -293,7 +334,6 @@
                     const row = document.createElement('div');
                     row.className = `flex items-start gap-3 border rounded-xl px-4 py-3 ${borderCls}`;
 
-                    // Drag handle icon
                     row.innerHTML = `
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 mb-1 flex-wrap">
@@ -364,14 +404,13 @@
             }
 
             // ─────────────────────────────────────────────────────────────────
-            // CLIENT-SIDE VALIDATION (mirrors backend rules)
+            // CLIENT-SIDE VALIDATION
             // ─────────────────────────────────────────────────────────────────
             function validateStops() {
                 hideError();
 
                 if (stops.length < 2) return false;
 
-                // Check pickup exists
                 const hasPickup = stops.some(s => s.is_pickup);
                 const hasDropoff = stops.some(s => s.is_dropoff);
 
@@ -385,7 +424,6 @@
                     return false;
                 }
 
-                // Check duplicate names
                 const names = stops.map(s => s.name.trim().toLowerCase());
                 const hasDuplicate = names.some((n, i) => names.indexOf(n) !== i);
                 if (hasDuplicate) {
@@ -428,7 +466,7 @@
                 const addStop = (name) => {
                     const stop = {
                         name: name,
-                        address: name, // display_name doubles as address
+                        address: name,
                         lat: lat,
                         lng: lng,
                         is_pickup: true,
@@ -451,7 +489,10 @@
                         document.getElementById('destination_lng').value = lng;
                         document.getElementById('destination_name').value = name;
                         clickCount = 2;
-                        setStatus('Kedua titik dipilih ✓ — klik lagi untuk via-stop', 'text-blue-600');
+                        setStatus('Kedua titik dipilih ✓ — klik lagi atau cari via-stop', 'text-blue-600');
+
+                        // Show via stop search box
+                        viaSearchWrapper.classList.remove('hidden');
 
                         const bounds = L.latLngBounds(
                             [stops[0].lat, stops[0].lng],
@@ -512,6 +553,11 @@
                     document.getElementById(id).value = '';
                 });
 
+                // Reset via stop search
+                viaSearchWrapper.classList.add('hidden');
+                viaSearchInput.value = '';
+                viaSuggestions.classList.add('hidden');
+
                 syncHiddenInput();
                 renderStopsList();
                 hideError();
@@ -532,7 +578,107 @@
             });
 
             // ─────────────────────────────────────────────────────────────────
-            // AUTOCOMPLETE
+            // VIA STOP SEARCH
+            // ─────────────────────────────────────────────────────────────────
+            (function setupViaSearch() {
+                let timeout = null;
+
+                viaSearchInput.addEventListener('input', function() {
+                    clearTimeout(timeout);
+                    const query = viaSearchInput.value.trim();
+
+                    if (query.length < 3) {
+                        viaSuggestions.classList.add('hidden');
+                        return;
+                    }
+
+                    timeout = setTimeout(() => {
+                        fetch(
+                                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`)
+                            .then(r => r.json())
+                            .then(data => {
+                                viaSuggestions.innerHTML = '';
+
+                                if (!data.length) {
+                                    viaSuggestions.classList.add('hidden');
+                                    return;
+                                }
+
+                                data.forEach(place => {
+                                    const item = document.createElement('div');
+                                    item.className =
+                                        'p-2.5 text-sm hover:bg-purple-50 cursor-pointer border-b border-gray-100 last:border-0 flex items-start gap-2';
+                                    item.innerHTML = `
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-purple-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                        <span class="text-gray-700">${place.display_name}</span>
+                                    `;
+
+                                    item.addEventListener('click', function() {
+                                        const lat = parseFloat(place.lat);
+                                        const lng = parseFloat(place.lon);
+
+                                        // Guard: must have origin & destination first
+                                        if (stops.length < 2) {
+                                            showError(
+                                                'Pilih origin dan destination terlebih dahulu sebelum menambah via stop.'
+                                                );
+                                            viaSuggestions.classList.add(
+                                                'hidden');
+                                            return;
+                                        }
+
+                                        const stop = {
+                                            name: place.display_name,
+                                            address: place.display_name,
+                                            lat,
+                                            lng,
+                                            is_pickup: true,
+                                            is_dropoff: true
+                                        };
+
+                                        // Insert before destination
+                                        stops.splice(stops.length - 1, 0,
+                                            stop);
+
+                                        map.setView([lat, lng], 13);
+                                        rebuildMarkers();
+                                        syncHiddenInput();
+                                        renderStopsList();
+                                        validateStops();
+
+                                        const viaCount = stops.length - 2;
+                                        setStatus(
+                                            `Via-stop ditambahkan (${viaCount})`,
+                                            'text-purple-600');
+
+                                        // Reset search input
+                                        viaSearchInput.value = '';
+                                        viaSuggestions.classList.add(
+                                            'hidden');
+                                    });
+
+                                    viaSuggestions.appendChild(item);
+                                });
+
+                                viaSuggestions.classList.remove('hidden');
+                            })
+                            .catch(() => viaSuggestions.classList.add('hidden'));
+                    }, 400);
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!viaSuggestions.contains(e.target) && e.target !== viaSearchInput) {
+                        viaSuggestions.classList.add('hidden');
+                    }
+                });
+            })();
+
+            // ─────────────────────────────────────────────────────────────────
+            // AUTOCOMPLETE (origin & destination)
             // ─────────────────────────────────────────────────────────────────
             function setupAutocomplete(inputId, suggestionId, latId, lngId) {
                 const input = document.getElementById(inputId);
@@ -571,7 +717,6 @@
                                         document.getElementById(lngId).value = lng;
                                         map.setView([lat, lng], 13);
 
-                                        // Determine which role this search fills
                                         if (inputId === 'origin_name' &&
                                             clickCount === 0) {
                                             handlePointSelection(lat, lng, place
@@ -581,7 +726,6 @@
                                             handlePointSelection(lat, lng, place
                                                 .display_name, 'search');
                                         } else {
-                                            // Re-set existing origin/destination via search
                                             if (inputId === 'origin_name') {
                                                 stops[0] = {
                                                     name: place.display_name,
