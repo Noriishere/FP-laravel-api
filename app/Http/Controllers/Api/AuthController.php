@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class AuthController extends Controller
 {
@@ -85,19 +86,65 @@ class AuthController extends Controller
         ]);
     }
 
+    
+
     public function me()
     {
         $user = auth('api')->user();
 
+        $driver = $user->driver;
+
+        $driverData = null;
+
+        if ($driver) {
+
+            $documents = $driver->documents
+                ->keyBy('type');
+
+            $driverData = [
+
+                'id' => $driver->id,
+
+                'status' => $driver->status,
+
+                'verification_status' => $driver->verification_status,
+
+                'documents' => [
+
+                    'ktp' => isset($documents['ktp'])
+                        ? asset('storage/' . $documents['ktp']->file_path)
+                        : null,
+
+                    'sim' => isset($documents['sim'])
+                        ? asset('storage/' . $documents['sim']->file_path)
+                        : null,
+
+                    'selfie' => isset($documents['selfie'])
+                        ? asset('storage/' . $documents['selfie']->file_path)
+                        : null,
+                ],
+            ];
+        }
+
         return response()->json([
+
             'success' => true,
+
             'data' => [
+
                 'id' => $user->id,
+
                 'name' => $user->name,
+
                 'email' => $user->email,
+
                 'role' => $user->role,
+
                 'email_verified_at' => $user->email_verified_at,
+
                 'created_at' => $user->created_at,
+
+                'driver' => $driverData,
             ],
         ]);
     }
