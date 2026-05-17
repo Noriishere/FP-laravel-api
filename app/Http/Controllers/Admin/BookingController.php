@@ -10,7 +10,6 @@ class BookingController extends Controller
 {
     public function index()
     {
-        dd(now());
         $bookings = Booking::with([
             'user',
 
