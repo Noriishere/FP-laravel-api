@@ -61,8 +61,9 @@ class PaymentController extends Controller
             'payment_method' => 'qris',
             'payment_status' => 'pending',
             'expired_at' => isset($payment['expired_at'])
-                ? Carbon::parse($payment['expired_at'])->format('Y-m-d H:i:s')
-                : now()->addMinutes(15),
+    ? Carbon::parse($payment['expired_at'])
+        ->timezone('Asia/Jakarta')
+    : now()->addMinutes(15),
         ]);
 
         return response()->json([
@@ -70,6 +71,7 @@ class PaymentController extends Controller
             'payment' => $payment,
         ]);
     }
+
     public function checkTransaction($bookingId)
     {
         $booking = Booking::findOrFail($bookingId);
@@ -87,7 +89,7 @@ class PaymentController extends Controller
         if (! $response->successful()) {
 
             return response()->json([
-                'message' => 'Failed check transaction'
+                'message' => 'Failed check transaction',
             ], 500);
         }
 
@@ -96,7 +98,7 @@ class PaymentController extends Controller
         if (! isset($data['transaction'])) {
 
             return response()->json([
-                'message' => 'Transaction not found'
+                'message' => 'Transaction not found',
             ], 404);
         }
 
@@ -112,19 +114,17 @@ class PaymentController extends Controller
 
                 'status' => $transaction['status'],
 
-                'payment_method' =>
-                    $transaction['payment_method'],
+                'payment_method' => $transaction['payment_method'],
 
-                'completed_at' =>
-                    $transaction['completed_at'] ?? null,
+                'completed_at' => $transaction['completed_at'] ?? null,
 
-                'is_paid' =>
-                    $transaction['status']
+                'is_paid' => $transaction['status']
                     ===
                     'completed',
-            ]
+            ],
         ]);
     }
+
     public function webhook(Request $request)
     {
         Log::info(
