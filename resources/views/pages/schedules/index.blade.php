@@ -73,7 +73,7 @@
                                 <div class="flex gap-2 items-center">
                                     <a href="{{ route('schedules.show', $schedule->id) }}"
                                         class="text-blue-600 text-xs">Detail</a>
-                                    <a href="#" class="text-yellow-600 text-xs">Edit</a>
+                                    <a href="{{ route('schedules.edit', $schedule->id) }}" class="text-yellow-600 text-xs">Edit</a>
 
                                     <form action="{{ route('schedules.destroy', $schedule->id) }}" method="POST"
                                         onsubmit="return confirm('Yakin mau hapus jadwal ini?')">
