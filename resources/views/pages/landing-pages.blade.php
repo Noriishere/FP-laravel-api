@@ -2,7 +2,7 @@
 
 @section('content')
 
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,700&display=swap" rel="stylesheet">
 
 <style>
     :root {
@@ -42,11 +42,12 @@
     }
 
     .nav-logo {
-        font-family: 'Syne', sans-serif;
-        font-size: 1.6rem;
-        font-weight: 800;
+        font-family: 'Fraunces', serif;
+        font-size: 1.5rem;
+        font-weight: 900;
         color: var(--primary);
-        letter-spacing: -0.5px;
+        letter-spacing: 0px;
+        font-optical-sizing: auto;
     }
 
     .nav-links {
@@ -141,13 +142,14 @@
     }
 
     .hero-title {
-        font-family: 'Syne', sans-serif;
-        font-size: clamp(2.6rem, 4.5vw, 3.8rem);
-        font-weight: 800;
-        line-height: 1.1;
-        letter-spacing: -1.5px;
+        font-family: 'Fraunces', serif;
+        font-size: clamp(2.4rem, 4vw, 3.4rem);
+        font-weight: 900;
+        line-height: 1.12;
+        letter-spacing: -0.5px;
         margin-bottom: 24px;
         color: var(--dark);
+        font-optical-sizing: auto;
     }
 
     .hero-title .highlight {
@@ -233,11 +235,12 @@
     .stat-item { display: flex; flex-direction: column; gap: 4px; }
 
     .stat-num {
-        font-family: 'Syne', sans-serif;
-        font-size: 1.7rem;
-        font-weight: 800;
+        font-family: 'Fraunces', serif;
+        font-size: 1.65rem;
+        font-weight: 900;
         color: var(--dark);
-        letter-spacing: -1px;
+        letter-spacing: -0.5px;
+        font-optical-sizing: auto;
     }
 
     .stat-label {
@@ -377,14 +380,15 @@
     }
 
     .section-title {
-        font-family: 'Syne', sans-serif;
-        font-size: clamp(1.8rem, 3vw, 2.6rem);
-        font-weight: 800;
-        letter-spacing: -1px;
+        font-family: 'Fraunces', serif;
+        font-size: clamp(1.7rem, 2.8vw, 2.4rem);
+        font-weight: 900;
+        letter-spacing: -0.3px;
         color: var(--dark);
         max-width: 480px;
         line-height: 1.2;
         margin-bottom: 60px;
+        font-optical-sizing: auto;
     }
 
     .features-grid {
@@ -439,11 +443,13 @@
     }
 
     .feature-card h4 {
-        font-family: 'Syne', sans-serif;
-        font-size: 1.15rem;
+        font-family: 'Fraunces', serif;
+        font-size: 1.12rem;
         font-weight: 700;
         margin-bottom: 10px;
         color: var(--dark);
+        letter-spacing: 0;
+        font-optical-sizing: auto;
     }
 
     .feature-card p {
@@ -506,11 +512,12 @@
     }
 
     .step-item h4 {
-        font-family: 'Syne', sans-serif;
+        font-family: 'Fraunces', serif;
         font-size: 1.05rem;
         font-weight: 700;
         margin-bottom: 10px;
         color: var(--dark);
+        font-optical-sizing: auto;
     }
 
     .step-item p {
@@ -540,13 +547,14 @@
     }
 
     .cta h3 {
-        font-family: 'Syne', sans-serif;
-        font-size: clamp(2rem, 4vw, 3.2rem);
-        font-weight: 800;
+        font-family: 'Fraunces', serif;
+        font-size: clamp(2rem, 4vw, 3rem);
+        font-weight: 900;
         color: #fff;
-        letter-spacing: -1px;
+        letter-spacing: -0.5px;
         margin-bottom: 16px;
         position: relative;
+        font-optical-sizing: auto;
     }
 
     .cta p {
@@ -589,13 +597,238 @@
     }
 
     footer .footer-logo {
-        font-family: 'Syne', sans-serif;
-        font-weight: 800;
+        font-family: 'Fraunces', serif;
+        font-weight: 900;
         color: var(--primary);
         font-size: 1.1rem;
+        font-optical-sizing: auto;
     }
 
     footer p { font-size: 0.82rem; color: var(--gray); }
+
+    /* ── DRIVER SECTION ── */
+    .driver {
+        padding: 100px 60px;
+        background: #fff;
+        border-top: 1px solid var(--border);
+    }
+
+    .driver-inner {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 80px;
+        align-items: center;
+    }
+
+    .driver-perks {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        margin-top: 40px;
+    }
+
+    .perk-item {
+        display: flex;
+        gap: 18px;
+        align-items: flex-start;
+        padding: 20px 22px;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        background: var(--bg);
+        transition: border-color 0.25s, transform 0.2s, box-shadow 0.25s;
+    }
+
+    .perk-item:hover {
+        border-color: rgba(232,44,44,0.3);
+        transform: translateX(6px);
+        box-shadow: 0 8px 28px rgba(0,0,0,0.06);
+    }
+
+    .perk-icon {
+        width: 44px; height: 44px;
+        flex-shrink: 0;
+        border-radius: 11px;
+        background: rgba(232,44,44,0.08);
+        display: flex; align-items: center; justify-content: center;
+    }
+
+    .perk-icon i { color: var(--primary); font-size: 1.1rem; }
+
+    .perk-text strong {
+        display: block;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 4px;
+    }
+
+    .perk-text span {
+        font-size: 0.85rem;
+        color: var(--gray);
+        line-height: 1.6;
+    }
+
+    .driver-visual {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .driver-card-main {
+        background: var(--dark);
+        border-radius: 24px;
+        padding: 48px 40px;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+        text-align: center;
+    }
+
+    .driver-card-main::before {
+        content: '';
+        position: absolute;
+        width: 300px; height: 300px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(232,44,44,0.22) 0%, transparent 65%);
+        top: -60px; right: -60px;
+        pointer-events: none;
+    }
+
+    .driver-card-main i.card-icon {
+        font-size: 3.5rem;
+        color: rgba(255,255,255,0.15);
+        position: absolute;
+        bottom: 20px; right: 30px;
+    }
+
+    .driver-card-main .earnings-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.45);
+        margin-bottom: 10px;
+    }
+
+    .driver-card-main .earnings-num {
+        font-family: 'Fraunces', serif;
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: #fff;
+        line-height: 1;
+        margin-bottom: 6px;
+        font-optical-sizing: auto;
+    }
+
+    .driver-card-main .earnings-sub {
+        font-size: 0.82rem;
+        color: rgba(255,255,255,0.45);
+    }
+
+    .driver-chips {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 28px;
+    }
+
+    .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 14px;
+        border-radius: 99px;
+        background: rgba(255,255,255,0.08);
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: rgba(255,255,255,0.75);
+    }
+
+    .chip i { color: var(--primary); font-size: 0.7rem; }
+
+    .driver-card-sub {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .sub-card {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px;
+        text-align: center;
+        transition: border-color 0.2s;
+    }
+
+    .sub-card:hover { border-color: rgba(232,44,44,0.3); }
+
+    .sub-card i {
+        font-size: 1.3rem;
+        color: var(--primary);
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .sub-card strong {
+        display: block;
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 4px;
+    }
+
+    .sub-card span {
+        font-size: 0.78rem;
+        color: var(--gray);
+    }
+
+    .btn-driver {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--dark);
+        color: #fff;
+        padding: 15px 30px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        margin-top: 40px;
+        transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    .btn-driver:hover {
+        background: #1a1a1a;
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(0,0,0,0.22);
+    }
+
+    .btn-driver-outline {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        border: 1.5px solid var(--border);
+        color: var(--gray);
+        padding: 15px 30px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-decoration: none;
+        margin-top: 40px;
+        margin-left: 12px;
+        transition: border-color 0.2s, color 0.2s, transform 0.15s;
+        background: #fff;
+    }
+
+    .btn-driver-outline:hover {
+        border-color: var(--dark);
+        color: var(--dark);
+        transform: translateY(-2px);
+    }
 
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
@@ -613,6 +846,9 @@
         .hero-actions { justify-content: center; }
         .hero-stats { justify-content: center; }
 
+        .driver-inner { grid-template-columns: 1fr; gap: 48px; }
+        .driver-card-sub { grid-template-columns: 1fr 1fr; }
+        .driver { padding: 72px 24px; }
         .features, .how, .cta { padding: 72px 24px; }
 
         .features-grid, .steps-grid { grid-template-columns: 1fr; gap: 20px; }
@@ -630,6 +866,7 @@
     <div class="nav-links">
         <a href="#fitur">Fitur</a>
         <a href="#cara">Cara Kerja</a>
+        <a href="#driver">Jadi Driver</a>
         <a href="#download">Download</a>
     </div>
 
@@ -785,6 +1022,89 @@
             <h4>Berangkat!</h4>
             <p>Scan tiket digital dan nikmati perjalanan shuttle yang nyaman.</p>
         </div>
+    </div>
+</section>
+
+{{-- DRIVER SECTION --}}
+<section id="driver" class="driver">
+    <div class="driver-inner">
+
+        {{-- LEFT: copy --}}
+        <div>
+            <div class="section-label">Bergabung Bersama Kami</div>
+            <h2 class="section-title">Jadilah driver GASSIN,<br>kendalikan penghasilanmu</h2>
+
+            <p style="font-size:0.97rem;color:var(--gray);line-height:1.75;max-width:460px;">
+                Bergabunglah dengan ribuan driver GASSIN dan nikmati fleksibilitas kerja,
+                penghasilan kompetitif, serta dukungan penuh dari tim kami untuk perjalanan karir yang lebih baik.
+            </p>
+
+            <div class="driver-perks">
+                <div class="perk-item">
+                    <div class="perk-icon"><i class="fa-solid fa-wallet"></i></div>
+                    <div class="perk-text">
+                        <strong>Penghasilan Kompetitif</strong>
+                        <span>Dapatkan komisi yang transparan dan dibayarkan tepat waktu setiap minggu.</span>
+                    </div>
+                </div>
+                <div class="perk-item">
+                    <div class="perk-icon"><i class="fa-solid fa-clock"></i></div>
+                    <div class="perk-text">
+                        <strong>Jam Kerja Fleksibel</strong>
+                        <span>Pilih jadwal yang sesuai dengan kebutuhanmu — pagi, siang, atau malam.</span>
+                    </div>
+                </div>
+                <div class="perk-item">
+                    <div class="perk-icon"><i class="fa-solid fa-headset"></i></div>
+                    <div class="perk-text">
+                        <strong>Dukungan 24/7</strong>
+                        <span>Tim support kami siap membantu kamu kapanpun dibutuhkan di jalan.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <a href="https://gassin.naltylabs.my.id/driver/" target="_blank" class="btn-driver">
+                    <i class="fa-solid fa-steering-wheel"></i>
+                    Daftar Jadi Driver
+                </a>
+                <a href="https://gassin.naltylabs.my.id/driver/" target="_blank" class="btn-driver-outline">
+                    Pelajari Lebih Lanjut
+                    <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        {{-- RIGHT: visual cards --}}
+        <div class="driver-visual">
+            <div class="driver-card-main">
+                <p class="earnings-label">Estimasi Penghasilan / Bulan</p>
+                <p class="earnings-num">Rp 6 Juta+</p>
+                <p class="earnings-sub">rata-rata driver aktif GASSIN</p>
+
+                <div class="driver-chips">
+                    <span class="chip"><i class="fa-solid fa-circle-check"></i> Komisi Transparan</span>
+                    <span class="chip"><i class="fa-solid fa-circle-check"></i> Bonus Performa</span>
+                    <span class="chip"><i class="fa-solid fa-circle-check"></i> Cair Mingguan</span>
+                </div>
+
+                <i class="fa-solid fa-bus card-icon"></i>
+            </div>
+
+            <div class="driver-card-sub">
+                <div class="sub-card">
+                    <i class="fa-solid fa-route"></i>
+                    <strong>50+ Rute</strong>
+                    <span>Pilih rute yang dekat dengan domisilimu</span>
+                </div>
+                <div class="sub-card">
+                    <i class="fa-solid fa-users"></i>
+                    <strong>500+ Driver</strong>
+                    <span>Bergabung bersama komunitas driver GASSIN</span>
+                </div>
+            </div>
+        </div>
+
     </div>
 </section>
 
