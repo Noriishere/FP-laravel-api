@@ -1,337 +1,293 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="bg-white rounded-xl shadow p-5 mb-6">
-        <h3 class="text-sm font-semibold text-gray-700 mb-4">
-            Grafik Pemesanan (30 Hari)
-        </h3>
+<div class="space-y-5">
 
-        <canvas id="bookingChart" height="100"></canvas>
-    </div>
+    {{-- STAT CARDS --}}
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-
-    </div>
-    {{-- STAT --}}
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-
-        <div class="bg-white p-4 rounded-xl shadow flex items-center justify-between">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-start justify-between gap-3">
             <div>
-                <p class="text-xs text-gray-500">Total Pengguna</p>
-                <h2 class="text-2xl font-bold">{{ $totalUsers }}</h2>
+                <p class="text-xs text-gray-400 mb-1">Total pengguna</p>
+                <h2 class="text-2xl font-semibold text-gray-800">{{ $totalUsers }}</h2>
             </div>
-            <div class="bg-blue-100 p-3 rounded-lg text-blue-600">
-                <i class="fa-solid fa-users"></i>
+            <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500 flex-shrink-0">
+                <i class="fa-solid fa-users text-sm"></i>
             </div>
         </div>
 
-        <div class="bg-white p-4 rounded-xl shadow flex items-center justify-between">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-start justify-between gap-3">
             <div>
-                <p class="text-xs text-gray-500">Total Pemesanan</p>
-                <h2 class="text-2xl font-bold">{{ $totalBookings }}</h2>
+                <p class="text-xs text-gray-400 mb-1">Total pemesanan</p>
+                <h2 class="text-2xl font-semibold text-gray-800">{{ $totalBookings }}</h2>
             </div>
-            <div class="bg-green-100 p-3 rounded-lg text-green-600">
-                <i class="fa-solid fa-ticket"></i>
+            <div class="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 flex-shrink-0">
+                <i class="fa-solid fa-ticket text-sm"></i>
             </div>
         </div>
 
-        <div class="bg-white p-4 rounded-xl shadow flex items-center justify-between">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-start justify-between gap-3">
             <div>
-                <p class="text-xs text-gray-500">Jadwal Aktif</p>
-                <h2 class="text-2xl font-bold">{{ $activeSchedules }}</h2>
+                <p class="text-xs text-gray-400 mb-1">Jadwal aktif</p>
+                <h2 class="text-2xl font-semibold text-gray-800">{{ $activeSchedules }}</h2>
             </div>
-            <div class="bg-yellow-100 p-3 rounded-lg text-yellow-600">
-                <i class="fa-solid fa-calendar-check"></i>
+            <div class="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500 flex-shrink-0">
+                <i class="fa-solid fa-calendar-check text-sm"></i>
             </div>
         </div>
 
-        <div class="bg-white p-4 rounded-xl shadow flex items-center justify-between">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-start justify-between gap-3">
             <div>
-                <p class="text-xs text-gray-500">Armada</p>
-                <h2 class="text-2xl font-bold">{{ $activeVehicles }}</h2>
+                <p class="text-xs text-gray-400 mb-1">Armada</p>
+                <h2 class="text-2xl font-semibold text-gray-800">{{ $activeVehicles }}</h2>
             </div>
-            <div class="bg-purple-100 p-3 rounded-lg text-purple-600">
-                <i class="fa-solid fa-bus"></i>
+            <div class="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center text-purple-500 flex-shrink-0">
+                <i class="fa-solid fa-bus text-sm"></i>
             </div>
         </div>
 
     </div>
-    <div class="bg-white rounded-xl shadow p-5 mb-6">
-        <h3 class="text-sm font-semibold text-gray-700 mb-3">
-            Schedule Berikutnya
-        </h3>
+
+    {{-- CHART --}}
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h3 class="text-sm font-semibold text-gray-700">Grafik pemesanan</h3>
+                <p class="text-xs text-gray-400 mt-0.5">30 hari terakhir</p>
+            </div>
+            <span class="text-xs text-gray-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-rotate-right text-gray-300"></i>
+                Auto-refresh 30 dtk
+            </span>
+        </div>
+        <canvas id="bookingChart" height="80"></canvas>
+    </div>
+
+    {{-- SCHEDULE MAP --}}
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <h3 class="text-sm font-semibold text-gray-700 mb-3">Schedule berikutnya</h3>
 
         @if ($nextSchedule && $nextSchedule->route)
-            <div id="map" class="w-full h-64 rounded-lg"></div>
-
-            <p class="text-xs text-gray-500 mt-2">
-                {{ $nextSchedule->route->origin?->name }} →
+            <div id="map" class="w-full h-56 rounded-lg overflow-hidden border border-gray-100"></div>
+            <div class="flex items-center gap-2 mt-3 text-xs text-gray-500">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>
+                {{ $nextSchedule->route->origin?->name }}
+                <svg class="w-3 h-3 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                <span class="w-2 h-2 rounded-full bg-red-400 inline-block"></span>
                 {{ $nextSchedule->route->destination?->name }}
-            </p>
+            </div>
         @else
-            <p class="text-gray-400 text-sm">Tidak ada jadwal</p>
+            <div class="flex items-center gap-2 text-sm text-gray-400 py-4">
+                <i class="fa-regular fa-calendar-xmark"></i>
+                Tidak ada jadwal tersedia
+            </div>
         @endif
     </div>
-    {{-- TABLE --}}
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
 
-        {{-- DRIVER ONLINE --}}
-        <div class="bg-white rounded-lg shadow p-5">
-            <h3 class="text-sm font-semibold text-gray-700 mb-4">
-                Driver Online
-            </h3>
+    {{-- DRIVER ONLINE & PENDING --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <h3 class="text-sm font-semibold text-gray-700 mb-3">Driver online</h3>
             @forelse ($onlineDrivers as $driver)
-                <div class="flex justify-between items-center border-b py-2">
-                    <span>{{ $driver->user->name }}</span>
-                    <span class="text-green-600 text-xs">
-                        ● Online
+                <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold flex items-center justify-center">
+                            {{ strtoupper(substr($driver->user->name, 0, 2)) }}
+                        </div>
+                        <span class="text-sm text-gray-700">{{ $driver->user->name }}</span>
+                    </div>
+                    <span class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span> Online
                     </span>
                 </div>
             @empty
-                <p class="text-gray-400 text-sm">Tidak ada driver online</p>
+                <p class="text-sm text-gray-400">Tidak ada driver online</p>
             @endforelse
         </div>
 
-        {{-- DRIVER PENDING --}}
-        <div class="bg-white rounded-lg shadow p-5">
-            <h3 class="text-sm font-semibold text-gray-700 mb-4">
-                Driver Belum Disetujui
-            </h3>
-
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <h3 class="text-sm font-semibold text-gray-700 mb-3">Driver belum disetujui</h3>
             @forelse ($pendingDrivers as $driver)
-                <div class="flex justify-between items-center border-b py-2">
-                    <span>{{ $driver->user->name }}</span>
-                    <span class="text-yellow-600 text-xs">
-                        ● Pending
+                <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-7 h-7 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold flex items-center justify-center">
+                            {{ strtoupper(substr($driver->user->name, 0, 2)) }}
+                        </div>
+                        <span class="text-sm text-gray-700">{{ $driver->user->name }}</span>
+                    </div>
+                    <span class="inline-flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block"></span> Pending
                     </span>
                 </div>
             @empty
-                <p class="text-gray-400 text-sm">Semua driver sudah approved</p>
+                <p class="text-sm text-gray-400">Semua driver sudah approved</p>
             @endforelse
         </div>
 
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        {{-- PEMESANAN TERBARU --}}
-        <div class="bg-white rounded-lg shadow p-5">
+    {{-- TABEL PEMESANAN & ARMADA --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-            <h3 class="text-sm font-semibold text-gray-700 mb-4">
-                Pemesanan Terbaru
-            </h3>
-
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <h3 class="text-sm font-semibold text-gray-700 mb-3">Pemesanan terbaru</h3>
             <table class="w-full text-sm">
                 <thead>
-                    <tr class="text-left text-gray-500 border-b">
-                        <th class="pb-2">User</th>
-                        <th class="pb-2">Rute</th>
-                        <th class="pb-2">Tanggal</th>
+                    <tr class="text-left">
+                        <th class="text-xs font-medium text-gray-400 pb-2 w-1/4">User</th>
+                        <th class="text-xs font-medium text-gray-400 pb-2 w-2/5">Rute</th>
+                        <th class="text-xs font-medium text-gray-400 pb-2">Status</th>
                     </tr>
                 </thead>
-
-                <tbody>
+                <tbody class="divide-y divide-gray-50">
                     @forelse ($latestBookings as $booking)
-                        <tr class="border-b">
-                            <td class="py-2">{{ $booking->user->name ?? '-' }}</td>
-                            <td class="py-2">
+                        <tr>
+                            <td class="py-2.5 text-gray-700">{{ $booking->user->name ?? '-' }}</td>
+                            <td class="py-2.5 text-gray-400 truncate max-w-0 text-xs">
                                 {{ $booking->schedule->route->origin?->name ?? '-' }}
                                 →
                                 {{ $booking->schedule->route->destination?->name ?? '-' }}
                             </td>
-                            <td class="py-2">
-                                {{ $booking->created_at->format('d M Y') }}
-                            </td>
-                            <td class="py-2">
-                                <span
-                                    class="text-xs px-2 py-1 rounded-full flex items-center gap-1 w-fit
-        {{ $booking->status === 'confirmed' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600' }}">
-
-                                    <i
-                                        class="fa-solid 
-            {{ $booking->status === 'confirmed' ? 'fa-circle-check' : 'fa-clock' }}">
-                                    </i>
-
-                                    {{ ucfirst($booking->status) }}
-                                </span>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="3" class="py-4 text-center text-gray-400">
-                                Tidak ada data
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-
-        </div>
-
-        {{-- STATUS ARMADA --}}
-        <div class="bg-white rounded-lg shadow p-5">
-
-            <h3 class="text-sm font-semibold text-gray-700 mb-4">
-                Status Armada
-            </h3>
-
-            <table class="w-full text-sm">
-                <thead>
-                    <tr class="text-left text-gray-500 border-b">
-                        <th class="pb-2">Nama</th>
-                        <th class="pb-2">Kapasitas</th>
-                        <th class="pb-2">Status</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    @forelse ($vehicles as $vehicle)
-                        <tr class="border-b">
-                            <td class="py-2">{{ $vehicle->name }}</td>
-                            <td class="py-2">{{ $vehicle->capacity }}</td>
-                            <td class="py-2">
-                                <span class="text-green-600 text-xs">
-                                    Aktif
-                                </span>
-                            </td>
-                            <td class="py-2">
-                                @if ($vehicle->schedules->where('status', 'on-going')->count())
-                                    <span class="text-yellow-600 text-xs flex items-center gap-1">
-                                        <i class="fa-solid fa-circle"></i> Dipakai
+                            <td class="py-2.5">
+                                @if($booking->status === 'confirmed')
+                                    <span class="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                                        <i class="fa-solid fa-circle-check text-xs"></i> Confirmed
                                     </span>
                                 @else
-                                    <span class="text-green-600 text-xs flex items-center gap-1">
-                                        <i class="fa-solid fa-circle-check"></i> Available
+                                    <span class="inline-flex items-center gap-1 text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                                        <i class="fa-solid fa-clock text-xs"></i> {{ ucfirst($booking->status) }}
                                     </span>
                                 @endif
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="3" class="py-4 text-center text-gray-400">
-                                Tidak ada data
-                            </td>
+                            <td colspan="3" class="py-6 text-center text-sm text-gray-400">Tidak ada data</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
+        </div>
 
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <h3 class="text-sm font-semibold text-gray-700 mb-3">Status armada</h3>
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left">
+                        <th class="text-xs font-medium text-gray-400 pb-2 w-2/5">Nama</th>
+                        <th class="text-xs font-medium text-gray-400 pb-2 w-1/4">Kapasitas</th>
+                        <th class="text-xs font-medium text-gray-400 pb-2">Ketersediaan</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    @forelse ($vehicles as $vehicle)
+                        <tr>
+                            <td class="py-2.5 text-gray-700">{{ $vehicle->name }}</td>
+                            <td class="py-2.5 text-gray-400 text-xs">{{ $vehicle->capacity }} kursi</td>
+                            <td class="py-2.5">
+                                @if ($vehicle->schedules->where('status', 'on-going')->count())
+                                    <span class="inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
+                                        <i class="fa-solid fa-circle text-xs"></i> Dipakai
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                                        <i class="fa-solid fa-circle-check text-xs"></i> Available
+                                    </span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="3" class="py-6 text-center text-sm text-gray-400">Tidak ada data</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
 
     </div>
-    <script>
-        setInterval(() => {
-            location.reload();
-        }, 30000); // refresh tiap 30 detik
-    </script>
-    @if ($nextSchedule && $nextSchedule->route)
-        <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                const map = L.map('map').setView([
-                    {{ $nextSchedule->route->origin?->lat }},
-                    {{ $nextSchedule->route->origin?->lng }}
-                ], 6);
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+</div>
 
-                const polyline = {!! $nextSchedule->route->polyline !!};
-                const stops = @json($nextSchedule->route->stops ?? []);
+<script>
+    setInterval(() => location.reload(), 30000);
+</script>
 
-                console.log("Stops:", stops);
-                console.log(stops);
-                const colors = ['#2563eb', '#16a34a', '#dc2626', '#9333ea', '#f59e0b'];
+@if ($nextSchedule && $nextSchedule->route)
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const map = L.map('map').setView([
+            {{ $nextSchedule->route->origin?->lat }},
+            {{ $nextSchedule->route->origin?->lng }}
+        ], 6);
 
-                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
 
-                L.polyline(polyline, {
-                    color: randomColor,
-                    weight: 4
-                }).addTo(map);
-                const startIcon = L.icon({
-                    iconUrl: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
-                    iconSize: [30, 30]
-                });
+        const polyline = {!! $nextSchedule->route->polyline !!};
+        L.polyline(polyline, { color: '#6366f1', weight: 3, opacity: 0.8 }).addTo(map);
 
-                const midIcon = L.icon({
-                    iconUrl: 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png',
-                    iconSize: [30, 30]
-                });
+        const stops = @json($nextSchedule->route->stops ?? []);
+        stops.forEach((stop, index) => {
+            const isStart = index === 0;
+            const isEnd   = index === stops.length - 1;
+            const bg = isStart ? '#34d399' : isEnd ? '#f87171' : '#a78bfa';
 
-                const endIcon = L.icon({
-                    iconUrl: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
-                    iconSize: [30, 30]
-                });
-                if (stops.length > 0) {
-                    stops.forEach((stop, index) => {
-
-                        const isStart = index === 0;
-                        const isEnd = index === stops.length - 1;
-
-                        let bg = '#3b82f6'; // default biru
-                        if (isStart) bg = '#16a34a'; // hijau
-                        if (isEnd) bg = '#dc2626'; // merah
-
-                        const icon = L.divIcon({
-                            className: '',
-                            html: `
-                <div style="
-                    background:${bg};
-                    color:white;
-                    border-radius:50%;
-                    width:28px;
-                    height:28px;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    font-size:12px;
-                    font-weight:bold;
-                    border:2px solid white;
-                    box-shadow:0 2px 6px rgba(0,0,0,0.3);
-                ">
-                    ${index + 1}
-                </div>
-            `,
-                            iconSize: [28, 28],
-                            iconAnchor: [14, 14]
-                        });
-
-                        L.marker([stop.lat, stop.lng], {
-                                icon
-                            })
-                            .addTo(map)
-                            .bindPopup(stop.name);
-                    });
-                }
-
-                map.fitBounds(polyline);
-
+            const icon = L.divIcon({
+                className: '',
+                html: `<div style="width:14px;height:14px;background:${bg};border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.25);"></div>`,
+                iconSize: [14, 14], iconAnchor: [7, 7]
             });
-        </script>
-    @endif
-    @push('scripts')
-        <script>
-            const ctx = document.getElementById('bookingChart');
+            L.marker([stop.lat, stop.lng], { icon }).addTo(map).bindPopup(stop.name);
+        });
 
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: {!! json_encode($labels) !!},
-                    datasets: [{
-                        label: 'Total Booking',
-                        data: {!! json_encode($data) !!},
-                        tension: 0.4,
-                        fill: true
-                    }]
+        map.fitBounds(polyline);
+    });
+</script>
+@endif
+
+@push('scripts')
+<script>
+    const ctx = document.getElementById('bookingChart');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {!! json_encode($labels) !!},
+            datasets: [{
+                label: 'Booking',
+                data: {!! json_encode($data) !!},
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99,102,241,0.08)',
+                borderWidth: 2,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                pointHoverBackgroundColor: '#6366f1',
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: { mode: 'index', intersect: false }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { size: 11 }, color: '#9ca3af', maxTicksLimit: 8 }
                 },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
+                y: {
+                    grid: { color: 'rgba(0,0,0,0.04)' },
+                    ticks: { font: { size: 11 }, color: '#9ca3af' },
+                    beginAtZero: true
                 }
-            });
-        </script>
-    @endpush
+            }
+        }
+    });
+</script>
+@endpush
+
 @endsection
