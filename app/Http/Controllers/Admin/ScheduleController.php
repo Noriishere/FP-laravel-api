@@ -17,6 +17,8 @@ class ScheduleController extends Controller
 {
     public function index()
     {
+        $navtitle = "Schedules";
+        $title = "Schedules || Admin Gassin!";
         $schedules = Schedule::with([
             'route.stops',
             'driver.user',
@@ -28,12 +30,14 @@ class ScheduleController extends Controller
 
         return view(
             'pages.schedules.index',
-            compact('schedules')
+            compact('schedules', 'navtitle', 'title')
         );
     }
 
     public function create()
     {
+        $navtitle = "Create Schedule";
+        $title = "Create Schedule || Admin Gassin!";
         $routes = Route::with([
             'stops',
         ])->where(
@@ -43,7 +47,7 @@ class ScheduleController extends Controller
 
         return view(
             'pages.schedules.create',
-            compact('routes')
+            compact('routes', 'navtitle', 'title')
         );
     }
 
@@ -429,6 +433,8 @@ class ScheduleController extends Controller
 
     public function show($id)
     {
+        $navtitle = "Detail Schedule";
+        $title = "Detail Schedule || Admin Gassin!";
         $schedule = Schedule::with([
             'route.stops',
             'vehicle',
@@ -464,7 +470,9 @@ class ScheduleController extends Controller
             'pages.schedules.show',
             compact(
                 'schedule',
-                'activeBookings'
+                'activeBookings',
+                'navtitle',
+                'title'
             )
         );
     }
