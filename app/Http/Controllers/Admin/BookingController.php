@@ -10,6 +10,8 @@ class BookingController extends Controller
 {
     public function index()
     {
+        $navtitle = "Bookings";
+        $title = "Bookings || Admin Gassin!";
         $bookings = Booking::with([
             'user',
 
@@ -27,12 +29,14 @@ class BookingController extends Controller
 
         return view(
             'pages.bookings.index',
-            compact('bookings')
+            compact('bookings', 'navtitle', 'title')
         );
     }
 
     public function show($id)
     {
+        $navtitle = "Detail";
+        $title = "Detail Bookings || Admin Gassin!";
         $booking = Booking::with([
 
             'user',
@@ -53,7 +57,7 @@ class BookingController extends Controller
 
         return view(
             'pages.bookings.show',
-            compact('booking')
+            compact('booking', 'navtitle', 'title')
         );
     }
 

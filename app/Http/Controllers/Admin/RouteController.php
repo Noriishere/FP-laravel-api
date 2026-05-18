@@ -5,37 +5,45 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Route;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
 
 class RouteController extends Controller
 {
     public function index()
     {
+        $navtitle = 'Route';
+        $title = 'Route || Admin Gassin!';
         $routes = Route::latest()->get();
 
-        return view('pages.routes.index', compact('routes'));
+        return view('pages.routes.index', compact('routes', 'navtitle', 'title'));
     }
 
     public function create()
     {
-        return view('pages.routes.create');
+        $navtitle = 'Create Route';
+        $title = 'Create Route || Admin Gassin!';
+
+        return view('pages.routes.create', compact('navtitle', 'title'));
     }
+
     public function show($id)
     {
+        $navtitle = 'Detail Route';
+        $title = 'Detail Route || Admin Gassin!';
         $route = Route::with([
-            'stops'
+            'stops',
         ])->findOrFail($id);
 
-        return view('pages.routes.show', compact('route'));
+        return view('pages.routes.show', compact('route', 'navtitle', 'title'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'stops' => 'required|string'
+            'stops' => 'required|string',
         ]);
 
         $stopsInput = json_decode(
@@ -44,25 +52,25 @@ class RouteController extends Controller
         );
 
         if (
-            !$stopsInput
+            ! $stopsInput
             || count($stopsInput) < 2
         ) {
 
             return back()->withErrors([
-                'stops' => 'Minimal harus memiliki origin dan destination'
+                'stops' => 'Minimal harus memiliki origin dan destination',
             ]);
         }
 
         $pickupExists = collect($stopsInput)
-            ->contains(fn($stop) => $stop['is_pickup'] ?? false);
+            ->contains(fn ($stop) => $stop['is_pickup'] ?? false);
 
         $dropoffExists = collect($stopsInput)
-            ->contains(fn($stop) => $stop['is_dropoff'] ?? false);
+            ->contains(fn ($stop) => $stop['is_dropoff'] ?? false);
 
-        if (!$pickupExists || !$dropoffExists) {
+        if (! $pickupExists || ! $dropoffExists) {
 
             return back()->withErrors([
-                'stops' => 'Minimal harus ada pickup dan dropoff stop'
+                'stops' => 'Minimal harus ada pickup dan dropoff stop',
             ]);
         }
 
@@ -73,7 +81,7 @@ class RouteController extends Controller
         if ($duplicates->count()) {
 
             return back()->withErrors([
-                'stops' => 'Terdapat stop duplicate'
+                'stops' => 'Terdapat stop duplicate',
             ]);
         }
 
@@ -107,7 +115,7 @@ class RouteController extends Controller
                     $routeData['polyline']
                 ),
 
-                'is_active' => true
+                'is_active' => true,
             ]);
 
             $stops = [];
@@ -131,11 +139,9 @@ class RouteController extends Controller
 
                     'order' => $index + 1,
 
-                    'is_pickup' =>
-                    $stop['is_pickup'] ?? true,
+                    'is_pickup' => $stop['is_pickup'] ?? true,
 
-                    'is_dropoff' =>
-                    $stop['is_dropoff'] ?? true,
+                    'is_dropoff' => $stop['is_dropoff'] ?? true,
 
                     'created_at' => now(),
 
@@ -161,12 +167,12 @@ class RouteController extends Controller
 
         $route = Route::with([
             'stops',
-            'schedules.bookings'
+            'schedules.bookings',
         ])->findOrFail($id);
 
         $request->validate([
             'name' => 'required|string|max:255',
-            'stops' => 'required|string'
+            'stops' => 'required|string',
         ]);
 
         $stopsInput = json_decode(
@@ -175,25 +181,25 @@ class RouteController extends Controller
         );
 
         if (
-            !$stopsInput
+            ! $stopsInput
             || count($stopsInput) < 2
         ) {
 
             return back()->withErrors([
-                'stops' => 'Minimal harus memiliki origin dan destination'
+                'stops' => 'Minimal harus memiliki origin dan destination',
             ]);
         }
 
         $pickupExists = collect($stopsInput)
-            ->contains(fn($stop) => $stop['is_pickup'] ?? false);
+            ->contains(fn ($stop) => $stop['is_pickup'] ?? false);
 
         $dropoffExists = collect($stopsInput)
-            ->contains(fn($stop) => $stop['is_dropoff'] ?? false);
+            ->contains(fn ($stop) => $stop['is_dropoff'] ?? false);
 
-        if (!$pickupExists || !$dropoffExists) {
+        if (! $pickupExists || ! $dropoffExists) {
 
             return back()->withErrors([
-                'stops' => 'Minimal harus ada pickup dan dropoff stop'
+                'stops' => 'Minimal harus ada pickup dan dropoff stop',
             ]);
         }
 
@@ -204,19 +210,18 @@ class RouteController extends Controller
         if ($duplicates->count()) {
 
             return back()->withErrors([
-                'stops' => 'Terdapat stop duplicate'
+                'stops' => 'Terdapat stop duplicate',
             ]);
         }
 
         $hasBookings = $route->schedules
-            ->flatMap(fn($schedule) => $schedule->bookings)
+            ->flatMap(fn ($schedule) => $schedule->bookings)
             ->count() > 0;
 
         if ($hasBookings) {
 
             return back()->withErrors([
-                'route' =>
-                'Route tidak dapat diubah karena sudah memiliki booking'
+                'route' => 'Route tidak dapat diubah karena sudah memiliki booking',
             ]);
         }
 
@@ -275,11 +280,9 @@ class RouteController extends Controller
 
                     'order' => $index + 1,
 
-                    'is_pickup' =>
-                    $stop['is_pickup'] ?? true,
+                    'is_pickup' => $stop['is_pickup'] ?? true,
 
-                    'is_dropoff' =>
-                    $stop['is_dropoff'] ?? true,
+                    'is_dropoff' => $stop['is_dropoff'] ?? true,
 
                     'created_at' => now(),
 
@@ -300,11 +303,25 @@ class RouteController extends Controller
 
     public function edit($id)
     {
+        $navtitle = 'Edit Route';
+        $title = 'Edit Route || Admin Gassin!';
         $route = Route::with('stops')->findOrFail($id);
 
-        return view('pages.routes.edit', compact('route'));
-    }
+        // Kirim stops sebagai JSON agar bisa di-preload di JavaScript
+        $stopsJson = $route->stops
+            ->sortBy('order')
+            ->values()
+            ->map(fn ($s) => [
+                'name' => $s->name,
+                'address' => $s->address,
+                'lat' => (float) $s->lat,
+                'lng' => (float) $s->lng,
+                'is_pickup' => (bool) $s->is_pickup,
+                'is_dropoff' => (bool) $s->is_dropoff,
+            ])->toJson();
 
+        return view('pages.routes.edit', compact('route', 'stopsJson', 'navtitle', 'title'));
+    }
 
     public function destroy($id)
     {
@@ -323,27 +340,27 @@ class RouteController extends Controller
 
         $response = Http::get($url, [
             'overview' => 'full',
-            'geometries' => 'geojson'
+            'geometries' => 'geojson',
         ]);
 
         $data = $response->json();
 
-        if (!isset($data['routes'][0])) {
+        if (! isset($data['routes'][0])) {
             return [
                 'distance' => 0,
-                'polyline' => []
+                'polyline' => [],
             ];
         }
 
         $route = $data['routes'][0];
 
         $polyline = collect($route['geometry']['coordinates'])
-            ->map(fn($coord) => [$coord[1], $coord[0]])
+            ->map(fn ($coord) => [$coord[1], $coord[0]])
             ->toArray();
 
         return [
             'distance' => round($route['distance'] / 1000, 2),
-            'polyline' => $polyline
+            'polyline' => $polyline,
         ];
     }
 }
