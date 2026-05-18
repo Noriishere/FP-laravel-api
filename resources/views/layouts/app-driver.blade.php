@@ -67,7 +67,7 @@
     </div>
 
     {{-- SIDEBAR --}}
-    @include('components.sidebar')
+    @include('components.sidebar-driver')
 
     {{-- MAIN --}}
     <div class="flex-1 flex flex-col min-w-0">
