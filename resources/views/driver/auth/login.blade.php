@@ -15,20 +15,13 @@
     {{-- LEFT PANEL --}}
     <div class="hidden md:flex flex-col justify-between bg-[#111010] px-14 py-12 relative overflow-hidden">
 
-        {{-- dot grid --}}
         <div class="absolute inset-0 opacity-5"
-             style="background-image: radial-gradient(circle, #fff 1px, transparent 1px); background-size: 28px 28px;">
-        </div>
-
-        {{-- glow --}}
+             style="background-image: radial-gradient(circle, #fff 1px, transparent 1px); background-size: 28px 28px;"></div>
         <div class="absolute -bottom-20 -right-20 w-96 h-96 rounded-full"
-             style="background: radial-gradient(circle, rgba(232,44,44,0.22) 0%, transparent 65%);">
-        </div>
+             style="background: radial-gradient(circle, rgba(232,44,44,0.22) 0%, transparent 65%);"></div>
 
-        {{-- logo --}}
         <span class="font-display text-2xl font-black text-[#E82C2C] relative z-10">GASSIN</span>
 
-        {{-- content --}}
         <div class="relative z-10">
             <p class="text-[#E82C2C] text-xs font-bold tracking-widest uppercase mb-5 flex items-center gap-2">
                 <span class="block w-5 h-0.5 bg-[#E82C2C] rounded"></span>
@@ -36,32 +29,64 @@
             </p>
 
             <h2 class="font-display font-black text-white text-4xl leading-tight mb-5">
-                Selamat datang,<br><span class="text-[#E82C2C]">Mitra Driver</span>
+                Selamat datang<br><span class="text-[#E82C2C]">kembali, Driver</span>
             </h2>
 
             <p class="text-white/40 text-sm leading-relaxed max-w-xs mb-10">
-                Kelola perjalananmu, pantau penghasilan, dan terima order langsung dari dashboard driver GASSIN.
+                Login untuk melanjutkan proses pendaftaran atau mengakses dashboard driver kamu.
             </p>
 
-            <div class="flex flex-col gap-4">
-                <div class="flex items-center gap-4">
-                    <div class="w-9 h-9 rounded-xl bg-[#E82C2C]/10 border border-[#E82C2C]/25 flex items-center justify-center flex-shrink-0">
-                        <i class="fa-solid fa-route text-[#E82C2C] text-xs"></i>
+            {{-- Flow steps --}}
+            <div class="flex flex-col gap-0">
+
+                {{-- Step 1 — done --}}
+                <div class="flex items-start gap-4">
+                    <div class="flex flex-col items-center">
+                        <div class="w-8 h-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-check text-white/30 text-xs"></i>
+                        </div>
+                        <div class="w-px flex-1 bg-white/10 my-1" style="min-height:28px;"></div>
                     </div>
-                    <span class="text-white/60 text-sm">Lihat dan kelola jadwal perjalanan</span>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="w-9 h-9 rounded-xl bg-[#E82C2C]/10 border border-[#E82C2C]/25 flex items-center justify-center flex-shrink-0">
-                        <i class="fa-solid fa-wallet text-[#E82C2C] text-xs"></i>
+                    <div class="pb-5">
+                        <p class="text-white/30 text-sm font-semibold line-through">Buat akun</p>
                     </div>
-                    <span class="text-white/60 text-sm">Pantau penghasilan secara real-time</span>
                 </div>
-                <div class="flex items-center gap-4">
-                    <div class="w-9 h-9 rounded-xl bg-[#E82C2C]/10 border border-[#E82C2C]/25 flex items-center justify-center flex-shrink-0">
-                        <i class="fa-solid fa-users text-[#E82C2C] text-xs"></i>
+
+                {{-- Step 2 — active --}}
+                <div class="flex items-start gap-4">
+                    <div class="flex flex-col items-center">
+                        <div class="w-8 h-8 rounded-full bg-[#E82C2C] flex items-center justify-center flex-shrink-0 text-white text-xs font-bold">2</div>
+                        <div class="w-px flex-1 bg-white/10 my-1" style="min-height:28px;"></div>
                     </div>
-                    <span class="text-white/60 text-sm">Lihat daftar penumpang per trip</span>
+                    <div class="pb-5">
+                        <p class="text-white text-sm font-semibold">Login ke akun kamu</p>
+                        <p class="text-white/40 text-xs mt-0.5 leading-relaxed">Masuk menggunakan email dan password yang didaftarkan.</p>
+                    </div>
                 </div>
+
+                {{-- Step 3 --}}
+                <div class="flex items-start gap-4">
+                    <div class="flex flex-col items-center">
+                        <div class="w-8 h-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center flex-shrink-0 text-white/40 text-xs font-bold">3</div>
+                        <div class="w-px flex-1 bg-white/10 my-1" style="min-height:28px;"></div>
+                    </div>
+                    <div class="pb-5">
+                        <p class="text-white/50 text-sm font-semibold">Lengkapi data diri</p>
+                        <p class="text-white/25 text-xs mt-0.5 leading-relaxed">Isi profil dan dokumen driver di website.</p>
+                    </div>
+                </div>
+
+                {{-- Step 4 --}}
+                <div class="flex items-start gap-4">
+                    <div class="flex flex-col items-center">
+                        <div class="w-8 h-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center flex-shrink-0 text-white/40 text-xs font-bold">4</div>
+                    </div>
+                    <div>
+                        <p class="text-white/50 text-sm font-semibold">Download & mulai terima order</p>
+                        <p class="text-white/25 text-xs mt-0.5 leading-relaxed">Unduh aplikasi GASSIN dan langsung aktif.</p>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -72,18 +97,16 @@
     <div class="flex items-center justify-center bg-[#F9F7F4] px-6 py-12">
         <div class="w-full max-w-sm">
 
-            {{-- header --}}
             <div class="mb-8">
-                <p class="text-[#E82C2C] text-xs font-bold tracking-widest uppercase mb-3">Driver Login</p>
+                <p class="text-[#E82C2C] text-xs font-bold tracking-widest uppercase mb-3">Langkah 2 dari 4</p>
                 <h1 class="font-display font-black text-[#111010] text-3xl leading-snug mb-2">
                     Masuk ke akun<br>driver kamu
                 </h1>
                 <p class="text-gray-500 text-sm leading-relaxed">
-                    Gunakan email dan password yang terdaftar sebagai mitra driver.
+                    Setelah login, lengkapi data dirimu di website untuk mengaktifkan akun driver.
                 </p>
             </div>
 
-            {{-- alerts --}}
             @if(session('success'))
                 <div class="flex items-start gap-3 bg-green-50 border border-green-200 text-green-800 text-sm font-medium px-4 py-3 rounded-xl mb-6">
                     <i class="fa-solid fa-circle-check mt-0.5 flex-shrink-0"></i>
@@ -98,64 +121,46 @@
                 </div>
             @endif
 
-            {{-- form --}}
-            <form method="POST" action="{{ route('driver.login') }}">
+            <form method="POST" action="{{ route('driver.login') }}" class="space-y-4">
                 @csrf
 
-                {{-- email --}}
-                <div class="mb-5">
+                <div>
                     <label for="email" class="block text-xs font-bold text-[#111010] tracking-wide mb-2">Email</label>
                     <div class="relative">
                         <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 text-sm pointer-events-none"></i>
-                        <input
-                            id="email"
-                            type="email"
-                            name="email"
-                            value="{{ old('email') }}"
-                            placeholder="email@kamu.com"
-                            autocomplete="email"
-                            required
-                            class="input-field w-full pl-11 pr-4 py-3 bg-white border border-[#E8E3DC] rounded-xl text-sm text-[#111010] placeholder-gray-300 transition"
-                        >
+                        <input id="email" type="email" name="email" value="{{ old('email') }}"
+                            placeholder="email@kamu.com" autocomplete="email" required
+                            class="input-field w-full pl-11 pr-4 py-3 bg-white border border-[#E8E3DC] rounded-xl text-sm text-[#111010] placeholder-gray-300 transition">
                     </div>
                 </div>
 
-                {{-- password --}}
-                <div class="mb-6">
+                <div>
                     <label for="password" class="block text-xs font-bold text-[#111010] tracking-wide mb-2">Password</label>
                     <div class="relative">
                         <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 text-sm pointer-events-none"></i>
-                        <input
-                            id="password"
-                            type="password"
-                            name="password"
-                            placeholder="••••••••"
-                            autocomplete="current-password"
-                            required
-                            class="input-field w-full pl-11 pr-11 py-3 bg-white border border-[#E8E3DC] rounded-xl text-sm text-[#111010] placeholder-gray-300 transition"
-                        >
-                        <button
-                            type="button"
-                            onclick="togglePassword()"
-                            class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition"
-                        >
+                        <input id="password" type="password" name="password"
+                            placeholder="••••••••" autocomplete="current-password" required
+                            class="input-field w-full pl-11 pr-11 py-3 bg-white border border-[#E8E3DC] rounded-xl text-sm text-[#111010] placeholder-gray-300 transition">
+                        <button type="button" onclick="togglePassword()"
+                            class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition">
                             <i class="fa-solid fa-eye text-sm" id="pw-icon"></i>
                         </button>
                     </div>
                 </div>
 
-                {{-- submit --}}
-                <button
-                    type="submit"
-                    class="w-full flex items-center justify-center gap-2.5 bg-[#E82C2C] hover:bg-[#C41F1F] text-white font-bold text-sm py-3.5 rounded-xl transition hover:-translate-y-0.5 shadow-[0_6px_20px_rgba(232,44,44,0.28)] hover:shadow-[0_10px_28px_rgba(232,44,44,0.36)] active:translate-y-0"
-                >
+                <button type="submit"
+                    class="w-full flex items-center justify-center gap-2.5 bg-[#E82C2C] hover:bg-[#C41F1F] text-white font-bold text-sm py-3.5 rounded-xl transition hover:-translate-y-0.5 shadow-[0_6px_20px_rgba(232,44,44,0.28)] hover:shadow-[0_10px_28px_rgba(232,44,44,0.36)] active:translate-y-0">
                     <i class="fa-solid fa-arrow-right-to-bracket"></i>
                     Masuk Sekarang
                 </button>
             </form>
 
-            {{-- back link --}}
-            <a href="{{ url('/') }}" class="flex items-center justify-center gap-2 mt-6 text-xs text-gray-400 hover:text-gray-600 font-medium transition">
+            <p class="mt-6 text-center text-xs text-gray-400">
+                Belum punya akun?
+                <a href="{{ route('driver.register') }}" class="text-[#E82C2C] font-semibold hover:underline ml-1">Daftar di sini</a>
+            </p>
+
+            <a href="{{ url('/') }}" class="flex items-center justify-center gap-2 mt-3 text-xs text-gray-400 hover:text-gray-600 font-medium transition">
                 <i class="fa-solid fa-arrow-left"></i>
                 Kembali ke halaman utama
             </a>
