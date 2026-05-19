@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use DateTimeInterface;
 class ScheduleStopTimes extends Model
 {
     protected $fillable = [
@@ -34,5 +34,11 @@ class ScheduleStopTimes extends Model
     public function stop()
     {
         return $this->belongsTo(RouteStop::class, 'route_stop_id');
+    }
+    protected function serializeDate(DateTimeInterface $date)
+    {
+        return $date
+            ->setTimezone('Asia/Jakarta')
+            ->format('Y-m-d H:i:s');
     }
 }
