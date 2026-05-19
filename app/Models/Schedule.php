@@ -3,6 +3,7 @@
 namespace App\Models;
 use App\Models\ScheduleStopTimes;
 use Illuminate\Database\Eloquent\Model;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Schedule extends Model
@@ -76,5 +77,11 @@ class Schedule extends Model
     public function getDestinationAttribute()
     {
         return $this->route?->destination;
+    }
+    protected function serializeDate(DateTimeInterface $date)
+    {
+        return $date
+            ->setTimezone('Asia/Jakarta')
+            ->format('Y-m-d H:i:s');
     }
 }
