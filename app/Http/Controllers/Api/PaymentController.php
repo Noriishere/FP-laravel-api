@@ -61,9 +61,9 @@ class PaymentController extends Controller
             'payment_method' => 'qris',
             'payment_status' => 'pending',
             'expired_at' => isset($payment['expired_at'])
-    ? Carbon::parse($payment['expired_at'])
-        ->timezone('Asia/Jakarta')
-    : now()->addMinutes(15),
+    ? Carbon::parse($payment['expired_at'], 'UTC')
+        ->setTimezone('Asia/Jakarta')
+    : now('Asia/Jakarta')->addMinutes(15),
         ]);
 
         return response()->json([
