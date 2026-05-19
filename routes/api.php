@@ -46,6 +46,7 @@ Route::middleware(['auth:api', 'role:customer'])
         Route::post('/payment/callback', [PaymentController::class, 'callback']);
         Route::post('/payment/cancel', [PaymentController::class, 'cancel']);
         Route::get('/me/bookings', [UserController::class, 'myBookings']);
+        Route::get('/me/booking/detail/{id}', [UserController::class, 'bookingHistoryDetail']);
         Route::get('/bookings/{id}',[BookingController::class, 'show']);
         Route::get('/schedules/{id}/tracking', [LocationController::class, 'tracking']);
         Route::get('/schedules/{id}/route', [ScheduleController::class, 'map']);
