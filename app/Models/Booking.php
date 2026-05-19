@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-
+use Illuminate\Database\Eloquent\Model;
+use DateTimeInterface;
 class Booking extends Model
 {
     use HasFactory;
@@ -103,5 +103,10 @@ class Booking extends Model
     public function getDestinationAttribute()
     {
         return $this->dropoffStop;
+    }
+
+    protected function serializeDate(DateTimeInterface $date)
+    {
+        return $date->format('Y-m-d H:i:s');
     }
 }
