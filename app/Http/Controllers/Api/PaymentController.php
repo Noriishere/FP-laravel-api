@@ -60,9 +60,7 @@ class PaymentController extends Controller
             'payment_provider' => 'pakasir',
             'payment_method' => 'qris',
             'payment_status' => 'pending',
-            'expired_at' => isset($payment['expired_at'])
-                ? Carbon::parse($payment['expired_at'])
-                : now()->addMinutes(15),
+            'expired_at' => now()->addMinutes(15),
         ]);
 
         return response()->json([
