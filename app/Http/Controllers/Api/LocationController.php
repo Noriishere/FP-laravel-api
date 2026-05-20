@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Location;
 use App\Models\Schedule;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class LocationController extends Controller
@@ -55,6 +56,29 @@ class LocationController extends Controller
             ], 400);
         }
 
+        $now = now();
+
+        $departureTime = Carbon::parse(
+            $schedule->departure_time
+        );
+
+        $allowedStartTime = $departureTime
+            ->copy()
+            ->subMinutes(30);
+
+        if ($now->lt($allowedStartTime)) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Trip cannot be started yet',
+                'data' => [
+                    'current_time' => $now,
+                    'can_start_at' => $allowedStartTime,
+                    'departure_time' => $departureTime,
+                ],
+            ], 400);
+        }
+
         $schedule->update([
             'status' => 'on-going',
         ]);
@@ -74,6 +98,8 @@ class LocationController extends Controller
                 'departure_time' => $schedule->departure_time,
 
                 'arrival_time' => $schedule->arrival_time,
+
+                'started_at' => $now,
 
                 'vehicle' => [
 
@@ -404,7 +430,7 @@ class LocationController extends Controller
                     'accuracy' => $location->accuracy,
 
                     'recorded_at' => $location->recorded_at,
-            ],
+                ],
 
                 'next_stop' => $nextStop
                     ? [
