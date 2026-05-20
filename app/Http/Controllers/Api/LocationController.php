@@ -3,80 +3,190 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use App\Models\Location;
 use App\Models\Schedule;
 use Illuminate\Http\Request;
 
 class LocationController extends Controller
 {
+    public function start($id)
+    {
+        $driver = auth('api')->user()?->driver;
+
+        if (! $driver) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Driver not found',
+            ], 403);
+        }
+
+        $schedule = Schedule::with([
+            'route.origin',
+            'route.destination',
+            'vehicle',
+        ])
+            ->where('id', $id)
+            ->where('driver_id', $driver->id)
+            ->first();
+
+        if (! $schedule) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized schedule',
+            ], 403);
+        }
+
+        if ($schedule->status === 'completed') {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Schedule already completed',
+            ], 400);
+        }
+
+        if ($schedule->status === 'on-going') {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Schedule already started',
+            ], 400);
+        }
+
+        $schedule->update([
+            'status' => 'on-going',
+        ]);
+
+        return response()->json([
+
+            'success' => true,
+
+            'message' => 'Trip started successfully',
+
+            'data' => [
+
+                'schedule_id' => $schedule->id,
+
+                'status' => $schedule->status,
+
+                'departure_time' => $schedule->departure_time,
+
+                'arrival_time' => $schedule->arrival_time,
+
+                'vehicle' => [
+
+                    'id' => $schedule->vehicle?->id,
+
+                    'name' => $schedule->vehicle?->name,
+
+                    'plate_number' => $schedule->vehicle?->plate_number,
+                ],
+
+                'route' => [
+
+                    'id' => $schedule->route?->id,
+
+                    'name' => $schedule->route?->name,
+
+                    'origin' => $schedule->route?->origin?->name,
+
+                    'destination' => $schedule->route?->destination?->name,
+                ],
+            ],
+        ]);
+    }
+
     public function update(Request $request)
     {
         $request->validate([
             'schedule_id' => 'required|exists:schedules,id',
+
             'latitude' => 'required|numeric',
+
             'longitude' => 'required|numeric',
+
             'speed' => 'nullable|numeric',
+
             'heading' => 'nullable|numeric',
+
             'accuracy' => 'nullable|numeric',
+
             'is_mocked' => 'nullable|boolean',
         ]);
 
         $driver = auth('api')->user()?->driver;
 
-        if (!$driver) {
+        if (! $driver) {
+
             return response()->json([
                 'success' => false,
-                'message' => 'Driver not found'
+                'message' => 'Driver not found',
             ], 403);
         }
 
         $schedule = Schedule::with([
             'route.stops',
-            'stopTimes.stop'
+            'stopTimes.stop',
         ])
             ->where('id', $request->schedule_id)
             ->where('driver_id', $driver->id)
             ->first();
 
-        if (!$schedule) {
+        if (! $schedule) {
+
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized schedule'
+                'message' => 'Unauthorized schedule',
             ], 403);
         }
 
-        if ($schedule->status === 'scheduled') {
-            $schedule->update([
-                'status' => 'on-going'
-            ]);
-        }
-
         if ($schedule->status !== 'on-going') {
+
             return response()->json([
                 'success' => false,
-                'message' => 'Schedule not active'
+                'message' => 'Schedule not active',
             ], 400);
         }
 
-        $last = Location::where('schedule_id', $request->schedule_id)
+        $last = Location::where(
+            'schedule_id',
+            $request->schedule_id
+        )
             ->latest('recorded_at')
             ->first();
 
-        if ($last && now()->diffInSeconds($last->recorded_at) < 5) {
+        if (
+            $last
+            &&
+            now()->diffInSeconds(
+                $last->recorded_at
+            ) < 5
+        ) {
+
             return response()->json([
                 'success' => false,
-                'message' => 'Too fast update'
+                'message' => 'Too fast update',
             ], 429);
         }
 
         $location = Location::create([
+
             'schedule_id' => $request->schedule_id,
+
             'latitude' => $request->latitude,
+
             'longitude' => $request->longitude,
+
             'speed' => $request->speed,
+
             'heading' => $request->heading,
+
             'accuracy' => $request->accuracy,
+
             'is_mocked' => $request->is_mocked ?? false,
+
             'recorded_at' => now(),
         ]);
 
@@ -96,12 +206,16 @@ class LocationController extends Controller
             if ($distance <= 100) {
 
                 $stopTime->update([
+
                     'status' => 'arrived',
+
                     'actual_arrival_time' => now(),
-                    'delay_minutes' => now()->diffInMinutes(
-                        $stopTime->arrival_time,
-                        false
-                    ),
+
+                    'delay_minutes' => now()
+                        ->diffInMinutes(
+                            $stopTime->arrival_time,
+                            false
+                        ),
                 ]);
             }
         }
@@ -122,70 +236,187 @@ class LocationController extends Controller
             if ($distanceToDestination <= 100) {
 
                 $schedule->update([
-                    'status' => 'completed'
+                    'status' => 'completed',
                 ]);
             }
         }
 
+        $nextStop = $schedule->stopTimes
+            ->where('status', '!=', 'arrived')
+            ->sortBy(function ($item) {
+                return $item->stop?->order;
+            })
+            ->first();
+
         return response()->json([
+
             'success' => true,
+
+            'message' => 'Location updated',
+
             'data' => [
-                'location' => $location,
-                'schedule_status' => $schedule->status,
-            ]
+
+                'location' => [
+
+                    'latitude' => $location->latitude,
+
+                    'longitude' => $location->longitude,
+
+                    'speed' => $location->speed,
+
+                    'heading' => $location->heading,
+
+                    'accuracy' => $location->accuracy,
+
+                    'recorded_at' => $location->recorded_at,
+                ],
+
+                'schedule' => [
+
+                    'id' => $schedule->id,
+
+                    'status' => $schedule->status,
+                ],
+
+                'next_stop' => $nextStop
+                    ? [
+                        'name' => $nextStop->stop?->name,
+
+                        'arrival_time' => $nextStop->arrival_time,
+
+                        'status' => $nextStop->status,
+                    ]
+                    : null,
+            ],
         ]);
     }
 
     public function tracking($scheduleId)
     {
-        $hasBooking = \App\Models\Booking::where('user_id', auth('api')->id())
+        $hasBooking = Booking::where(
+            'user_id',
+            auth('api')->id()
+        )
             ->where('schedule_id', $scheduleId)
             ->exists();
 
-        if (!$hasBooking) {
+        if (! $hasBooking) {
+
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized'
+                'message' => 'Unauthorized',
             ], 403);
         }
 
         $schedule = Schedule::with([
-            'route.stops',
-            'stopTimes.stop'
-        ])->findOrFail($scheduleId);
 
-        $location = Location::where('schedule_id', $scheduleId)
+            'route.origin',
+            'route.destination',
+
+            'route.stops',
+
+            'stopTimes.stop',
+
+            'vehicle',
+
+            'driver.user',
+        ])
+            ->findOrFail($scheduleId);
+
+        $location = Location::where(
+            'schedule_id',
+            $scheduleId
+        )
             ->latest('recorded_at')
             ->first();
 
-        if (!$location) {
+        if (! $location) {
+
             return response()->json([
                 'success' => false,
-                'message' => 'No tracking data yet'
+                'message' => 'Driver has not started tracking yet',
             ], 404);
         }
 
         $nextStop = $schedule->stopTimes
             ->where('status', '!=', 'arrived')
-            ->sortBy('stop_order')
+            ->sortBy(function ($item) {
+                return $item->stop?->order;
+            })
             ->first();
 
         return response()->json([
+
             'success' => true,
+
             'data' => [
-                'latitude' => $location->latitude,
-                'longitude' => $location->longitude,
-                'speed' => $location->speed,
-                'heading' => $location->heading,
-                'accuracy' => $location->accuracy,
-                'recorded_at' => $location->recorded_at,
-                'schedule_status' => $schedule->status,
-                'next_stop' => $nextStop ? [
-                    'name' => $nextStop->stop->name,
-                    'arrival_time' => $nextStop->arrival_time,
-                    'status' => $nextStop->status,
-                ] : null,
-            ]
+
+                'schedule' => [
+
+                    'id' => $schedule->id,
+
+                    'status' => $schedule->status,
+
+                    'departure_time' => $schedule->departure_time,
+
+                    'arrival_time' => $schedule->arrival_time,
+
+                    'vehicle' => [
+
+                        'name' => $schedule->vehicle?->name,
+
+                        'plate_number' => $schedule->vehicle?->plate_number,
+                    ],
+
+                    'driver' => [
+
+                        'name' => $schedule->driver?->user?->name,
+                    ],
+                ],
+
+                'route' => [
+
+                    'name' => $schedule->route?->name,
+
+                    'origin' => [
+                        'name' => $schedule->route?->origin?->name,
+                    ],
+
+                    'destination' => [
+                        'name' => $schedule->route?->destination?->name,
+                    ],
+
+                    'polyline' => json_decode(
+                        $schedule->route?->polyline
+                    ),
+                ],
+
+                'location' => [
+
+                    'latitude' => $location->latitude,
+
+                    'longitude' => $location->longitude,
+
+                    'speed' => $location->speed,
+
+                    'heading' => $location->heading,
+
+                    'accuracy' => $location->accuracy,
+
+                    'recorded_at' => $location->recorded_at,
+            ],
+
+                'next_stop' => $nextStop
+                    ? [
+
+                        'name' => $nextStop->stop?->name,
+
+                        'arrival_time' => $nextStop->arrival_time,
+
+                        'status' => $nextStop->status,
+                    ]
+                    : null,
+            ],
         ]);
     }
 
