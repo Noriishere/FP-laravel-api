@@ -25,6 +25,20 @@
 </ul>
 
 <p>
-    Please verify the document
-    from admin dashboard.
+    Click button below to review document:
 </p>
+
+<a href="{{ route('driver-documents.show', $document->id) }}"
+   style="
+        display:inline-block;
+        padding:12px 20px;
+        background:#2563eb;
+        color:white;
+        text-decoration:none;
+        border-radius:8px;
+        font-weight:bold;
+   ">
+
+    Review Document
+
+</a>
