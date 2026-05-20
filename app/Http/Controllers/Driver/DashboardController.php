@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Driver;
 use App\Http\Controllers\Controller;
 use App\Models\Driver;
 use App\Models\DriverDocument;
+use App\Models\User;
+use App\Mail\DriverDocumentUploaded;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 class DashboardController extends Controller
@@ -66,23 +69,25 @@ class DashboardController extends Controller
         );
     }
 
-    public function uploadDocument(Request $request)
+     public function uploadDocument(Request $request)
     {
         $driver = Driver::where(
             'user_id',
             auth()->id()
         )->first();
 
-        if (!$driver) {
+        if (! $driver) {
 
             return back()->withErrors([
-                'driver' => 'Driver tidak ditemukan'
+                'driver' => 'Driver tidak ditemukan',
             ]);
         }
 
         $request->validate([
+
             'type' => 'required|in:ktp,sim,selfie',
-            'file' => 'required|file|mimes:jpg,jpeg,png|max:2048'
+
+            'file' => 'required|file|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         $existing = DriverDocument::where(
@@ -104,14 +109,14 @@ class DashboardController extends Controller
             if ($status === 'pending') {
 
                 return back()->withErrors([
-                    'file' => 'Dokumen sedang menunggu verifikasi'
+                    'file' => 'Dokumen sedang menunggu verifikasi',
                 ]);
             }
 
             if ($status === 'approved') {
 
                 return back()->withErrors([
-                    'file' => 'Dokumen sudah disetujui'
+                    'file' => 'Dokumen sudah disetujui',
                 ]);
             }
 
@@ -135,10 +140,17 @@ class DashboardController extends Controller
                     );
 
                 $existing->update([
+
                     'file_path' => $filePath,
+
                     'status' => 'pending',
+
                     'note' => null,
                 ]);
+
+                $this->notifyAdmins(
+                    $existing
+                );
 
                 return redirect()
                     ->route('driver.documents')
@@ -155,19 +167,49 @@ class DashboardController extends Controller
                 'public'
             );
 
-        DriverDocument::create([
+        $document = DriverDocument::create([
+
             'driver_id' => $driver->id,
+
             'type' => $request->type,
+
             'file_path' => $filePath,
+
             'status' => 'pending',
+
             'note' => null,
         ]);
+
+        $this->notifyAdmins(
+            $document
+        );
 
         return redirect()
             ->route('driver.documents')
             ->with(
                 'success',
                 'Dokumen berhasil diupload'
+            );
+    }
+
+    private function notifyAdmins(
+        DriverDocument $document
+    ) {
+
+        $admins = User::where(
+            'role',
+            'admin'
+        )->pluck('email');
+
+        if ($admins->isEmpty()) {
+            return;
+        }
+
+        Mail::to($admins)
+            ->send(
+                new DriverDocumentUploaded(
+                    $document
+                )
             );
     }
 }
