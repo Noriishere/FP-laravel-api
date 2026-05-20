@@ -47,12 +47,12 @@ Route::middleware(['auth:api', 'role:customer'])
         Route::post('/payment/cancel', [PaymentController::class, 'cancel']);
         Route::get('/me/bookings', [UserController::class, 'myBookings']);
         Route::get('/me/booking/detail/{id}', [UserController::class, 'bookingHistoryDetail']);
-        Route::get('/bookings/{id}',[BookingController::class, 'show']);
+        Route::get('/bookings/{id}', [BookingController::class, 'show']);
         Route::get('/schedules/{id}/tracking', [LocationController::class, 'tracking']);
         Route::get('/schedules/{id}/route', [ScheduleController::class, 'map']);
         Route::get('/vehicles', [VehicleController::class, 'index']);
         Route::get('/vehicles/{id}', [VehicleController::class, 'show']);
-        Route::get('/payment/check/{bookingId}',[PaymentController::class, 'checkTransaction']);
+        Route::get('/payment/check/{bookingId}', [PaymentController::class, 'checkTransaction']);
     });
 
 Route::middleware(['auth:api', 'role:driver'])->group(function () {
@@ -64,6 +64,7 @@ Route::middleware(['auth:api', 'role:driver'])->group(function () {
     Route::post('/location/update', [LocationController::class, 'update']);
     Route::get('/driver/schedules/{id}/route', [DriverController::class, 'routeDetail']);
     Route::get('/driver/schedules', [DriverController::class, 'mySchedules']);
+    Route::post('/driver/schedules/{id}/stop',[LocationController::class, 'stop']);
 });
 
 Route::middleware(['auth:api'])->group(function () {

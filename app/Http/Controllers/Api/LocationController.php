@@ -446,6 +446,98 @@ class LocationController extends Controller
         ]);
     }
 
+    public function stop($id)
+    {
+        $driver = auth('api')->user()?->driver;
+
+        if (! $driver) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Driver not found',
+            ], 403);
+        }
+
+        $schedule = Schedule::with([
+            'route.origin',
+            'route.destination',
+            'vehicle',
+        ])
+            ->where('id', $id)
+            ->where('driver_id', $driver->id)
+            ->first();
+
+        if (! $schedule) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized schedule',
+            ], 403);
+        }
+
+        if ($schedule->status === 'scheduled') {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Trip has not started yet',
+            ], 400);
+        }
+
+        if ($schedule->status === 'completed') {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Trip already completed',
+            ], 400);
+        }
+
+        $now = now();
+
+        $schedule->update([
+            'status' => 'completed',
+        ]);
+
+        return response()->json([
+
+            'success' => true,
+
+            'message' => 'Trip completed successfully',
+
+            'data' => [
+
+                'schedule_id' => $schedule->id,
+
+                'status' => $schedule->status,
+
+                'departure_time' => $schedule->departure_time,
+
+                'arrival_time' => $schedule->arrival_time,
+
+                'completed_at' => $now,
+
+                'vehicle' => [
+
+                    'id' => $schedule->vehicle?->id,
+
+                    'name' => $schedule->vehicle?->name,
+
+                    'plate_number' => $schedule->vehicle?->plate_number,
+                ],
+
+                'route' => [
+
+                    'id' => $schedule->route?->id,
+
+                    'name' => $schedule->route?->name,
+
+                    'origin' => $schedule->route?->origin?->name,
+
+                    'destination' => $schedule->route?->destination?->name,
+                ],
+            ],
+        ]);
+    }
+
     private function haversine($lat1, $lng1, $lat2, $lng2)
     {
         $earth = 6371000;
