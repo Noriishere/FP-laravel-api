@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Driver;
-use Illuminate\Http\Request;
-
 use App\Models\DriverDocument;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\DriverDocumentApproved;
+use App\Mail\DriverDocumentRejected;
 
 class DriverDocumentController extends Controller
 {
@@ -32,51 +34,103 @@ class DriverDocumentController extends Controller
 
     public function approve($id)
     {
-        $doc = DriverDocument::findOrFail($id);
-        $doc->update(['status' => 'approved', 'note' => null]);
+        $doc = DriverDocument::with(
+            'driver.user'
+        )->findOrFail($id);
 
-        $this->syncDriverStatus($doc->driver_id);
-
-        return redirect()->route('driver-documents.show', $id)
-            ->with('success', 'Dokumen disetujui');
-    }
-
-    public function reject(Request $request, $id)
-    {
-        $request->validate(['note' => 'required']);
-
-        $doc = DriverDocument::findOrFail($id);
         $doc->update([
-            'status' => 'rejected',
-            'note' => $request->note
+            'status' => 'approved',
+            'note' => null,
         ]);
 
-        $this->syncDriverStatus($doc->driver_id);
+        $this->syncDriverStatus(
+            $doc->driver_id
+        );
 
-        return back()->with('success', 'Dokumen ditolak');
+        Mail::to(
+            $doc->driver->user->email
+        )->send(
+            new DriverDocumentApproved(
+                $doc
+            )
+        );
+
+        return redirect()
+            ->route(
+                'driver-documents.show',
+                $id
+            )
+            ->with(
+                'success',
+                'Dokumen disetujui'
+            );
     }
+
+    public function reject(
+        Request $request,
+        $id
+    ) {
+
+        $request->validate([
+            'note' => 'required',
+        ]);
+
+        $doc = DriverDocument::with(
+            'driver.user'
+        )->findOrFail($id);
+
+        $doc->update([
+
+            'status' => 'rejected',
+
+            'note' => $request->note,
+        ]);
+
+        $this->syncDriverStatus(
+            $doc->driver_id
+        );
+
+        Mail::to(
+            $doc->driver->user->email
+        )->send(
+            new DriverDocumentRejected(
+                $doc
+            )
+        );
+
+        return back()->with(
+            'success',
+            'Dokumen ditolak'
+        );
+    }
+
     private function syncDriverStatus($driverId)
     {
         $driver = Driver::with('documents')->find($driverId);
-        if (!$driver) return;
+        if (! $driver) {
+            return;
+        }
 
         $docs = $driver->documents;
 
         if ($docs->count() < 3) {
             $driver->update(['verification_status' => 'pending']);
+
             return;
         }
 
         if ($docs->contains('status', 'rejected')) {
             $driver->update(['verification_status' => 'rejected']);
+
             return;
         }
 
-        if ($docs->every(fn($d) => $d->status === 'approved')) {
+        if ($docs->every(fn ($d) => $d->status === 'approved')) {
             $driver->update([
                 'verification_status' => 'approved',
-                'status' => 'offline'
+                'status' => 'offline',
             ]);
+
             return;
         }
 
