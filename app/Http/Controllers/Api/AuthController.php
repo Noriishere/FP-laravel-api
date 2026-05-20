@@ -89,65 +89,29 @@ class AuthController extends Controller
     
 
     public function me()
-    {
-        $user = auth('api')->user();
+{
+    $user = auth('api')->user();
 
-        $driver = $user->driver;
+    return response()->json([
 
-        $driverData = null;
+        'success' => true,
 
-        if ($driver) {
+        'data' => [
 
-            $documents = $driver->documents
-                ->keyBy('type');
+            'id' => $user->id,
 
-            $driverData = [
+            'name' => $user->name,
 
-                'id' => $driver->id,
+            'email' => $user->email,
 
-                'status' => $driver->status,
+            'role' => $user->role,
 
-                'verification_status' => $driver->verification_status,
+            'email_verified_at' => $user->email_verified_at,
 
-                'documents' => [
-
-                    'ktp' => isset($documents['ktp'])
-                        ? asset('storage/' . $documents['ktp']->file_path)
-                        : null,
-
-                    'sim' => isset($documents['sim'])
-                        ? asset('storage/' . $documents['sim']->file_path)
-                        : null,
-
-                    'selfie' => isset($documents['selfie'])
-                        ? asset('storage/' . $documents['selfie']->file_path)
-                        : null,
-                ],
-            ];
-        }
-
-        return response()->json([
-
-            'success' => true,
-
-            'data' => [
-
-                'id' => $user->id,
-
-                'name' => $user->name,
-
-                'email' => $user->email,
-
-                'role' => $user->role,
-
-                'email_verified_at' => $user->email_verified_at,
-
-                'created_at' => $user->created_at,
-
-                'driver' => $driverData,
-            ],
-        ]);
-    }
+            'created_at' => $user->created_at,
+        ],
+    ]);
+}
 
     public function logout()
     {

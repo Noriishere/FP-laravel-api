@@ -61,18 +61,71 @@ class AuthController extends Controller
 
     public function me()
     {
-        $user = auth('api')->user()->load('driver');
+        $user = auth('api')->user();
+
+        $driver = $user->driver;
+
+        if (! $driver) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Driver not found',
+            ], 404);
+        }
+
+        $documents = $driver->documents
+            ->keyBy('type');
 
         return response()->json([
+
             'success' => true,
+
             'data' => [
+
                 'id' => $user->id,
-                'driver_id' => $user->driver?->id,
+
                 'name' => $user->name,
+
                 'email' => $user->email,
+
                 'role' => $user->role,
+
                 'email_verified_at' => $user->email_verified_at,
+
                 'created_at' => $user->created_at,
+
+                'driver' => [
+
+                    'id' => $driver->id,
+
+                    'status' => $driver->status,
+
+                    'verification_status' => $driver->verification_status,
+
+                    'documents' => [
+
+                        'ktp' => isset($documents['ktp'])
+                            ? asset(
+                                'storage/' .
+                                $documents['ktp']->file_path
+                            )
+                            : null,
+
+                        'sim' => isset($documents['sim'])
+                            ? asset(
+                                'storage/' .
+                                $documents['sim']->file_path
+                            )
+                            : null,
+
+                        'selfie' => isset($documents['selfie'])
+                            ? asset(
+                                'storage/' .
+                                $documents['selfie']->file_path
+                            )
+                            : null,
+                    ],
+                ],
             ],
         ]);
     }
