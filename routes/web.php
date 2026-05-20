@@ -8,17 +8,17 @@ use App\Http\Controllers\Dashboard\DriverDocumentController;
 use App\Http\Controllers\Dashboard\UsersController;
 use App\Http\Controllers\Dashboard\VehicleController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\Driver\DashboardController as DriverDashboardController;
 use App\Http\Controllers\Driver\AuthController;
+use App\Http\Controllers\Driver\DashboardController as DriverDashboardController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/reset-password/{token}', function ($token) {
     return view('auth.reset-password', [
         'token' => $token,
-        'email' => request('email')
+        'email' => request('email'),
     ]);
 })->name('password.reset');
 
@@ -33,22 +33,22 @@ Route::prefix('driver')
 
             Route::get('/login', [
                 AuthController::class,
-                'showLogin'
+                'showLogin',
             ])->name('login');
 
             Route::post('/login', [
                 AuthController::class,
-                'login'
+                'login',
             ]);
 
             Route::get('/register', [
                 AuthController::class,
-                'showRegister'
+                'showRegister',
             ])->name('register');
 
             Route::post('/register', [
                 AuthController::class,
-                'register'
+                'register',
             ]);
         });
 
@@ -61,31 +61,31 @@ Route::prefix('driver')
 
             Route::get('/dashboard', [
                 DriverDashboardController::class,
-                'dashboard'
+                'dashboard',
             ])->name('dashboard');
 
             Route::get('/me', [
                 AuthController::class,
-                'me'
+                'me',
             ])->name('me');
 
             Route::post('/logout', [
                 AuthController::class,
-                'logout'
+                'logout',
             ])->name('logout');
 
             Route::post('/email/resend', [
                 AuthController::class,
-                'resend'
+                'resend',
             ])->name('verification.resend');
             Route::get('/documents', [
                 DriverDashboardController::class,
-                'documents'
+                'documents',
             ])->name('documents');
 
             Route::post('/documents/upload', [
                 DriverDashboardController::class,
-                'uploadDocument'
+                'uploadDocument',
             ])->name('documents.upload');
         });
     });
@@ -93,7 +93,6 @@ Route::prefix('driver')
 Route::get('/admin/', function () {
     return view('pages.home');
 });
-
 
 Route::get('/reset-password/{token}', function (
     Request $request,
@@ -130,9 +129,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/driver-documents/{id}', [DriverDocumentController::class, 'show'])->name('driver-documents.show');
     Route::post('/admin/driver-documents/{id}/approve', [DriverDocumentController::class, 'approve'])->name('driver-documents.approve');
     Route::post('/admin/driver-documents/{id}/reject', [DriverDocumentController::class, 'reject'])->name('driver-documents.reject');
-    Route::get('/admin/drivers', [DriverController::class, 'index'])
-        ->name('drivers.index');
+    Route::get('/admin/drivers', [DriverController::class, 'index'])->name('drivers.index');
+    Route::get('/users/deleted',[UsersController::class, 'deletedAccounts'])->name('users.deleted');
+    Route::patch('/admin/users/{id}/restore',[UsersController::class, 'restore'])->name('users.restore');
+    Route::delete('/admin/users/{id}/force-delete',[UsersController::class, 'forceDelete'])->name('users.forceDelete');
 });
 Route::middleware(['auth', 'role:driver'])->group(function () {});
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

@@ -4,45 +4,35 @@
     <div class="space-y-5">
 
         {{-- STATS --}}
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
             <div class="bg-white rounded-xl shadow p-5">
                 <p class="text-sm text-gray-500">
-                    Total Users
+                    Deleted Accounts
                 </p>
 
-                <h2 class="text-2xl font-bold mt-2">
+                <h2 class="text-2xl font-bold mt-2 text-red-600">
                     {{ $users->total() }}
                 </h2>
             </div>
 
             <div class="bg-white rounded-xl shadow p-5">
                 <p class="text-sm text-gray-500">
-                    Admin
-                </p>
-
-                <h2 class="text-2xl font-bold mt-2 text-blue-600">
-                    {{ \App\Models\User::where('role', 'admin')->count() }}
-                </h2>
-            </div>
-
-            <div class="bg-white rounded-xl shadow p-5">
-                <p class="text-sm text-gray-500">
-                    Driver
+                    Deleted Drivers
                 </p>
 
                 <h2 class="text-2xl font-bold mt-2 text-yellow-500">
-                    {{ \App\Models\User::where('role', 'driver')->count() }}
+                    {{ \App\Models\User::onlyTrashed()->where('role', 'driver')->count() }}
                 </h2>
             </div>
 
             <div class="bg-white rounded-xl shadow p-5">
                 <p class="text-sm text-gray-500">
-                    Customer
+                    Deleted Customers
                 </p>
 
                 <h2 class="text-2xl font-bold mt-2 text-gray-700">
-                    {{ \App\Models\User::where('role', 'customer')->count() }}
+                    {{ \App\Models\User::onlyTrashed()->where('role', 'customer')->count() }}
                 </h2>
             </div>
 
@@ -57,30 +47,25 @@
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
 
                     <div>
+
                         <h2 class="text-lg font-bold text-gray-800">
-                            Users Management
+                            Deleted Accounts
                         </h2>
 
                         <p class="text-sm text-gray-500 mt-1">
-                            Manage all registered users
+                            Restore or permanently delete accounts
                         </p>
-                    </div>
-
-                    <div class="flex flex-col md:flex-row gap-2">
-
-                        <a href="{{ route('users.deleted') }}"
-                            class="bg-red-50 text-red-600 px-4 py-2 rounded-xl text-sm font-medium hover:bg-red-100 transition">
-                            <i class="fa-solid fa-trash mr-1"></i>
-                            Deleted Accounts
-                        </a>
-
-                        <a href="{{ route('users.create') }}"
-                            class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition">
-                            <i class="fa-solid fa-plus mr-1"></i>
-                            Tambah User
-                        </a>
 
                     </div>
+
+                    <a href="{{ route('users.index') }}"
+                        class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition">
+
+                        <i class="fa-solid fa-arrow-left mr-1"></i>
+
+                        Back To Users
+
+                    </a>
 
                 </div>
 
@@ -92,14 +77,17 @@
                 <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-3">
 
                     <div class="md:col-span-2">
+
                         <input type="text" name="search" value="{{ request('search') }}"
                             placeholder="Cari nama atau email..."
-                            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+
                     </div>
 
                     <div>
+
                         <select name="role"
-                            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
 
                             <option value="">
                                 Semua Role
@@ -118,16 +106,20 @@
                             </option>
 
                         </select>
+
                     </div>
 
                     <div>
+
                         <button
-                            class="w-full bg-gray-900 text-white rounded-xl px-4 py-2.5 text-sm hover:bg-black transition">
+                            class="w-full bg-red-600 text-white rounded-xl px-4 py-2.5 text-sm hover:bg-red-700 transition">
 
                             <i class="fa-solid fa-filter mr-1"></i>
+
                             Filter
 
                         </button>
+
                     </div>
 
                 </form>
@@ -137,7 +129,7 @@
             {{-- TABLE --}}
             <div class="overflow-x-auto">
 
-                <table class="w-full min-w-[800px]">
+                <table class="w-full min-w-[900px]">
 
                     <thead class="bg-gray-50">
 
@@ -156,7 +148,7 @@
                             </th>
 
                             <th class="px-6 py-4">
-                                Created
+                                Deleted At
                             </th>
 
                             <th class="px-6 py-4 text-center">
@@ -177,8 +169,10 @@
                                     <div class="flex items-center gap-3">
 
                                         <div
-                                            class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold">
+                                            class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-semibold">
+
                                             {{ strtoupper(substr($user->name, 0, 1)) }}
+
                                         </div>
 
                                         <div>
@@ -219,28 +213,37 @@
                                 </td>
 
                                 <td class="px-6 py-4 text-sm text-gray-500">
-                                    {{ $user->created_at->format('d M Y') }}
+
+                                    {{ $user->deleted_at->format('d M Y H:i') }}
+
                                 </td>
 
                                 <td class="px-6 py-4">
 
                                     <div class="flex items-center justify-center gap-3">
 
-                                        {{-- EDIT --}}
-                                        <a href="{{ route('users.edit', $user->id) }}"
-                                            class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition">
+                                        {{-- RESTORE --}}
+                                        <form action="{{ route('users.restore', $user->id) }}" method="POST">
 
-                                            <i class="fa-solid fa-pen-to-square"></i>
+                                            @csrf
+                                            @method('PATCH')
 
-                                        </a>
+                                            <button onclick="return confirm('Restore account ini?')"
+                                                class="w-9 h-9 rounded-lg bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-100 transition">
 
-                                        {{-- DELETE --}}
-                                        <form action="{{ route('users.destroy', $user->id) }}" method="POST">
+                                                <i class="fa-solid fa-rotate-left"></i>
+
+                                            </button>
+
+                                        </form>
+
+                                        {{-- FORCE DELETE --}}
+                                        <form action="{{ route('users.forceDelete', $user->id) }}" method="POST">
 
                                             @csrf
                                             @method('DELETE')
 
-                                            <button onclick="return confirm('Yakin hapus user ini?')"
+                                            <button onclick="return confirm('Hapus permanen account ini?')"
                                                 class="w-9 h-9 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-100 transition">
 
                                                 <i class="fa-solid fa-trash"></i>
@@ -264,14 +267,14 @@
                                     <div class="flex flex-col items-center">
 
                                         <div
-                                            class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                                            class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-3">
 
-                                            <i class="fa-solid fa-users text-2xl text-gray-400"></i>
+                                            <i class="fa-solid fa-trash text-2xl text-red-400"></i>
 
                                         </div>
 
                                         <p class="text-gray-500 font-medium">
-                                            Tidak ada data user
+                                            Tidak ada deleted account
                                         </p>
 
                                     </div>
@@ -289,7 +292,9 @@
 
             {{-- PAGINATION --}}
             <div class="p-5 border-t">
+
                 {{ $users->links() }}
+
             </div>
 
         </div>

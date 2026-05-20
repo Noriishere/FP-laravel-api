@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
@@ -21,13 +21,13 @@ class UsersController extends Controller
                 $q->where(
                     'name',
                     'like',
-                    '%' . $request->search . '%'
+                    '%'.$request->search.'%'
                 )
-                ->orWhere(
-                    'email',
-                    'like',
-                    '%' . $request->search . '%'
-                );
+                    ->orWhere(
+                        'email',
+                        'like',
+                        '%'.$request->search.'%'
+                    );
             });
         }
 
@@ -54,6 +54,79 @@ class UsersController extends Controller
                 'title',
                 'navtitle'
             )
+        );
+    }
+
+    public function deletedAccounts(Request $request)
+    {
+        $query = User::onlyTrashed();
+
+        if ($request->search) {
+
+            $query->where(function ($q) use ($request) {
+
+                $q->where(
+                    'name',
+                    'like',
+                    '%'.$request->search.'%'
+                )
+                    ->orWhere(
+                        'email',
+                        'like',
+                        '%'.$request->search.'%'
+                    );
+            });
+        }
+
+        if ($request->role) {
+
+            $query->where(
+                'role',
+                $request->role
+            );
+        }
+
+        $title = 'Deleted Accounts || Admin Gassin!';
+
+        $navtitle = 'Deleted Accounts';
+
+        $users = $query
+            ->latest('deleted_at')
+            ->paginate(10);
+
+        return view(
+            'pages.users.deleted',
+            compact(
+                'users',
+                'title',
+                'navtitle'
+            )
+        );
+    }
+
+    public function restore($id)
+    {
+        $user = User::onlyTrashed()
+            ->findOrFail($id);
+
+        $user->restore();
+
+        return back()->with(
+            'success',
+            'Account restored'
+        );
+    }
+
+    public function forceDelete($id)
+    {
+        $user = User::onlyTrashed()
+            ->findOrFail($id);
+
+        $user->forceDelete();
+
+        return back()->with(
+            'success',
+            'Account permanently deleted'
         );
     }
 
@@ -173,7 +246,7 @@ class UsersController extends Controller
     public function destroy(User $user)
     {
         $user->update([
-            'email' => time() . '_' . $user->email,
+            'email' => time().'_'.$user->email,
         ]);
 
         $user->delete();
