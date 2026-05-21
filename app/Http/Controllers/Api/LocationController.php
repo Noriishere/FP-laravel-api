@@ -124,10 +124,12 @@ class LocationController extends Controller
         ]);
     }
 
-    public function update(Request $request)
-    {
+    public function update(
+        Request $request,
+        $id
+    ) {
+
         $request->validate([
-            'schedule_id' => 'required|exists:schedules,id',
 
             'latitude' => 'required|numeric',
 
@@ -156,7 +158,7 @@ class LocationController extends Controller
             'route.stops',
             'stopTimes.stop',
         ])
-            ->where('id', $request->schedule_id)
+            ->where('id', $id)
             ->where('driver_id', $driver->id)
             ->first();
 
@@ -178,14 +180,13 @@ class LocationController extends Controller
 
         $last = Location::where(
             'schedule_id',
-            $request->schedule_id
+            $schedule->id
         )
             ->latest('recorded_at')
             ->first();
 
         if (
-            $last
-            &&
+            $last &&
             now()->diffInSeconds(
                 $last->recorded_at
             ) < 5
@@ -199,7 +200,7 @@ class LocationController extends Controller
 
         $location = Location::create([
 
-            'schedule_id' => $request->schedule_id,
+            'schedule_id' => $schedule->id,
 
             'latitude' => $request->latitude,
 
@@ -223,9 +224,13 @@ class LocationController extends Controller
             }
 
             $distance = $this->haversine(
+
                 $request->latitude,
+
                 $request->longitude,
+
                 $stopTime->stop->lat,
+
                 $stopTime->stop->lng
             );
 
@@ -253,9 +258,13 @@ class LocationController extends Controller
         if ($destination) {
 
             $distanceToDestination = $this->haversine(
+
                 $request->latitude,
+
                 $request->longitude,
+
                 $destination->lat,
+
                 $destination->lng
             );
 
@@ -306,6 +315,7 @@ class LocationController extends Controller
 
                 'next_stop' => $nextStop
                     ? [
+
                         'name' => $nextStop->stop?->name,
 
                         'arrival_time' => $nextStop->arrival_time,
