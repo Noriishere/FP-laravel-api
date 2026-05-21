@@ -72,6 +72,15 @@ class VehicleController extends Controller
     {
         $vehicle = Vehicle::findOrFail($id);
 
+        $plateNumber =
+            strtoupper($request->plate_prefix) . ' ' .
+            $request->plate_number_main . ' ' .
+            strtoupper($request->plate_suffix);
+
+        $request->merge([
+            'plate_number' => $plateNumber
+        ]);
+
         $request->validate([
             'name' => 'required',
             'plate_number' => 'required|unique:vehicles,plate_number,' . $id,
@@ -80,9 +89,17 @@ class VehicleController extends Controller
             'color' => 'required'
         ]);
 
-        $vehicle->update($request->all());
+        $vehicle->update([
+            'name' => $request->name,
+            'plate_number' => $plateNumber,
+            'capacity' => $request->capacity,
+            'type' => $request->type,
+            'color' => $request->color,
+        ]);
 
-        return redirect()->route('vehicles.index')->with('success', 'Vehicle updated');
+        return redirect()
+            ->route('vehicles.index')
+            ->with('success', 'Vehicle updated');
     }
 
     public function destroy($id)
