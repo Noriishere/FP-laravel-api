@@ -369,9 +369,21 @@ class LocationController extends Controller
         if (! $location) {
 
             return response()->json([
-                'success' => false,
-                'message' => 'Driver has not started tracking yet',
-            ], 404);
+
+                'success' => true,
+
+                'message' => 'Tracking not available yet',
+
+                'data' => [
+
+                    'schedule' => [
+                        'id' => $schedule->id,
+                        'status' => $schedule->status,
+                    ],
+
+                    'location' => null,
+                ],
+            ]);
         }
 
         $nextStop = $schedule->stopTimes
