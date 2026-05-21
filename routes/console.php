@@ -10,4 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('bookings:expire')->everyMinute();
 Schedule::command('users:delete-unverified')->daily();
-Schedule::command('schedules:update-status')->everyMinute();
+// Schedule::command('schedules:update-status')->everyMinute();
