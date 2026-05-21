@@ -386,6 +386,56 @@ class LocationController extends Controller
             ]);
         }
 
+        $routeStops = $schedule->route->stops
+            ->sortBy('order')
+            ->map(function ($stop) use (
+                $schedule,
+                $location
+            ) {
+
+                $stopTime = $schedule->stopTimes
+                    ->firstWhere(
+                        'stop_id',
+                        $stop->id
+                    );
+
+                $distance = $this->haversine(
+
+                    $location->latitude,
+
+                    $location->longitude,
+
+                    $stop->lat,
+
+                    $stop->lng
+                );
+
+                return [
+
+                    'id' => $stop->id,
+
+                    'name' => $stop->name,
+
+                    'latitude' => $stop->lat,
+
+                    'longitude' => $stop->lng,
+
+                    'order' => $stop->order,
+
+                    'distance_km' => round(
+                        $distance / 1000,
+                        2
+                    ),
+
+                    'status' => $stopTime?->status,
+
+                    'arrival_time' => $stopTime?->arrival_time,
+
+                    'actual_arrival_time' => $stopTime?->actual_arrival_time,
+                ];
+            })
+            ->values();
+
         $nextStop = $schedule->stopTimes
             ->where('status', '!=', 'arrived')
             ->sortBy(function ($item) {
@@ -426,6 +476,8 @@ class LocationController extends Controller
 
                     'name' => $schedule->route?->name,
 
+                    'stops' => $routeStops,
+                    
                     'origin' => [
                         'name' => $schedule->route?->origin?->name,
                     ],
