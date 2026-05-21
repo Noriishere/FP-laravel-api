@@ -138,7 +138,10 @@ class ScheduleController extends Controller
         $driverBusy = Schedule::where(
             'driver_id',
             $request->driver_id
-        )
+        )->whereIn('status', [
+            'scheduled',
+            'on-going',
+        ])
             ->where('id', '!=', $schedule->id)
             ->where(function ($q) use (
                 $start,
@@ -425,6 +428,10 @@ class ScheduleController extends Controller
             'driver_id',
             $request->driver_id
         )
+            ->whereIn('status', [
+                'scheduled',
+                'on-going',
+            ])
             ->where(function ($q) use (
                 $start,
                 $end
@@ -473,7 +480,10 @@ class ScheduleController extends Controller
         $vehicleBusy = Schedule::where(
             'vehicle_id',
             $request->vehicle_id
-        )
+        )->whereIn('status', [
+            'scheduled',
+            'on-going',
+        ])
             ->where(function ($q) use (
                 $start,
                 $end
@@ -646,36 +656,43 @@ class ScheduleController extends Controller
                 (int) $request->duration
             );
 
-        $busyDriverIds = Schedule::where(function ($q) use (
-            $start,
-            $end
-        ) {
+        $busyDriverIds = Schedule::whereIn(
+            'status',
+            [
+                'scheduled',
+                'on-going',
+            ]
+        )
+            ->where(function ($q) use (
+                $start,
+                $end
+            ) {
 
-            $q->whereBetween(
-                'departure_time',
-                [$start, $end]
-            )
-                ->orWhereBetween(
-                    'arrival_time',
+                $q->whereBetween(
+                    'departure_time',
                     [$start, $end]
                 )
-                ->orWhere(function ($q2) use (
-                    $start,
-                    $end
-                ) {
-
-                    $q2->where(
-                        'departure_time',
-                        '<=',
-                        $start
+                    ->orWhereBetween(
+                        'arrival_time',
+                        [$start, $end]
                     )
-                        ->where(
-                            'arrival_time',
-                            '>=',
-                            $end
-                        );
-                });
-        })
+                    ->orWhere(function ($q2) use (
+                        $start,
+                        $end
+                    ) {
+
+                        $q2->where(
+                            'departure_time',
+                            '<=',
+                            $start
+                        )
+                            ->where(
+                                'arrival_time',
+                                '>=',
+                                $end
+                            );
+                    });
+            })
             ->pluck('driver_id');
 
         $drivers = Driver::with([
