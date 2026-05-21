@@ -283,6 +283,27 @@ class LocationController extends Controller
             })
             ->first();
 
+        $remainingDistance = null;
+
+        if ($nextStop) {
+
+            $remainingDistance = round(
+
+                $this->haversine(
+
+                    $location->latitude,
+
+                    $location->longitude,
+
+                    $nextStop->stop->lat,
+
+                    $nextStop->stop->lng
+                ) / 1000,
+
+                2
+            );
+        }
+
         return response()->json([
 
             'success' => true,
@@ -314,15 +335,37 @@ class LocationController extends Controller
                 ],
 
                 'next_stop' => $nextStop
-                    ? [
+                ? [
 
-                        'name' => $nextStop->stop?->name,
+                    'id' => $nextStop->stop?->id,
 
-                        'arrival_time' => $nextStop->arrival_time,
+                    'name' => $nextStop->stop?->name,
 
-                        'status' => $nextStop->status,
-                    ]
-                    : null,
+                    'latitude' => $nextStop->stop?->lat,
+
+                    'longitude' => $nextStop->stop?->lng,
+
+                    'order' => $nextStop->stop?->order,
+
+                    'arrival_time' => $nextStop->arrival_time,
+
+                    'actual_arrival_time' => $nextStop->actual_arrival_time,
+
+                    'status' => $nextStop->status,
+
+                    'remaining_distance_km' => $remainingDistance,
+
+                    'estimated_remaining_minutes' => $location->speed > 0
+                            ? round(
+                                (
+                                    ($remainingDistance * 1000)
+                                    /
+                                    ($location->speed * 1000 / 3600)
+                                ) / 60
+                            )
+                            : null,
+                ]
+                : null,
             ],
         ]);
     }
@@ -477,7 +520,7 @@ class LocationController extends Controller
                     'name' => $schedule->route?->name,
 
                     'stops' => $routeStops,
-                    
+
                     'origin' => [
                         'name' => $schedule->route?->origin?->name,
                     ],
