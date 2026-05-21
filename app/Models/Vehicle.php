@@ -11,7 +11,9 @@ class Vehicle extends Model
     protected $fillable = [
         'name',
         'plate_number',
-        'capacity'
+        'capacity',
+        'type',
+        'color'
     ];
     public function seats()
     {
