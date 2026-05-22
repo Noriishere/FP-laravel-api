@@ -5,10 +5,11 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\Location;
 use App\Models\Schedule;
+use Illuminate\Http\Request;
 
 class TripMonitoringController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $title = 'Trip Monitoring || Admin Gassin!';
 
@@ -24,10 +25,22 @@ class TripMonitoringController extends Controller
 
             'driver.user',
         ])
-            ->whereDate(
-                'departure_time',
-                today()
-            )
+            ->whereDate('departure_time', today())
+
+            ->when($request->search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('route', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    })->orWhereHas('driver.user', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
+                });
+            })
+
+            ->when($request->status, function ($query, $status) {
+                $query->where('status', $status);
+            })
+
             ->latest()
             ->get();
 
