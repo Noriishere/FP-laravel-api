@@ -141,6 +141,73 @@ class ScheduleController extends Controller
 
         $data = $schedules->map(function ($schedule) {
 
+            $originName = preg_replace(
+                '/\s+/',
+                ' ',
+                strtolower(trim(
+                    $schedule->route?->origin?->name
+                ))
+            );
+
+            $destinationName = preg_replace(
+                '/\s+/',
+                ' ',
+                strtolower(trim(
+                    $schedule->route?->destination?->name
+                ))
+            );
+
+            $stops = $schedule->route?->stops
+                ->filter(function ($stop) use (
+                    $originName,
+                    $destinationName
+                ) {
+
+                    $stopName = preg_replace(
+                        '/\s+/',
+                        ' ',
+                        strtolower(trim($stop->name))
+                    );
+
+                    return
+                        $stopName !== $originName &&
+                        $stopName !== $destinationName;
+                })
+                ->groupBy(function ($stop) {
+
+                    return preg_replace(
+                        '/\s+/',
+                        ' ',
+                        strtolower(trim($stop->name))
+                    );
+                })
+                ->map(function ($group) {
+
+                    return $group->first();
+                })
+                ->values()
+                ->map(function ($stop) {
+
+                    return [
+
+                        'id' => $stop->id,
+
+                        'name' => $stop->name,
+
+                        'address' => $stop->address,
+
+                        'latitude' => $stop->lat,
+
+                        'longitude' => $stop->lng,
+
+                        'order' => $stop->order,
+
+                        'is_pickup' => $stop->is_pickup,
+
+                        'is_dropoff' => $stop->is_dropoff,
+                    ];
+                });
+
             return [
 
                 'id' => $schedule->id,
@@ -189,41 +256,7 @@ class ScheduleController extends Controller
                         $schedule->route?->polyline
                     ),
 
-                    'stops' => $schedule->route?->stops
-                        ->groupBy(function ($stop) {
-
-                            return preg_replace(
-                                '/\s+/',
-                                ' ',
-                                strtolower(trim($stop->name))
-                            );
-                        })
-                        ->map(function ($group) {
-
-                            return $group->first();
-                        })
-                        ->values()
-                        ->map(function ($stop) {
-
-                            return [
-
-                                'id' => $stop->id,
-
-                                'name' => $stop->name,
-
-                                'address' => $stop->address,
-
-                                'latitude' => $stop->lat,
-
-                                'longitude' => $stop->lng,
-
-                                'order' => $stop->order,
-
-                                'is_pickup' => $stop->is_pickup,
-
-                                'is_dropoff' => $stop->is_dropoff,
-                            ];
-                        }),
+                    'stops' => $stops,
                 ],
             ];
         });
