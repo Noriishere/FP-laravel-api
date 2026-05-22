@@ -63,65 +63,8 @@
         {{-- USERS --}}
         <x-sidebar-link href="{{ url('/admin/users') }}" icon="fa-users" label="Users" :active="request()->is('admin/users*')" />
 
-        {{-- DRIVERS (submenu) --}}
-        <div x-data="{ open: {{ request()->is('admin/drivers*') || request()->is('admin/driver-documents*') ? 'true' : 'false' }} }">
-
-            {{-- Parent button --}}
-            <button @click="!($store.sidebar.collapsed && !isMobile()) && (open = !open)"
-                class="w-full flex items-center rounded-md transition-colors duration-150 group relative"
-                :class="[
-                    $store.sidebar.collapsed && !isMobile() ? 'justify-center px-0 py-2.5' :
-                    'px-3 py-2 justify-between',
-                    '{{ request()->is('admin/drivers*') || request()->is('admin/driver-documents*') ? 'bg-primary text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900' }}'
-                ]">
-
-                <span class="flex items-center" :class="$store.sidebar.collapsed && !isMobile() ? 'gap-0' : 'gap-3'">
-                    <i class="fa-solid fa-id-card w-4 flex-shrink-0 text-center"></i>
-                    <span :class="$store.sidebar.collapsed && !isMobile() ? 'hidden' : ''"
-                        class="whitespace-nowrap font-medium">Drivers</span>
-                </span>
-
-                <i x-show="!($store.sidebar.collapsed && !isMobile())"
-                    class="fa-solid fa-chevron-down text-xs transition-transform duration-200"
-                    :class="{ 'rotate-180': open }"></i>
-
-                {{-- Tooltip when collapsed --}}
-                <span x-show="$store.sidebar.collapsed && !isMobile()"
-                    class="absolute left-full ml-3 px-2 py-1 text-xs bg-gray-900 text-white rounded-md
-                             whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                    Drivers
-                </span>
-            </button>
-
-            {{-- Submenu --}}
-            <div x-show="open && !($store.sidebar.collapsed && !isMobile())"
-                x-transition:enter="transition ease-out duration-150"
-                x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
-                x-transition:leave="transition ease-in duration-100" x-transition:leave-end="opacity-0"
-                class="ml-7 mt-0.5 space-y-0.5">
-
-                <a href="{{ route('drivers.index') }}"
-                    class="block px-3 py-1.5 rounded-md text-sm transition-colors
-       {{ request()->routeIs('drivers.*')
-           ? 'bg-gray-100 text-gray-900 font-medium'
-           : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900' }}">
-
-                    Driver List
-
-                </a>
-
-                <a href="{{ route('drivers.create') }}"
-                    class="block px-3 py-1.5 rounded-md text-sm transition-colors
-       {{ request()->routeIs('drivers.create')
-           ? 'bg-gray-100 text-gray-900 font-medium'
-           : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900' }}">
-
-                    Create Driver
-
-                </a>
-
-            </div>
-        </div>
+        {{-- DRIVERS --}}
+        <x-sidebar-link href="{{ url('/admin/drivers') }}" icon="fa-user-tie" label="Drivers" :active="request()->is('admin/drivers*')" />
 
         {{-- VEHICLES --}}
         <x-sidebar-link href="{{ url('/admin/vehicles') }}" icon="fa-bus" label="Vehicles" :active="request()->is('admin/vehicles*')" />
