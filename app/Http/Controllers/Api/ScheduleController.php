@@ -190,7 +190,7 @@ class ScheduleController extends Controller
                     ),
 
                     'stops' => $schedule->route?->stops
-                        ?->unique(function ($stop) {
+                        ->groupBy(function ($stop) {
 
                             return preg_replace(
                                 '/\s+/',
@@ -198,8 +198,12 @@ class ScheduleController extends Controller
                                 strtolower(trim($stop->name))
                             );
                         })
-                        ?->values()
-                        ?->map(function ($stop) {
+                        ->map(function ($group) {
+
+                            return $group->first();
+                        })
+                        ->values()
+                        ->map(function ($stop) {
 
                             return [
 
