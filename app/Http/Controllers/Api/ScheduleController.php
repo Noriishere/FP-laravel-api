@@ -12,18 +12,26 @@ class ScheduleController extends Controller
 {
     public function index(Request $request)
     {
-        $origin = strtolower($request->origin ?? '');
-        $destination = strtolower($request->destination ?? '');
+        $origin = strtolower(
+            trim($request->origin ?? '')
+        );
+
+        $destination = strtolower(
+            trim($request->destination ?? '')
+        );
+
         $query = Schedule::with([
             'route.stops',
+            'route.origin',
+            'route.destination',
             'vehicle',
             'driver.user',
         ]);
 
-        if ($request->origin && $request->destination) {
-
-            $origin = strtolower($request->origin);
-            $destination = strtolower($request->destination);
+        if (
+            $request->origin &&
+            $request->destination
+        ) {
 
             $query->whereHas('route', function ($routeQuery) use (
                 $origin,
@@ -37,7 +45,10 @@ class ScheduleController extends Controller
                             'name',
                             'like',
                             "%{$origin}%"
-                        )->where('is_pickup', true);
+                        )->where(
+                            'is_pickup',
+                            true
+                        );
                     })
                     ->whereHas('stops', function ($q) use ($destination) {
 
@@ -45,9 +56,13 @@ class ScheduleController extends Controller
                             'name',
                             'like',
                             "%{$destination}%"
-                        )->where('is_dropoff', true);
+                        )->where(
+                            'is_dropoff',
+                            true
+                        );
                     });
             });
+
         } elseif ($request->origin) {
 
             $query->whereHas('route.stops', function ($q) use ($request) {
@@ -56,8 +71,12 @@ class ScheduleController extends Controller
                     'name',
                     'like',
                     '%'.$request->origin.'%'
-                )->where('is_pickup', true);
+                )->where(
+                    'is_pickup',
+                    true
+                );
             });
+
         } elseif ($request->destination) {
 
             $query->whereHas('route.stops', function ($q) use ($request) {
@@ -66,13 +85,21 @@ class ScheduleController extends Controller
                     'name',
                     'like',
                     '%'.$request->destination.'%'
-                )->where('is_dropoff', true);
+                )->where(
+                    'is_dropoff',
+                    true
+                );
             });
         }
 
-        $schedules = $query->get();
+        $schedules = $query
+            ->latest()
+            ->get();
 
-        if ($request->origin && $request->destination) {
+        if (
+            $request->origin &&
+            $request->destination
+        ) {
 
             $schedules = $schedules->filter(function ($schedule) use (
                 $origin,
@@ -80,36 +107,126 @@ class ScheduleController extends Controller
             ) {
 
                 $originStop = $schedule->route->stops
-                    ->filter(function ($stop) use ($origin) {
+                    ->first(function ($stop) use ($origin) {
 
                         return str_contains(
                             strtolower($stop->name),
                             $origin
                         );
-                    })
-                    ->first();
+                    });
 
                 $destinationStop = $schedule->route->stops
-                    ->filter(function ($stop) use ($destination) {
+                    ->first(function ($stop) use ($destination) {
 
                         return str_contains(
                             strtolower($stop->name),
                             $destination
                         );
-                    })
-                    ->first();
+                    });
 
-                if (! $originStop || ! $destinationStop) {
+                if (
+                    ! $originStop ||
+                    ! $destinationStop
+                ) {
+
                     return false;
                 }
 
-                return $originStop->order < $destinationStop->order;
+                return
+                    $originStop->order <
+                    $destinationStop->order;
+
             })->values();
         }
 
+        $data = $schedules->map(function ($schedule) {
+
+            return [
+
+                'id' => $schedule->id,
+
+                'departure_time' => $schedule->departure_time,
+
+                'arrival_time' => $schedule->arrival_time,
+
+                'status' => $schedule->status,
+
+                'price' => $schedule->price,
+
+                'vehicle' => [
+
+                    'id' => $schedule->vehicle?->id,
+
+                    'name' => $schedule->vehicle?->name,
+
+                    'plate_number' => $schedule->vehicle?->plate_number,
+                ],
+
+                'driver' => [
+
+                    'id' => $schedule->driver?->id,
+
+                    'name' => $schedule->driver?->user?->name,
+                ],
+
+                'route' => [
+
+                    'id' => $schedule->route?->id,
+
+                    'name' => $schedule->route?->name,
+
+                    'origin' => [
+
+                        'name' => $schedule->route?->origin?->name,
+                    ],
+
+                    'destination' => [
+
+                        'name' => $schedule->route?->destination?->name,
+                    ],
+
+                    'polyline' => json_decode(
+                        $schedule->route?->polyline
+                    ),
+
+                    'stops' => $schedule->route?->stops
+                        ?->unique(function ($stop) {
+
+                            return strtolower(
+                                trim($stop->name)
+                            );
+                        })
+                        ?->values()
+                        ?->map(function ($stop) {
+
+                            return [
+
+                                'id' => $stop->id,
+
+                                'name' => $stop->name,
+
+                                'address' => $stop->address,
+
+                                'latitude' => $stop->lat,
+
+                                'longitude' => $stop->lng,
+
+                                'order' => $stop->order,
+
+                                'is_pickup' => $stop->is_pickup,
+
+                                'is_dropoff' => $stop->is_dropoff,
+                            ];
+                        }),
+                ],
+            ];
+        });
+
         return response()->json([
+
             'success' => true,
-            'data' => $schedules,
+
+            'data' => $data,
         ]);
     }
 
