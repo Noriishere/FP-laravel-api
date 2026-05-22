@@ -192,8 +192,10 @@ class ScheduleController extends Controller
                     'stops' => $schedule->route?->stops
                         ?->unique(function ($stop) {
 
-                            return strtolower(
-                                trim($stop->name)
+                            return preg_replace(
+                                '/\s+/',
+                                ' ',
+                                strtolower(trim($stop->name))
                             );
                         })
                         ?->values()
