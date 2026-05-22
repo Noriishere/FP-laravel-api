@@ -42,6 +42,142 @@ class DriverController extends Controller
         ]);
     }
 
+    public function history()
+    {
+        $user = auth('api')->user();
+
+        $driver = Driver::where(
+            'user_id',
+            $user->id
+        )->first();
+
+        if (! $driver) {
+
+            return response()->json([
+
+                'success' => false,
+
+                'message' => 'Driver not found',
+            ], 404);
+        }
+
+        $schedules = Schedule::with([
+
+            'vehicle',
+
+            'route.origin',
+
+            'route.destination',
+
+            'route.stops',
+
+            'bookings',
+
+            'stopTimes.stop',
+        ])
+            ->where(
+                'driver_id',
+                $driver->id
+            )
+            ->where(
+                'status',
+                'completed'
+            )
+            ->latest()
+            ->get()
+            ->map(function ($schedule) {
+
+                return [
+
+                    'id' => $schedule->id,
+
+                    'departure_time' => $schedule->departure_time,
+
+                    'arrival_time' => $schedule->arrival_time,
+
+                    'status' => $schedule->status,
+
+                    'price' => $schedule->price,
+
+                    'booking_count' => $schedule->bookings
+                        ->count(),
+
+                    'vehicle' => [
+
+                        'id' => $schedule->vehicle?->id,
+
+                        'name' => $schedule->vehicle?->name,
+
+                        'plate_number' => $schedule->vehicle?->plate_number,
+                    ],
+
+                    'route' => [
+
+                        'id' => $schedule->route?->id,
+
+                        'name' => $schedule->route?->name,
+
+                        'origin' => [
+
+                            'name' => $schedule->route?->origin?->name,
+                        ],
+
+                        'destination' => [
+
+                            'name' => $schedule->route?->destination?->name,
+                        ],
+
+                        'polyline' => json_decode(
+                            $schedule->route?->polyline
+                        ),
+
+                        'total_stops' => $schedule->route?->stops
+                            ?->count(),
+
+                        'stops' => $schedule->route?->stops
+                            ?->sortBy('order')
+                            ?->values()
+                            ?->map(function ($stop) use ($schedule) {
+
+                                $stopTime = $schedule->stopTimes
+                                    ->firstWhere(
+                                        'stop_id',
+                                        $stop->id
+                                    );
+
+                                return [
+
+                                    'id' => $stop->id,
+
+                                    'name' => $stop->name,
+
+                                    'address' => $stop->address,
+
+                                    'latitude' => $stop->lat,
+
+                                    'longitude' => $stop->lng,
+
+                                    'order' => $stop->order,
+
+                                    'arrival_time' => $stopTime?->arrival_time,
+
+                                    'actual_arrival_time' => $stopTime?->actual_arrival_time,
+
+                                    'status' => $stopTime?->status,
+                                ];
+                            }),
+                    ],
+                ];
+            });
+
+        return response()->json([
+
+            'success' => true,
+
+            'data' => $schedules,
+        ]);
+    }
+
     public function uploadDocument(Request $request, $id)
     {
         $user = Auth::user();
@@ -352,14 +488,14 @@ class DriverController extends Controller
 
                     'seat_summary' => [
 
-                    'total_seats' => $totalSeats,
+                        'total_seats' => $totalSeats,
 
-                    'booked_seats' => $bookedSeats,
+                        'booked_seats' => $bookedSeats,
 
-                    'available_seats' => $totalSeats
-                            -
-                            $bookedSeats,
-                ],
+                        'available_seats' => $totalSeats
+                                -
+                                $bookedSeats,
+                    ],
                 ];
             });
 

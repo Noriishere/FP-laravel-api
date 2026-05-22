@@ -66,6 +66,7 @@ Route::middleware(['auth:api', 'role:driver'])->group(function () {
     Route::get('/driver/schedules', [DriverController::class, 'mySchedules']);
     Route::post('/driver/schedules/{id}/stop',[LocationController::class, 'stop']);
     Route::get('/driver/me', [DriverAuthController::class, 'me']);
+    Route::get('/driver/history',[DriverController::class, 'history']);
 });
 
 Route::middleware(['auth:api'])->group(function () {
