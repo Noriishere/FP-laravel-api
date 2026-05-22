@@ -185,19 +185,6 @@ class LocationController extends Controller
             ->latest('recorded_at')
             ->first();
 
-        if (
-            $last &&
-            now()->diffInSeconds(
-                $last->recorded_at
-            ) < 5
-        ) {
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Too fast update',
-            ], 429);
-        }
-
         $location = Location::create([
 
             'schedule_id' => $schedule->id,

@@ -48,7 +48,7 @@ Route::middleware(['auth:api', 'role:customer'])
         Route::get('/me/bookings', [UserController::class, 'myBookings']);
         Route::get('/me/booking/detail/{id}', [UserController::class, 'bookingHistoryDetail']);
         Route::get('/bookings/{id}', [BookingController::class, 'show']);
-        Route::get('/schedules/{id}/tracking', [LocationController::class, 'tracking']);
+        Route::get('/schedules/{id}/tracking', [LocationController::class, 'tracking'])->middleware('driver.location.throttle');
         Route::get('/schedules/{id}/route', [ScheduleController::class, 'map']);
         Route::get('/vehicles', [VehicleController::class, 'index']);
         Route::get('/vehicles/{id}', [VehicleController::class, 'show']);
@@ -61,7 +61,7 @@ Route::middleware(['auth:api', 'role:driver'])->group(function () {
     Route::post('/drivers/{id}/documents', [DriverController::class, 'uploadDocument']);
     Route::get('/me/schedules', [UserController::class, 'mySchedules']);
     Route::post('/driver/schedules/{id}/start', [LocationController::class, 'start']);
-    Route::post('/driver/schedules/{id}/location',[LocationController::class, 'update']);
+    Route::post('/driver/schedules/{id}/location',[LocationController::class, 'update'])->middleware('driver.location.throttle');
     Route::get('/driver/schedules/{id}/route', [DriverController::class, 'routeDetail']);
     Route::get('/driver/schedules', [DriverController::class, 'mySchedules']);
     Route::post('/driver/schedules/{id}/stop',[LocationController::class, 'stop']);

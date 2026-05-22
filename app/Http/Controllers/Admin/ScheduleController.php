@@ -129,12 +129,6 @@ class ScheduleController extends Controller
                 (int) $request->duration
             );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Driver Conflict
-        |--------------------------------------------------------------------------
-        */
-
         $driverBusy = Schedule::where(
             'driver_id',
             $request->driver_id
@@ -417,13 +411,7 @@ class ScheduleController extends Controller
             ->addMinutes(
                 (int) $request->duration
             );
-
-        /*
-    |--------------------------------------------------------------------------
-    | Driver Conflict
-    |--------------------------------------------------------------------------
-    */
-
+            
         $driverBusy = Schedule::where(
             'driver_id',
             $request->driver_id
