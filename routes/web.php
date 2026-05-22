@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\RouteController;
 use App\Http\Controllers\Admin\ScheduleController;
 use App\Http\Controllers\Dashboard\DriverController;
 use App\Http\Controllers\Dashboard\DriverDocumentController;
+use App\Http\Controllers\Dashboard\TripMonitoringController;
 use App\Http\Controllers\Dashboard\UsersController;
 use App\Http\Controllers\Dashboard\VehicleController;
 use App\Http\Controllers\DashboardController;
@@ -133,6 +134,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/users/deleted',[UsersController::class, 'deletedAccounts'])->name('users.deleted');
     Route::patch('/admin/users/{id}/restore',[UsersController::class, 'restore'])->name('users.restore');
     Route::delete('/admin/users/{id}/force-delete',[UsersController::class, 'forceDelete'])->name('users.forceDelete');
+    Route::get('/trip-monitoring',[TripMonitoringController::class, 'index'])->name('trip-monitoring.index');
+    Route::get('/trip-monitoring/data',[TripMonitoringController::class, 'data'])->name('trip-monitoring.data');
 });
 Route::middleware(['auth', 'role:driver'])->group(function () {});
 

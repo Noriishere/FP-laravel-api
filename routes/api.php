@@ -9,7 +9,6 @@ use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ScheduleController;
 use App\Http\Controllers\Api\SeatController;
 use App\Http\Controllers\Api\VehicleController;
-use App\Http\Controllers\Dashboard\TripMonitoringController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -54,8 +53,6 @@ Route::middleware(['auth:api', 'role:customer'])
         Route::get('/vehicles', [VehicleController::class, 'index']);
         Route::get('/vehicles/{id}', [VehicleController::class, 'show']);
         Route::get('/payment/check/{bookingId}', [PaymentController::class, 'checkTransaction']);
-        Route::get('/trip-monitoring',[TripMonitoringController::class, 'index'])->name('trip-monitoring.index');
-        Route::get('/trip-monitoring/data',[TripMonitoringController::class, 'data'])->name('trip-monitoring.data');
     });
 
 Route::middleware(['auth:api', 'role:driver'])->group(function () {
