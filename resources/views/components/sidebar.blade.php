@@ -160,6 +160,8 @@
             icon="fa-ticket"
             label="Bookings"
             :active="request()->is('admin/bookings*')" />
+
+        {{-- TRIP MONITORING --}}
         <x-sidebar-link
             href="{{ url('/admin/trip-monitoring') }}"
             icon="fa-location-arrow"

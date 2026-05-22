@@ -134,8 +134,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/users/deleted',[UsersController::class, 'deletedAccounts'])->name('users.deleted');
     Route::patch('/admin/users/{id}/restore',[UsersController::class, 'restore'])->name('users.restore');
     Route::delete('/admin/users/{id}/force-delete',[UsersController::class, 'forceDelete'])->name('users.forceDelete');
-    Route::get('/trip-monitoring',[TripMonitoringController::class, 'index'])->name('trip-monitoring.index');
-    Route::get('/trip-monitoring/data',[TripMonitoringController::class, 'data'])->name('trip-monitoring.data');
+    Route::get('/admin/trip-monitoring',[TripMonitoringController::class, 'index'])->name('trip-monitoring.index');
+    Route::get('/admin/trip-monitoring/data',[TripMonitoringController::class, 'data'])->name('trip-monitoring.data');
 });
 Route::middleware(['auth', 'role:driver'])->group(function () {});
 
