@@ -11,21 +11,44 @@ use Illuminate\Http\Request;
 
 class LocationController extends Controller
 {
-    public function start($id)
-    {
+    public function start(
+        Request $request,
+        $id
+    ) {
+
+        $request->validate([
+
+            'latitude' => 'required|numeric',
+
+            'longitude' => 'required|numeric',
+
+            'speed' => 'nullable|numeric',
+
+            'heading' => 'nullable|numeric',
+
+            'accuracy' => 'nullable|numeric',
+
+            'is_mocked' => 'nullable|boolean',
+        ]);
+
         $driver = auth('api')->user()?->driver;
 
         if (! $driver) {
 
             return response()->json([
+
                 'success' => false,
+
                 'message' => 'Driver not found',
             ], 403);
         }
 
         $schedule = Schedule::with([
+
             'route.origin',
+
             'route.destination',
+
             'vehicle',
         ])
             ->where('id', $id)
@@ -35,7 +58,9 @@ class LocationController extends Controller
         if (! $schedule) {
 
             return response()->json([
+
                 'success' => false,
+
                 'message' => 'Unauthorized schedule',
             ], 403);
         }
@@ -43,16 +68,10 @@ class LocationController extends Controller
         if ($schedule->status === 'completed') {
 
             return response()->json([
+
                 'success' => false,
+
                 'message' => 'Schedule already completed',
-            ], 400);
-        }
-
-        if ($schedule->status === 'on-going') {
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Schedule already started',
             ], 400);
         }
 
@@ -69,19 +88,105 @@ class LocationController extends Controller
         if ($now->lt($allowedStartTime)) {
 
             return response()->json([
+
                 'success' => false,
+
                 'message' => 'Trip cannot be started yet',
+
                 'data' => [
+
                     'current_time' => $now,
+
                     'can_start_at' => $allowedStartTime,
+
                     'departure_time' => $departureTime,
                 ],
             ], 400);
         }
 
+        if ($schedule->status === 'on-going') {
+
+            $location = Location::updateOrCreate(
+
+                [
+                    'schedule_id' => $schedule->id,
+                ],
+
+                [
+
+                    'latitude' => $request->latitude,
+
+                    'longitude' => $request->longitude,
+
+                    'speed' => $request->speed,
+
+                    'heading' => $request->heading,
+
+                    'accuracy' => $request->accuracy,
+
+                    'is_mocked' => $request->is_mocked ?? false,
+
+                    'recorded_at' => now(),
+                ]
+            );
+
+            return response()->json([
+
+                'success' => true,
+
+                'message' => 'Trip already started',
+
+                'data' => [
+
+                    'schedule_id' => $schedule->id,
+
+                    'status' => $schedule->status,
+
+                    'location' => [
+
+                        'latitude' => $location->latitude,
+
+                        'longitude' => $location->longitude,
+
+                        'speed' => $location->speed,
+
+                        'heading' => $location->heading,
+
+                        'accuracy' => $location->accuracy,
+
+                        'recorded_at' => $location->recorded_at,
+                    ],
+                ],
+            ]);
+        }
+
         $schedule->update([
             'status' => 'on-going',
         ]);
+
+        $location = Location::updateOrCreate(
+
+            [
+                'schedule_id' => $schedule->id,
+            ],
+
+            [
+
+                'latitude' => $request->latitude,
+
+                'longitude' => $request->longitude,
+
+                'speed' => $request->speed,
+
+                'heading' => $request->heading,
+
+                'accuracy' => $request->accuracy,
+
+                'is_mocked' => $request->is_mocked ?? false,
+
+                'recorded_at' => now(),
+            ]
+        );
 
         return response()->json([
 
@@ -120,6 +225,21 @@ class LocationController extends Controller
 
                     'destination' => $schedule->route?->destination?->name,
                 ],
+
+                'location' => [
+
+                    'latitude' => $location->latitude,
+
+                    'longitude' => $location->longitude,
+
+                    'speed' => $location->speed,
+
+                    'heading' => $location->heading,
+
+                    'accuracy' => $location->accuracy,
+
+                    'recorded_at' => $location->recorded_at,
+                ],
             ],
         ]);
     }
@@ -149,13 +269,17 @@ class LocationController extends Controller
         if (! $driver) {
 
             return response()->json([
+
                 'success' => false,
+
                 'message' => 'Driver not found',
             ], 403);
         }
 
         $schedule = Schedule::with([
+
             'route.stops',
+
             'stopTimes.stop',
         ])
             ->where('id', $id)
@@ -165,7 +289,9 @@ class LocationController extends Controller
         if (! $schedule) {
 
             return response()->json([
+
                 'success' => false,
+
                 'message' => 'Unauthorized schedule',
             ], 403);
         }
@@ -173,36 +299,36 @@ class LocationController extends Controller
         if ($schedule->status !== 'on-going') {
 
             return response()->json([
+
                 'success' => false,
+
                 'message' => 'Schedule not active',
             ], 400);
         }
 
-        $last = Location::where(
-            'schedule_id',
-            $schedule->id
-        )
-            ->latest('recorded_at')
-            ->first();
+        $location = Location::updateOrCreate(
 
-        $location = Location::create([
+            [
+                'schedule_id' => $schedule->id,
+            ],
 
-            'schedule_id' => $schedule->id,
+            [
 
-            'latitude' => $request->latitude,
+                'latitude' => $request->latitude,
 
-            'longitude' => $request->longitude,
+                'longitude' => $request->longitude,
 
-            'speed' => $request->speed,
+                'speed' => $request->speed,
 
-            'heading' => $request->heading,
+                'heading' => $request->heading,
 
-            'accuracy' => $request->accuracy,
+                'accuracy' => $request->accuracy,
 
-            'is_mocked' => $request->is_mocked ?? false,
+                'is_mocked' => $request->is_mocked ?? false,
 
-            'recorded_at' => now(),
-        ]);
+                'recorded_at' => now(),
+            ]
+        );
 
         foreach ($schedule->stopTimes as $stopTime) {
 
@@ -242,20 +368,27 @@ class LocationController extends Controller
             ->sortByDesc('order')
             ->first();
 
+        $destinationDistance = null;
+
         if ($destination) {
 
-            $distanceToDestination = $this->haversine(
+            $destinationDistance = round(
 
-                $request->latitude,
+                $this->haversine(
 
-                $request->longitude,
+                    $request->latitude,
 
-                $destination->lat,
+                    $request->longitude,
 
-                $destination->lng
+                    $destination->lat,
+
+                    $destination->lng
+                ) / 1000,
+
+                2
             );
 
-            if ($distanceToDestination <= 100) {
+            if ($destinationDistance <= 0.1) {
 
                 $schedule->update([
                     'status' => 'completed',
@@ -266,11 +399,14 @@ class LocationController extends Controller
         $nextStop = $schedule->stopTimes
             ->where('status', '!=', 'arrived')
             ->sortBy(function ($item) {
+
                 return $item->stop?->order;
             })
             ->first();
 
         $remainingDistance = null;
+
+        $estimatedRemainingMinutes = null;
 
         if ($nextStop) {
 
@@ -289,6 +425,21 @@ class LocationController extends Controller
 
                 2
             );
+
+            if (
+                $location->speed &&
+                $location->speed > 0
+            ) {
+
+                $estimatedRemainingMinutes = round(
+
+                    (
+                        ($remainingDistance * 1000)
+                        /
+                        ($location->speed * 1000 / 3600)
+                    ) / 60
+                );
+            }
         }
 
         return response()->json([
@@ -322,37 +473,31 @@ class LocationController extends Controller
                 ],
 
                 'next_stop' => $nextStop
-                ? [
+                    ? [
 
-                    'id' => $nextStop->stop?->id,
+                        'id' => $nextStop->stop?->id,
 
-                    'name' => $nextStop->stop?->name,
+                        'name' => $nextStop->stop?->name,
 
-                    'latitude' => $nextStop->stop?->lat,
+                        'latitude' => $nextStop->stop?->lat,
 
-                    'longitude' => $nextStop->stop?->lng,
+                        'longitude' => $nextStop->stop?->lng,
 
-                    'order' => $nextStop->stop?->order,
+                        'order' => $nextStop->stop?->order,
 
-                    'arrival_time' => $nextStop->arrival_time,
+                        'arrival_time' => $nextStop->arrival_time,
 
-                    'actual_arrival_time' => $nextStop->actual_arrival_time,
+                        'actual_arrival_time' => $nextStop->actual_arrival_time,
 
-                    'status' => $nextStop->status,
+                        'status' => $nextStop->status,
 
-                    'remaining_distance_km' => $remainingDistance,
+                        'remaining_distance_km' => $remainingDistance,
 
-                    'estimated_remaining_minutes' => $location->speed > 0
-                            ? round(
-                                (
-                                    ($remainingDistance * 1000)
-                                    /
-                                    ($location->speed * 1000 / 3600)
-                                ) / 60
-                            )
-                            : null,
-                ]
-                : null,
+                        'estimated_remaining_minutes' => $estimatedRemainingMinutes,
+                    ]
+                    : null,
+
+                'destination_distance_km' => $destinationDistance,
             ],
         ]);
     }
