@@ -141,37 +141,12 @@ class ScheduleController extends Controller
 
         $data = $schedules->map(function ($schedule) {
 
-            $originName = preg_replace(
-                '/\s+/',
-                ' ',
-                strtolower(trim(
-                    $schedule->route?->origin?->name
-                ))
-            );
-
-            $destinationName = preg_replace(
-                '/\s+/',
-                ' ',
-                strtolower(trim(
-                    $schedule->route?->destination?->name
-                ))
-            );
-
             $stops = $schedule->route?->stops
-                ->filter(function ($stop) use (
-                    $originName,
-                    $destinationName
-                ) {
-
-                    $stopName = preg_replace(
-                        '/\s+/',
-                        ' ',
-                        strtolower(trim($stop->name))
-                    );
+                ->reject(function ($stop) use ($schedule) {
 
                     return
-                        $stopName !== $originName &&
-                        $stopName !== $destinationName;
+                        $stop->id === $schedule->route?->origin?->id ||
+                        $stop->id === $schedule->route?->destination?->id;
                 })
                 ->groupBy(function ($stop) {
 
@@ -244,10 +219,14 @@ class ScheduleController extends Controller
 
                     'origin' => [
 
+                        'id' => $schedule->route?->origin?->id,
+
                         'name' => $schedule->route?->origin?->name,
                     ],
 
                     'destination' => [
+
+                        'id' => $schedule->route?->destination?->id,
 
                         'name' => $schedule->route?->destination?->name,
                     ],
