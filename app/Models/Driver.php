@@ -9,7 +9,7 @@ class Driver extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['verification_status', 'status', 'user_id'];
+    protected $fillable = ['verification_status', 'status', 'user_id', 'phone'];
 
     public function user()
     {

@@ -1,98 +1,172 @@
+{{-- pages/drivers/show.blade.php --}}
+
 @extends('layouts.app')
+
 @section('content')
+    <div class="space-y-6">
 
-<div class="max-w-2xl mx-auto space-y-6">
+        <div class="flex items-center justify-between">
 
-    {{-- SUCCESS ALERT --}}
-    @if(session('success'))
-        <div class="bg-green-100 text-green-700 px-4 py-3 rounded-lg text-sm shadow">
-            {{ session('success') }}
-        </div>
-    @endif
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">
+                    Driver Detail
+                </h1>
 
-    {{-- CARD --}}
-    <div class="bg-white rounded-2xl shadow-sm border p-6">
-
-        <div class="flex justify-between items-start mb-4">
-            <h3 class="text-base font-semibold text-gray-800">
-                Detail Dokumen
-            </h3>
-
-            {{-- STATUS BADGE --}}
-            <span class="text-xs px-3 py-1 rounded-full
-                {{ $document->status == 'approved' ? 'bg-green-100 text-green-600' : '' }}
-                {{ $document->status == 'pending' ? 'bg-yellow-100 text-yellow-600' : '' }}
-                {{ $document->status == 'rejected' ? 'bg-red-100 text-red-600' : '' }}">
-                {{ ucfirst($document->status) }}
-            </span>
-        </div>
-
-        {{-- INFO --}}
-        <div class="space-y-2 text-sm text-gray-600">
-            <p><span class="font-medium text-gray-700">Driver:</span> {{ $document->driver->user->name }}</p>
-            <p><span class="font-medium text-gray-700">Tipe:</span> {{ strtoupper($document->type) }}</p>
-        </div>
-
-        {{-- IMAGE --}}
-        <div class="mt-5">
-            <img src="{{ asset('storage/' . $document->file_path) }}" alt="Document Image"
-                 class="w-full rounded-xl border object-cover max-h-[400px]">
-        </div>
-
-        {{-- NOTE (kalau reject) --}}
-        @if($document->status === 'rejected' && $document->note)
-            <div class="mt-4 bg-red-50 text-red-600 text-sm p-3 rounded-lg">
-                <b>Alasan:</b> {{ $document->note }}
+                <p class="text-sm text-gray-500 mt-1">
+                    Detail informasi driver.
+                </p>
             </div>
-        @endif
+
+            <div class="flex items-center gap-3">
+
+                <a href="{{ route('drivers.edit', $driver->id) }}"
+                    class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl transition">
+                    Edit
+                </a>
+
+                <a href="{{ route('drivers.index') }}"
+                    class="px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-100 transition">
+                    Back
+                </a>
+
+            </div>
+
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+            <div class="bg-white rounded-2xl shadow p-6">
+
+                <div class="flex flex-col items-center text-center">
+
+                    <div
+                        class="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center text-3xl font-bold text-blue-600">
+                        {{ strtoupper(substr($driver->user->name, 0, 1)) }}
+                    </div>
+
+                    <h2 class="mt-4 text-xl font-semibold text-gray-800">
+                        {{ $driver->user->name }}
+                    </h2>
+
+                    <p class="text-sm text-gray-500">
+                        Driver
+                    </p>
+
+                    <div class="mt-4">
+
+                        <span class="px-4 py-1 rounded-full text-sm bg-green-100 text-green-700">
+                            Verified
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="mt-8 space-y-5">
+
+                    <div>
+                        <p class="text-sm text-gray-500">
+                            Email
+                        </p>
+
+                        <p class="font-medium text-gray-800">
+                            {{ $driver->user->email }}
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-sm text-gray-500">
+                            Phone Number
+                        </p>
+
+                        <p class="font-medium text-gray-800">
+                            {{ $driver->phone }}
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-sm text-gray-500">
+                            Driver Status
+                        </p>
+
+                        <p class="font-medium text-gray-800 capitalize">
+                            {{ $driver->status }}
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-sm text-gray-500">
+                            Joined At
+                        </p>
+
+                        <p class="font-medium text-gray-800">
+                            {{ $driver->created_at->format('d M Y H:i') }}
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="xl:col-span-2 bg-white rounded-2xl shadow p-6">
+
+                <div class="mb-6">
+
+                    <h2 class="text-xl font-semibold text-gray-800">
+                        Driver Documents
+                    </h2>
+
+                    <p class="text-sm text-gray-500 mt-1">
+                        Dokumen identitas driver.
+                    </p>
+
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+                    @foreach ($driver->documents as $document)
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden">
+
+                            <div class="aspect-square bg-gray-100">
+
+                                <img src="{{ asset('storage/' . $document->file_path) }}"
+                                    class="w-full h-full object-cover">
+
+                            </div>
+
+                            <div class="p-4">
+
+                                <div class="flex items-center justify-between">
+
+                                    <div>
+
+                                        <h3 class="font-semibold text-gray-800 uppercase">
+                                            {{ $document->type }}
+                                        </h3>
+
+                                        <p class="text-sm text-green-600">
+                                            Approved
+                                        </p>
+
+                                    </div>
+
+                                    <a href="{{ asset('storage/' . $document->file_path) }}" target="_blank"
+                                        class="text-sm text-blue-600 hover:underline">
+                                        View
+                                    </a>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    @endforeach
+
+                </div>
+
+            </div>
+
+        </div>
 
     </div>
-
-    {{-- ACTION --}}
-    @if ($document->status === 'pending')
-        <div class="bg-white rounded-2xl shadow-sm border p-6 space-y-4">
-
-            <h4 class="text-sm font-semibold text-gray-700">
-                Aksi Verifikasi
-            </h4>
-
-            {{-- APPROVE --}}
-            <form method="POST" action="{{ route('driver-documents.approve', $document->id) }}">
-                @csrf
-                <button 
-                    class="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg text-sm transition">
-                    <i class="fa-solid fa-check"></i>
-                    Approve
-                </button>
-            </form>
-
-            {{-- REJECT --}}
-            <form method="POST" action="{{ route('driver-documents.reject', $document->id) }}">
-                @csrf
-
-                <textarea name="note" required
-                    placeholder="Masukkan alasan penolakan..."
-                    class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-red-200"></textarea>
-
-                <button 
-                    class="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg text-sm transition">
-                    <i class="fa-solid fa-xmark"></i>
-                    Reject
-                </button>
-            </form>
-
-        </div>
-    @endif
-
-</div>
-
-{{-- AUTO BACK --}}
-@if (session('success'))
-<script>
-    setTimeout(() => {
-        window.location.href = "{{ route('driver-documents.index') }}";
-    }, 700);
-</script>
-@endif
-
 @endsection

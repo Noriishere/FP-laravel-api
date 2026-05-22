@@ -1,204 +1,194 @@
+{{-- pages/drivers/edit.blade.php --}}
+
 @extends('layouts.app')
 
 @section('content')
-    <div class="max-w-5xl mx-auto space-y-6">
 
-        <div class="bg-white rounded-2xl shadow p-6">
+    <div class="space-y-6">
 
-            <div class="flex items-start justify-between">
+        <div class="flex items-center justify-between">
 
-                <div>
-                    <h1 class="text-2xl font-bold text-gray-800">
-                        Driver Detail
-                    </h1>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">
+                    Edit Driver
+                </h1>
 
-                    <p class="text-sm text-gray-500 mt-1">
-                        Detail informasi driver dan dokumen.
-                    </p>
-                </div>
-
-                <div class="flex items-center gap-3">
-
-                    <a href="{{ route('drivers.edit', $driver->id) }}"
-                        class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl transition">
-                        Edit
-                    </a>
-
-                    <a href="{{ route('drivers.index') }}"
-                        class="px-4 py-2 border border-gray-300 hover:bg-gray-100 rounded-xl transition">
-                        Back
-                    </a>
-
-                </div>
-
+                <p class="text-sm text-gray-500 mt-1">
+                    Update informasi driver dan dokumen.
+                </p>
             </div>
+
+            <a href="{{ route('drivers.index') }}"
+                class="px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-100 transition">
+                Back
+            </a>
 
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        @if ($errors->any())
+            <div class="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-xl">
 
-            <div class="lg:col-span-1">
+                <ul class="list-disc pl-5 text-sm space-y-1">
 
-                <div class="bg-white rounded-2xl shadow p-6">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
 
-                    <div class="flex flex-col items-center text-center">
+                </ul>
 
-                        <div
-                            class="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center text-3xl font-bold text-blue-600">
-                            {{ strtoupper(substr($driver->user->name, 0, 1)) }}
-                        </div>
+            </div>
+        @endif
 
-                        <h2 class="mt-4 text-xl font-semibold text-gray-800">
-                            {{ $driver->user->name }}
+        <form action="{{ route('drivers.update', $driver->id) }}" method="POST" enctype="multipart/form-data"
+            class="space-y-6">
+
+            @csrf
+            @method('PUT')
+
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+                <div class="bg-white rounded-2xl shadow p-6 space-y-5">
+
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-800">
+                            Driver Information
                         </h2>
 
-                        <p class="text-sm text-gray-500">
-                            Driver
+                        <p class="text-sm text-gray-500 mt-1">
+                            Informasi akun driver.
                         </p>
-
-                        <div class="mt-4">
-
-                            @if ($driver->verification_status === 'approved')
-                                <span class="px-4 py-1 text-sm rounded-full bg-green-100 text-green-700">
-                                    Verified
-                                </span>
-                            @else
-                                <span class="px-4 py-1 text-sm rounded-full bg-red-100 text-red-700">
-                                    Not Verified
-                                </span>
-                            @endif
-
-                        </div>
-
                     </div>
 
-                    <div class="mt-8 space-y-5">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Full Name
+                        </label>
 
-                        <div>
-                            <p class="text-sm text-gray-500">
-                                Email
-                            </p>
+                        <input type="text" name="name" value="{{ old('name', $driver->user->name) }}"
+                            class="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
 
-                            <p class="font-medium text-gray-800">
-                                {{ $driver->user->email }}
-                            </p>
-                        </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Email
+                        </label>
 
-                        <div>
-                            <p class="text-sm text-gray-500">
-                                Phone Number
-                            </p>
+                        <input type="email" name="email" value="{{ old('email', $driver->user->email) }}"
+                            class="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
 
-                            <p class="font-medium text-gray-800">
-                                {{ $driver->user->phone }}
-                            </p>
-                        </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Phone Number
+                        </label>
 
-                        <div>
-                            <p class="text-sm text-gray-500">
-                                License Number
-                            </p>
+                        <input type="text" name="phone" value="{{ old('phone', $driver->phone) }}"
+                            class="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
 
-                            <p class="font-medium text-gray-800">
-                                {{ $driver->license_number }}
-                            </p>
-                        </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            New Password
+                        </label>
 
-                        <div>
-                            <p class="text-sm text-gray-500">
-                                Driver Status
-                            </p>
+                        <input type="password" name="password"
+                            class="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Kosongkan jika tidak diubah">
+                    </div>
 
-                            <p class="font-medium text-gray-800 capitalize">
-                                {{ $driver->status }}
-                            </p>
-                        </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Driver Status
+                        </label>
 
-                        <div>
-                            <p class="text-sm text-gray-500">
-                                Address
-                            </p>
+                        <select name="status"
+                            class="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500">
 
-                            <p class="font-medium text-gray-800">
-                                {{ $driver->address }}
-                            </p>
-                        </div>
+                            <option value="offline" {{ $driver->status === 'offline' ? 'selected' : '' }}>
+                                Offline
+                            </option>
 
+                            <option value="online" {{ $driver->status === 'online' ? 'selected' : '' }}>
+                                Online
+                            </option>
+
+                            <option value="busy" {{ $driver->status === 'busy' ? 'selected' : '' }}>
+                                Busy
+                            </option>
+
+                        </select>
                     </div>
 
                 </div>
 
-            </div>
+                <div class="bg-white rounded-2xl shadow p-6 space-y-5">
 
-            <div class="lg:col-span-2">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-800">
+                            Driver Documents
+                        </h2>
 
-                <div class="bg-white rounded-2xl shadow p-6">
-
-                    <div class="flex items-center justify-between mb-6">
-
-                        <div>
-                            <h2 class="text-xl font-semibold text-gray-800">
-                                Driver Documents
-                            </h2>
-
-                            <p class="text-sm text-gray-500 mt-1">
-                                Semua dokumen driver yang telah diupload.
-                            </p>
-                        </div>
-
+                        <p class="text-sm text-gray-500 mt-1">
+                            Upload file baru untuk mengganti dokumen lama.
+                        </p>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    @php
 
-                        @forelse ($driver->documents as $document)
-                            <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                        $ktp = $driver->documents->where('type', 'ktp')->first();
+                        $sim = $driver->documents->where('type', 'sim')->first();
+                        $selfie = $driver->documents->where('type', 'selfie')->first();
 
-                                <div class="aspect-square bg-gray-100">
+                    @endphp
 
-                                    <img src="{{ asset('storage/' . $document->file_path) }}" alt="{{ $document->type }}"
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                        <div class="space-y-3">
+
+                            <div class="aspect-square rounded-2xl overflow-hidden bg-gray-100">
+
+                                @if ($ktp)
+                                    <img src="{{ asset('storage/' . $ktp->file_path) }}" class="w-full h-full object-cover">
+                                @endif
+
+                            </div>
+
+                            <input type="file" name="ktp"
+                                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm">
+
+                        </div>
+
+                        <div class="space-y-3">
+
+                            <div class="aspect-square rounded-2xl overflow-hidden bg-gray-100">
+
+                                @if ($sim)
+                                    <img src="{{ asset('storage/' . $sim->file_path) }}"
                                         class="w-full h-full object-cover">
-
-                                </div>
-
-                                <div class="p-4">
-
-                                    <div class="flex items-center justify-between">
-
-                                        <div>
-                                            <h3 class="font-semibold text-gray-800 uppercase">
-                                                {{ $document->type }}
-                                            </h3>
-
-                                            <p class="text-sm text-green-600 mt-1">
-                                                Approved
-                                            </p>
-                                        </div>
-
-                                        <a href="{{ asset('storage/' . $document->file_path) }}" target="_blank"
-                                            class="text-sm text-blue-600 hover:underline">
-                                            View
-                                        </a>
-
-                                    </div>
-
-                                </div>
+                                @endif
 
                             </div>
 
-                        @empty
+                            <input type="file" name="sim"
+                                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm">
 
-                            <div class="col-span-3">
+                        </div>
 
-                                <div class="border border-dashed border-gray-300 rounded-2xl p-10 text-center">
+                        <div class="space-y-3">
 
-                                    <p class="text-gray-500">
-                                        No documents uploaded.
-                                    </p>
+                            <div class="aspect-square rounded-2xl overflow-hidden bg-gray-100">
 
-                                </div>
+                                @if ($selfie)
+                                    <img src="{{ asset('storage/' . $selfie->file_path) }}"
+                                        class="w-full h-full object-cover">
+                                @endif
 
                             </div>
-                        @endforelse
+
+                            <input type="file" name="selfie"
+                                class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm">
+
+                        </div>
 
                     </div>
 
@@ -206,7 +196,21 @@
 
             </div>
 
-        </div>
+            <div class="flex justify-end gap-3">
+
+                <a href="{{ route('drivers.show', $driver->id) }}"
+                    class="px-5 py-3 border border-gray-300 rounded-xl hover:bg-gray-100 transition">
+                    Cancel
+                </a>
+
+                <button type="submit" class="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition">
+                    Update Driver
+                </button>
+
+            </div>
+
+        </form>
 
     </div>
+
 @endsection

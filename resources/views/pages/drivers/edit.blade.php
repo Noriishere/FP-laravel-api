@@ -1,10 +1,12 @@
+{{-- pages/drivers/edit.blade.php --}}
+
 @extends('layouts.app')
 
 @section('content')
 
-    <div class="max-w-5xl mx-auto bg-white p-6 rounded-2xl shadow">
+    <div class="space-y-6">
 
-        <div class="mb-6 flex items-start justify-between">
+        <div class="flex items-center justify-between">
 
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">
@@ -24,7 +26,8 @@
         </div>
 
         @if ($errors->any())
-            <div class="mb-5 bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-xl">
+            <div class="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-xl">
+
                 <ul class="list-disc pl-5 text-sm space-y-1">
 
                     @foreach ($errors->all() as $error)
@@ -32,22 +35,29 @@
                     @endforeach
 
                 </ul>
+
             </div>
         @endif
 
         <form action="{{ route('drivers.update', $driver->id) }}" method="POST" enctype="multipart/form-data"
-            class="space-y-8">
+            class="space-y-6">
 
             @csrf
             @method('PUT')
 
-            <div>
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
-                <h2 class="text-lg font-semibold text-gray-800 mb-5">
-                    Driver Information
-                </h2>
+                <div class="bg-white rounded-2xl shadow p-6 space-y-5">
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-800">
+                            Driver Information
+                        </h2>
+
+                        <p class="text-sm text-gray-500 mt-1">
+                            Informasi akun driver.
+                        </p>
+                    </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -55,7 +65,7 @@
                         </label>
 
                         <input type="text" name="name" value="{{ old('name', $driver->user->name) }}"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                            class="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
 
                     <div>
@@ -64,7 +74,7 @@
                         </label>
 
                         <input type="email" name="email" value="{{ old('email', $driver->user->email) }}"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                            class="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
 
                     <div>
@@ -72,8 +82,8 @@
                             Phone Number
                         </label>
 
-                        <input type="text" name="phone" value="{{ old('phone', $driver->user->phone) }}"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <input type="text" name="phone" value="{{ old('phone', $driver->phone) }}"
+                            class="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
 
                     <div>
@@ -82,18 +92,8 @@
                         </label>
 
                         <input type="password" name="password"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                            class="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Kosongkan jika tidak diubah">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            License Number
-                        </label>
-
-                        <input type="text" name="license_number"
-                            value="{{ old('license_number', $driver->license_number) }}"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
 
                     <div>
@@ -102,7 +102,7 @@
                         </label>
 
                         <select name="status"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                            class="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500">
 
                             <option value="offline" {{ $driver->status === 'offline' ? 'selected' : '' }}>
                                 Offline
@@ -112,25 +112,16 @@
                                 Online
                             </option>
 
+                            <option value="busy" {{ $driver->status === 'busy' ? 'selected' : '' }}>
+                                Busy
+                            </option>
+
                         </select>
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Address
-                        </label>
-
-                        <textarea name="address" rows="4"
-                            class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">{{ old('address', $driver->address) }}</textarea>
                     </div>
 
                 </div>
 
-            </div>
-
-            <div class="border-t pt-8">
-
-                <div class="flex items-center justify-between mb-6">
+                <div class="bg-white rounded-2xl shadow p-6 space-y-5">
 
                     <div>
                         <h2 class="text-lg font-semibold text-gray-800">
@@ -142,10 +133,6 @@
                         </p>
                     </div>
 
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
                     @php
 
                         $ktp = $driver->documents->where('type', 'ktp')->first();
@@ -154,87 +141,51 @@
 
                     @endphp
 
-                    <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-                        <div class="aspect-square bg-gray-100">
+                        <div class="space-y-3">
 
-                            @if ($ktp)
-                                <img src="{{ asset('storage/' . $ktp->file_path) }}" class="w-full h-full object-cover">
-                            @endif
+                            <div class="aspect-square rounded-2xl overflow-hidden bg-gray-100">
 
-                        </div>
+                                @if ($ktp)
+                                    <img src="{{ asset('storage/' . $ktp->file_path) }}" class="w-full h-full object-cover">
+                                @endif
 
-                        <div class="p-4 space-y-3">
-
-                            <div>
-                                <h3 class="font-semibold text-gray-800">
-                                    KTP
-                                </h3>
-
-                                <p class="text-sm text-green-600">
-                                    Approved
-                                </p>
                             </div>
 
-                            <input type="file" name="ktp" accept=".jpg,.jpeg,.png"
+                            <input type="file" name="ktp"
                                 class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm">
 
                         </div>
 
-                    </div>
+                        <div class="space-y-3">
 
-                    <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <div class="aspect-square rounded-2xl overflow-hidden bg-gray-100">
 
-                        <div class="aspect-square bg-gray-100">
+                                @if ($sim)
+                                    <img src="{{ asset('storage/' . $sim->file_path) }}"
+                                        class="w-full h-full object-cover">
+                                @endif
 
-                            @if ($sim)
-                                <img src="{{ asset('storage/' . $sim->file_path) }}" class="w-full h-full object-cover">
-                            @endif
-
-                        </div>
-
-                        <div class="p-4 space-y-3">
-
-                            <div>
-                                <h3 class="font-semibold text-gray-800">
-                                    SIM
-                                </h3>
-
-                                <p class="text-sm text-green-600">
-                                    Approved
-                                </p>
                             </div>
 
-                            <input type="file" name="sim" accept=".jpg,.jpeg,.png"
+                            <input type="file" name="sim"
                                 class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm">
 
                         </div>
 
-                    </div>
+                        <div class="space-y-3">
 
-                    <div class="border border-gray-200 rounded-2xl overflow-hidden">
+                            <div class="aspect-square rounded-2xl overflow-hidden bg-gray-100">
 
-                        <div class="aspect-square bg-gray-100">
+                                @if ($selfie)
+                                    <img src="{{ asset('storage/' . $selfie->file_path) }}"
+                                        class="w-full h-full object-cover">
+                                @endif
 
-                            @if ($selfie)
-                                <img src="{{ asset('storage/' . $selfie->file_path) }}" class="w-full h-full object-cover">
-                            @endif
-
-                        </div>
-
-                        <div class="p-4 space-y-3">
-
-                            <div>
-                                <h3 class="font-semibold text-gray-800">
-                                    Selfie
-                                </h3>
-
-                                <p class="text-sm text-green-600">
-                                    Approved
-                                </p>
                             </div>
 
-                            <input type="file" name="selfie" accept=".jpg,.jpeg,.png"
+                            <input type="file" name="selfie"
                                 class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm">
 
                         </div>
@@ -245,14 +196,14 @@
 
             </div>
 
-            <div class="flex justify-end gap-3 pt-6 border-t">
+            <div class="flex justify-end gap-3">
 
                 <a href="{{ route('drivers.show', $driver->id) }}"
-                    class="px-5 py-3 rounded-xl border border-gray-300 hover:bg-gray-100 transition">
+                    class="px-5 py-3 border border-gray-300 rounded-xl hover:bg-gray-100 transition">
                     Cancel
                 </a>
 
-                <button type="submit" class="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition">
+                <button type="submit" class="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition">
                     Update Driver
                 </button>
 

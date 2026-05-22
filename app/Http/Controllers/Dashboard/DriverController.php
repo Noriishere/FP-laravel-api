@@ -19,16 +19,16 @@ class DriverController extends Controller
 
         $drivers = Driver::with([
             'user',
-            'documents'
+            'documents',
         ])
-        ->latest()
-        ->paginate(10);
+            ->latest()
+            ->paginate(10);
 
         if (request()->ajax()) {
 
             return response()->json([
                 'data' => $drivers->items(),
-                'links' => $drivers->linkCollection()
+                'links' => $drivers->linkCollection(),
             ]);
         }
 
@@ -144,7 +144,7 @@ class DriverController extends Controller
 
         $driver = Driver::with([
             'user',
-            'documents'
+            'documents',
         ])->findOrFail($id);
 
         return view(
@@ -164,7 +164,7 @@ class DriverController extends Controller
 
         $driver = Driver::with([
             'user',
-            'documents'
+            'documents',
         ])->findOrFail($id);
 
         return view(
@@ -186,11 +186,13 @@ class DriverController extends Controller
 
             'name' => 'required|string|max:255',
 
-            'email' => 'required|email|unique:users,email,' . $driver->user->id,
+            'email' => 'required|email|unique:users,email,'.$driver->user->id,
 
             'phone' => 'required|string|max:20',
 
             'password' => 'nullable|min:6',
+
+            'status' => 'required|in:online,offline,busy',
 
             'ktp' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
 
@@ -204,8 +206,6 @@ class DriverController extends Controller
             'name' => $request->name,
 
             'email' => $request->email,
-
-            'phone' => $request->phone,
         ]);
 
         if ($request->filled('password')) {
@@ -214,11 +214,13 @@ class DriverController extends Controller
 
                 'password' => Hash::make(
                     $request->password
-                )
+                ),
             ]);
         }
 
         $driver->update([
+
+            'phone' => $request->phone,
 
             'status' => $request->status,
         ]);
@@ -242,11 +244,11 @@ class DriverController extends Controller
                 'driver_id',
                 $driver->id
             )
-            ->where(
-                'type',
-                $type
-            )
-            ->first();
+                ->where(
+                    'type',
+                    $type
+                )
+                ->first();
 
             if ($existing) {
 
@@ -309,7 +311,7 @@ class DriverController extends Controller
     {
         $driver = Driver::with([
             'user',
-            'documents'
+            'documents',
         ])->findOrFail($id);
 
         foreach ($driver->documents as $document) {
