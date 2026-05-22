@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-
 use App\Models\Location;
+use App\Models\Schedule;
 
 class TripMonitoringController extends Controller
 {
@@ -14,102 +14,88 @@ class TripMonitoringController extends Controller
 
         $navtitle = 'Trip Monitoring';
 
+        $schedules = Schedule::with([
+
+            'route.origin',
+
+            'route.destination',
+
+            'vehicle',
+
+            'driver.user',
+        ])
+            ->whereDate(
+                'departure_time',
+                today()
+            )
+            ->latest()
+            ->get();
+
         return view(
+
             'pages.trip-monitoring.index',
+
             compact(
+                'schedules',
                 'title',
                 'navtitle'
             )
         );
     }
 
-    public function data()
+    public function show($id)
     {
-        $locations = Location::with([
+        $title = 'Trip Detail || Admin Gassin!';
 
-            'schedule.route.origin',
+        $navtitle = 'Trip Detail';
 
-            'schedule.route.destination',
+        $schedule = Schedule::findOrFail($id);
+
+        return view(
+
+            'pages.trip-monitoring.show',
+
+            compact(
+                'schedule',
+                'title',
+                'navtitle'
+            )
+        );
+    }
+
+    public function trackingData($id)
+    {
+        $location = Location::with([
+
+            'schedule.route.stops',
+
+            'schedule.stopTimes.stop',
 
             'schedule.vehicle',
 
             'schedule.driver.user',
         ])
-            ->whereHas('schedule', function ($q) {
+            ->where(
+                'schedule_id',
+                $id
+            )
+            ->first();
 
-                $q->where(
-                    'status',
-                    'on-going'
-                );
-            })
-            ->latest('recorded_at')
-            ->get();
+        if (! $location) {
 
-        $data = $locations->map(function ($location) {
+            return response()->json([
 
-            $schedule = $location->schedule;
+                'success' => false,
 
-            return [
-
-                'schedule_id' => $schedule?->id,
-
-                'status' => $schedule?->status,
-
-                'departure_time' => $schedule?->departure_time,
-
-                'arrival_time' => $schedule?->arrival_time,
-
-                'recorded_at' => $location->recorded_at,
-
-                'latitude' => $location->latitude,
-
-                'longitude' => $location->longitude,
-
-                'speed' => $location->speed,
-
-                'heading' => $location->heading,
-
-                'accuracy' => $location->accuracy,
-
-                'route' => [
-
-                    'name' => $schedule?->route?->name,
-
-                    'origin' => [
-                        'name' => $schedule?->route?->origin?->name,
-                    ],
-
-                    'destination' => [
-                        'name' => $schedule?->route?->destination?->name,
-                    ],
-                ],
-
-                'vehicle' => [
-
-                    'name' => $schedule?->vehicle?->name,
-
-                    'plate_number' => $schedule?->vehicle?->plate_number,
-                ],
-
-                'driver' => [
-
-                    'name' => $schedule?->driver?->user?->name,
-                ],
-
-                'tracking_status' => now()
-                    ->diffInMinutes(
-                        $location->recorded_at
-                    ) >= 2
-                        ? 'offline'
-                        : 'live',
-            ];
-        });
+                'message' => 'Tracking unavailable',
+            ]);
+        }
 
         return response()->json([
 
             'success' => true,
 
-            'data' => $data,
+            'data' => $location,
         ]);
     }
 }

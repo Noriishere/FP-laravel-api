@@ -131,11 +131,12 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/admin/driver-documents/{id}/approve', [DriverDocumentController::class, 'approve'])->name('driver-documents.approve');
     Route::post('/admin/driver-documents/{id}/reject', [DriverDocumentController::class, 'reject'])->name('driver-documents.reject');
     Route::get('/admin/drivers', [DriverController::class, 'index'])->name('drivers.index');
-    Route::get('/users/deleted',[UsersController::class, 'deletedAccounts'])->name('users.deleted');
-    Route::patch('/admin/users/{id}/restore',[UsersController::class, 'restore'])->name('users.restore');
-    Route::delete('/admin/users/{id}/force-delete',[UsersController::class, 'forceDelete'])->name('users.forceDelete');
+    Route::get('/users/deleted', [UsersController::class, 'deletedAccounts'])->name('users.deleted');
+    Route::patch('/admin/users/{id}/restore', [UsersController::class, 'restore'])->name('users.restore');
+    Route::delete('/admin/users/{id}/force-delete', [UsersController::class, 'forceDelete'])->name('users.forceDelete');
     Route::get('/admin/trip-monitoring',[TripMonitoringController::class, 'index'])->name('trip-monitoring.index');
-    Route::get('/admin/trip-monitoring/data',[TripMonitoringController::class, 'data'])->name('trip-monitoring.data');
+    Route::get('/admin/trip-monitoring/{id}',[TripMonitoringController::class, 'show'])->name('trip-monitoring.show');
+    Route::get('/admin/trip-monitoring/{id}/data',[TripMonitoringController::class, 'trackingData'])->name('trip-monitoring.data');
 });
 Route::middleware(['auth', 'role:driver'])->group(function () {});
 
