@@ -126,11 +126,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('/admin/password', [PasswordController::class, 'update'])->name('password.update');
 
     Route::resource('/admin/users', UsersController::class);
-    Route::get('/admin/driver-documents', [DriverDocumentController::class, 'index'])->name('driver-documents.index');
-    Route::get('/admin/driver-documents/{id}', [DriverDocumentController::class, 'show'])->name('driver-documents.show');
-    Route::post('/admin/driver-documents/{id}/approve', [DriverDocumentController::class, 'approve'])->name('driver-documents.approve');
-    Route::post('/admin/driver-documents/{id}/reject', [DriverDocumentController::class, 'reject'])->name('driver-documents.reject');
-    Route::get('/admin/drivers', [DriverController::class, 'index'])->name('drivers.index');
+    Route::resource('/admin/drivers',DriverController::class);
     Route::get('/users/deleted', [UsersController::class, 'deletedAccounts'])->name('users.deleted');
     Route::patch('/admin/users/{id}/restore', [UsersController::class, 'restore'])->name('users.restore');
     Route::delete('/admin/users/{id}/force-delete', [UsersController::class, 'forceDelete'])->name('users.forceDelete');
