@@ -17,10 +17,12 @@ class DriverController extends Controller
         $title = 'Driver List || Admin Gassin!';
         $navtitle = 'Drivers';
 
-        $drivers = Driver::with('user')
-            ->withCount('documents')
-            ->latest()
-            ->paginate(10);
+        $drivers = Driver::with([
+            'user',
+            'documents'
+        ])
+        ->latest()
+        ->paginate(10);
 
         if (request()->ajax()) {
 
@@ -66,10 +68,6 @@ class DriverController extends Controller
 
             'password' => 'required|min:6',
 
-            'license_number' => 'required|string|max:100',
-
-            'address' => 'required|string',
-
             'ktp' => 'required|image|mimes:jpg,jpeg,png|max:2048',
 
             'sim' => 'required|image|mimes:jpg,jpeg,png|max:2048',
@@ -95,10 +93,6 @@ class DriverController extends Controller
         $driver = Driver::create([
 
             'user_id' => $user->id,
-
-            'license_number' => $request->license_number,
-
-            'address' => $request->address,
 
             'verification_status' => 'approved',
 
@@ -196,9 +190,7 @@ class DriverController extends Controller
 
             'phone' => 'required|string|max:20',
 
-            'license_number' => 'required|string|max:100',
-
-            'address' => 'required|string',
+            'password' => 'nullable|min:6',
 
             'ktp' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
 
@@ -228,9 +220,7 @@ class DriverController extends Controller
 
         $driver->update([
 
-            'license_number' => $request->license_number,
-
-            'address' => $request->address,
+            'status' => $request->status,
         ]);
 
         $documents = [
