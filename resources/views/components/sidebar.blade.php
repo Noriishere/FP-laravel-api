@@ -160,7 +160,11 @@
             icon="fa-ticket"
             label="Bookings"
             :active="request()->is('admin/bookings*')" />
-
+        <x-sidebar-link
+            href="{{ url('/admin/trip-monitoring') }}"
+            icon="fa-location-arrow"
+            label="Trip Monitoring"
+            :active="request()->is('admin/trip-monitoring*')" />
     </nav>
 
     {{-- ── LOGOUT ── --}}
