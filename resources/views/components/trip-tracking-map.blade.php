@@ -48,7 +48,57 @@
             const response = await fetch(
                 "/admin/trip-monitoring/{{ $scheduleId }}/data"
             );
+            // Custom icon bus
+            const busIcon = L.divIcon({
+                className: '',
+                html: `
+        <div style="
+            background: #2563eb;
+            border: 3px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        ">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="white">
+                <path d="M4 16c0 .88.39 1.67 1 2.22V20a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1h8v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm9 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zM6 10V6h12v4H6z"/>
+            </svg>
+        </div>
+    `,
+                iconSize: [40, 40],
+                iconAnchor: [20, 20],
+                popupAnchor: [0, -22],
+            });
 
+            // Fungsi buat stop icon dengan nomor urutan
+            function createStopIcon(order) {
+                return L.divIcon({
+                    className: '',
+                    html: `
+            <div style="
+                background: #ffffff;
+                border: 3px solid #2563eb;
+                border-radius: 50%;
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                font-size: 13px;
+                font-weight: 700;
+                color: #2563eb;
+                font-family: sans-serif;
+            ">${order}</div>
+        `,
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -18],
+                });
+            }
             const result = await response.json();
 
             if (!result.success) {
@@ -88,9 +138,9 @@
                     }
                 ).addTo(map);
 
-                marker = L.marker(
-                    [lat, lng]
-                ).addTo(map);
+                marker = L.marker([lat, lng], {
+                    icon: busIcon
+                }).addTo(map);
 
                 marker.bindPopup(`
                     <div>
@@ -113,36 +163,23 @@
                 |--------------------------------------------------------------------------
                 */
 
-                if (
-                    data.schedule?.route?.polyline &&
-                    data.schedule.route.polyline.length
-                ) {
-
+                if (data.schedule?.route?.stops) {
                     data.schedule.route.stops.forEach(stop => {
-
-                        if (!stop.latitude || !stop.longitude) {
-                            return;
-                        }
+                        if (!stop.latitude || !stop.longitude) return;
 
                         const stopMarker = L.marker([
                             parseFloat(stop.latitude),
                             parseFloat(stop.longitude)
-                        ]).addTo(map);
+                        ], {
+                            icon: createStopIcon(stop.order)
+                        }).addTo(map);
 
                         stopMarker.bindPopup(`
-        <div>
-
-            <h3 style="font-weight:bold;">
-                ${stop.name}
-            </h3>
-
-            <p>
-                Status:
-                ${stop.status ?? '-'}
-            </p>
-
-        </div>
-    `);
+            <div style="font-family: sans-serif; min-width: 130px;">
+                <p style="font-weight: bold; margin: 0 0 4px;">${stop.name}</p>
+                <p style="margin: 0; color: #666; font-size: 12px;">${stop.address ?? '-'}</p>
+            </div>
+        `);
 
                         stopMarkers.push(stopMarker);
                     });
