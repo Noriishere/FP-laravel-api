@@ -1,146 +1,237 @@
 @extends('layouts.guest')
 
 @section('content')
+    <div class="relative min-h-screen overflow-hidden bg-[#F9F7F4]">
 
-<div class="min-h-screen bg-gray-50">
-
-    <!-- HEADER -->
-    <section class="bg-[#C00707] text-white py-16">
-        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
-            <div>
-                <h1 class="text-3xl font-semibold">
-                    Shuttle System Administration
-                </h1>
-                <p class="text-red-100 mt-2 text-sm">
-                    Centralized management for schedules, vehicles, drivers, and bookings
-                </p>
-            </div>
-
-            <div>
-                <a href="/login" class="bg-white text-[#C00707] px-5 py-2 rounded-md text-sm font-medium shadow">
-                    Login
-                </a>
-            </div>
+        {{-- Background --}}
+        <div class="absolute inset-0 pointer-events-none">
+            <div class="absolute top-0 right-0 h-[400px] w-[400px] rounded-full bg-primary/10 blur-3xl"></div>
+            <div class="absolute bottom-0 left-0 h-[300px] w-[300px] rounded-full bg-orange-400/10 blur-3xl"></div>
         </div>
-    </section>
 
-    <!-- SUMMARY -->
-    <section class="max-w-7xl mx-auto px-6 -mt-10">
-        <div class="grid md:grid-cols-4 gap-6">
+        {{-- HERO --}}
+        <section class="relative overflow-hidden bg-dark py-24">
 
-            <div class="bg-white p-6 rounded-lg shadow border border-gray-100">
-                <p class="text-sm text-gray-500">Total Bookings</p>
-                <h3 class="text-2xl font-semibold mt-2 text-gray-800">1,284</h3>
-                <p class="text-xs text-green-600 mt-1">+8% from last week</p>
+            <div class="absolute inset-0 pointer-events-none">
+                <div
+                    class="absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl">
+                </div>
             </div>
 
-            <div class="bg-white p-6 rounded-lg shadow border border-gray-100">
-                <p class="text-sm text-gray-500">Active Schedules</p>
-                <h3 class="text-2xl font-semibold mt-2 text-gray-800">42</h3>
-                <p class="text-xs text-gray-400 mt-1">Operational today</p>
-            </div>
+            <div
+                class="relative mx-auto flex max-w-7xl flex-col items-start justify-between gap-10 px-6 lg:flex-row lg:items-center lg:px-12">
 
-            <div class="bg-white p-6 rounded-lg shadow border border-gray-100">
-                <p class="text-sm text-gray-500">Drivers On Duty</p>
-                <h3 class="text-2xl font-semibold mt-2 text-gray-800">18</h3>
-                <p class="text-xs text-gray-400 mt-1">Verified & active</p>
-            </div>
+                <div class="max-w-2xl">
 
-            <div class="bg-white p-6 rounded-lg shadow border border-gray-100">
-                <p class="text-sm text-gray-500">Fleet Availability</p>
-                <h3 class="text-2xl font-semibold mt-2 text-gray-800">76%</h3>
-                <p class="text-xs text-gray-400 mt-1">Vehicles ready</p>
-            </div>
+                    <div
+                        class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-widest text-white/70">
+                        <span class="h-2 w-2 rounded-full bg-primary animate-pulse"></span>
+                        Shuttle System Administration
+                    </div>
 
-        </div>
-    </section>
+                    <h1 class="font-fraunces mt-8 text-5xl font-black leading-tight text-white lg:text-6xl">
+                        Centralized Shuttle
+                        Management Platform
+                    </h1>
 
-    <!-- MODULES -->
-    <section class="max-w-7xl mx-auto px-6 mt-16">
-        <h2 class="text-xl font-semibold text-gray-800 mb-6">
-            System Modules
-        </h2>
+                    <p class="mt-8 max-w-xl text-base leading-8 text-white/60">
+                        Kelola jadwal, kendaraan, driver, booking,
+                        dan monitoring perjalanan shuttle dalam satu dashboard modern.
+                    </p>
 
-        <div class="grid md:grid-cols-3 gap-6">
+                    <div class="mt-10 flex flex-wrap gap-4">
 
-            <div class="bg-white p-6 rounded-lg border border-gray-200 hover:shadow transition">
-                <h3 class="font-semibold text-gray-800 mb-2">Schedule Management</h3>
-                <p class="text-sm text-gray-600">
-                    Configure routes, departure times, pricing, and availability.
-                </p>
-            </div>
+                        <a href="/login"
+                            class="inline-flex items-center gap-2 rounded-2xl bg-primary px-7 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-primaryDark">
+                            <i class="fa-solid fa-right-to-bracket"></i>
+                            Login Dashboard
+                        </a>
 
-            <div class="bg-white p-6 rounded-lg border border-gray-200 hover:shadow transition">
-                <h3 class="font-semibold text-gray-800 mb-2">Vehicle Management</h3>
-                <p class="text-sm text-gray-600">
-                    Maintain fleet data, capacity, and operational status.
-                </p>
-            </div>
+                        <a href="#modules"
+                            class="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-7 py-3 text-sm font-semibold text-white/70 transition hover:bg-white/10">
+                            <i class="fa-solid fa-grid-2"></i>
+                            Explore Modules
+                        </a>
 
-            <div class="bg-white p-6 rounded-lg border border-gray-200 hover:shadow transition">
-                <h3 class="font-semibold text-gray-800 mb-2">Driver Management</h3>
-                <p class="text-sm text-gray-600">
-                    Monitor driver verification, assignments, and performance.
-                </p>
-            </div>
+                    </div>
 
-            <div class="bg-white p-6 rounded-lg border border-gray-200 hover:shadow transition">
-                <h3 class="font-semibold text-gray-800 mb-2">Booking Control</h3>
-                <p class="text-sm text-gray-600">
-                    View, validate, and manage all customer reservations.
-                </p>
-            </div>
-
-            <div class="bg-white p-6 rounded-lg border border-gray-200 hover:shadow transition">
-                <h3 class="font-semibold text-gray-800 mb-2">Live Tracking</h3>
-                <p class="text-sm text-gray-600">
-                    Track vehicle locations and trip progress in real-time.
-                </p>
-            </div>
-
-            <div class="bg-white p-6 rounded-lg border border-gray-200 hover:shadow transition">
-                <h3 class="font-semibold text-gray-800 mb-2">Reporting & Analytics</h3>
-                <p class="text-sm text-gray-600">
-                    Generate operational insights and performance reports.
-                </p>
-            </div>
-
-        </div>
-    </section>
-
-    <!-- ACTIVITY -->
-    <section class="max-w-7xl mx-auto px-6 mt-16 pb-20">
-        <h2 class="text-xl font-semibold text-gray-800 mb-6">
-            Recent Activity
-        </h2>
-
-        <div class="bg-white rounded-lg border border-gray-200 shadow">
-            <div class="divide-y">
-
-                <div class="p-4 flex justify-between text-sm">
-                    <span class="text-gray-600">New booking created</span>
-                    <span class="text-gray-400">2 minutes ago</span>
                 </div>
 
-                <div class="p-4 flex justify-between text-sm">
-                    <span class="text-gray-600">Driver assigned to schedule</span>
-                    <span class="text-gray-400">10 minutes ago</span>
-                </div>
+                {{-- Stats --}}
+                <div class="grid w-full max-w-lg grid-cols-2 gap-5">
 
-                <div class="p-4 flex justify-between text-sm">
-                    <span class="text-gray-600">Vehicle status updated</span>
-                    <span class="text-gray-400">30 minutes ago</span>
-                </div>
+                    @php
+                        $stats = [
+                            ['title' => 'Total Bookings', 'value' => '1,284', 'desc' => '+8% from last week'],
+                            ['title' => 'Active Schedules', 'value' => '42', 'desc' => 'Operational today'],
+                            ['title' => 'Drivers On Duty', 'value' => '18', 'desc' => 'Verified & active'],
+                            ['title' => 'Fleet Availability', 'value' => '76%', 'desc' => 'Vehicles ready'],
+                        ];
+                    @endphp
 
-                <div class="p-4 flex justify-between text-sm">
-                    <span class="text-gray-600">Schedule created</span>
-                    <span class="text-gray-400">1 hour ago</span>
+                    @foreach ($stats as $stat)
+                        <div class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+
+                            <p class="text-sm text-white/50">
+                                {{ $stat['title'] }}
+                            </p>
+
+                            <h3 class="font-fraunces mt-3 text-4xl font-black text-white">
+                                {{ $stat['value'] }}
+                            </h3>
+
+                            <p class="mt-2 text-xs text-green-400">
+                                {{ $stat['desc'] }}
+                            </p>
+
+                        </div>
+                    @endforeach
+
                 </div>
 
             </div>
-        </div>
-    </section>
 
-</div>
+        </section>
 
+        {{-- MODULES --}}
+        <section id="modules" class="relative px-6 py-24 lg:px-12">
+
+            <div class="mx-auto max-w-7xl">
+
+                <div class="section-label">
+                    System Modules
+                </div>
+
+                <h2 class="font-fraunces text-4xl font-black text-dark">
+                    Complete operational control
+                </h2>
+
+                <div class="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+
+                    @php
+                        $modules = [
+                            [
+                                'icon' => 'fa-route',
+                                'color' => 'blue',
+                                'title' => 'Schedule Management',
+                                'desc' => 'Configure routes, departure times, pricing, and availability.',
+                            ],
+                            [
+                                'icon' => 'fa-bus',
+                                'color' => 'orange',
+                                'title' => 'Vehicle Management',
+                                'desc' => 'Maintain fleet data, capacity, and operational status.',
+                            ],
+                            [
+                                'icon' => 'fa-user-tie',
+                                'color' => 'purple',
+                                'title' => 'Driver Management',
+                                'desc' => 'Monitor driver verification, assignments, and performance.',
+                            ],
+                            [
+                                'icon' => 'fa-ticket',
+                                'color' => 'green',
+                                'title' => 'Booking Control',
+                                'desc' => 'View, validate, and manage all customer reservations.',
+                            ],
+                            [
+                                'icon' => 'fa-location-dot',
+                                'color' => 'red',
+                                'title' => 'Live Tracking',
+                                'desc' => 'Track vehicle locations and trip progress in real-time.',
+                            ],
+                            [
+                                'icon' => 'fa-chart-line',
+                                'color' => 'indigo',
+                                'title' => 'Reporting & Analytics',
+                                'desc' => 'Generate operational insights and performance reports.',
+                            ],
+                        ];
+                    @endphp
+
+                    @foreach ($modules as $module)
+                        <div
+                            class="group rounded-[28px] border border-borderColor bg-white p-7 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+
+                            <div
+                                class="flex h-14 w-14 items-center justify-center rounded-2xl bg-{{ $module['color'] }}-50">
+
+                                <i class="fa-solid {{ $module['icon'] }} text-xl text-{{ $module['color'] }}-500"></i>
+
+                            </div>
+
+                            <h3 class="mt-6 font-fraunces text-2xl font-bold text-dark">
+                                {{ $module['title'] }}
+                            </h3>
+
+                            <p class="mt-4 text-sm leading-7 text-grayText">
+                                {{ $module['desc'] }}
+                            </p>
+
+                        </div>
+                    @endforeach
+
+                </div>
+
+            </div>
+
+        </section>
+
+        {{-- ACTIVITY --}}
+        <section class="px-6 pb-24 lg:px-12">
+
+            <div class="mx-auto max-w-7xl">
+
+                <div class="section-label">
+                    Live Activity
+                </div>
+
+                <h2 class="font-fraunces text-4xl font-black text-dark">
+                    Recent operational updates
+                </h2>
+
+                <div class="mt-12 overflow-hidden rounded-[32px] border border-borderColor bg-white shadow-sm">
+
+                    @php
+                        $activities = [
+                            ['text' => 'New booking created', 'time' => '2 minutes ago'],
+                            ['text' => 'Driver assigned to schedule', 'time' => '10 minutes ago'],
+                            ['text' => 'Vehicle status updated', 'time' => '30 minutes ago'],
+                            ['text' => 'Schedule created', 'time' => '1 hour ago'],
+                        ];
+                    @endphp
+
+                    <div class="divide-y divide-borderColor">
+
+                        @foreach ($activities as $activity)
+                            <div class="flex items-center justify-between px-8 py-5 transition hover:bg-bg">
+
+                                <div class="flex items-center gap-4">
+
+                                    <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                                        <i class="fa-solid fa-bolt text-xs text-primary"></i>
+                                    </div>
+
+                                    <p class="text-sm font-medium text-dark">
+                                        {{ $activity['text'] }}
+                                    </p>
+
+                                </div>
+
+                                <span class="text-xs text-grayText">
+                                    {{ $activity['time'] }}
+                                </span>
+
+                            </div>
+                        @endforeach
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
 @endsection
