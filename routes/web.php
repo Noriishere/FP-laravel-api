@@ -113,9 +113,9 @@ Route::get('/privacy-policy', function () {
     return view('pages.privacy-policy');
 })->name('privacy-policy');
 
-Route::get('/terms-and-services', function () {
-    return view('pages.terms-and-service');
-})->name('terms-and-services');
+Route::get('/terms-of-services', function () {
+    return view('pages.terms-of-service');
+})->name('terms-of-service');
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('/admin/bookings', BookingController::class);
