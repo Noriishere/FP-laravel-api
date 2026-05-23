@@ -120,25 +120,29 @@
 
                     data.schedule.route.stops.forEach(stop => {
 
+                        if (!stop.latitude || !stop.longitude) {
+                            return;
+                        }
+
                         const stopMarker = L.marker([
-                            stop.latitude,
-                            stop.longitude
+                            parseFloat(stop.latitude),
+                            parseFloat(stop.longitude)
                         ]).addTo(map);
 
                         stopMarker.bindPopup(`
-                            <div>
+        <div>
 
-                                <h3 style="font-weight:bold;">
-                                    ${stop.name}
-                                </h3>
+            <h3 style="font-weight:bold;">
+                ${stop.name}
+            </h3>
 
-                                <p>
-                                    Status:
-                                    ${stop.status}
-                                </p>
+            <p>
+                Status:
+                ${stop.status ?? '-'}
+            </p>
 
-                            </div>
-                        `);
+        </div>
+    `);
 
                         stopMarkers.push(stopMarker);
                     });
