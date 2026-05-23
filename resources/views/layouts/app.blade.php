@@ -19,6 +19,11 @@
             }
         }
     </script>
+    <script>
+    document.addEventListener('alpine:navigated', () => {
+        if (window.tailwind) tailwind.refresh();
+    });
+</script>
 </head>
 <body class="bg-gray-100 font-sans">
 
