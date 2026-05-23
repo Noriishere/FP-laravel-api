@@ -156,7 +156,7 @@
                 ) {
 
                     routeLine = L.polyline(
-                        data.route.polyline, {
+                        data.schedule.route.polyline, {
                             color: 'blue',
                             weight: 5,
                         }
