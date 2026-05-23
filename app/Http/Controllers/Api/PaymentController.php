@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\PaymentSuccessMail;
 use App\Models\Booking;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class PaymentController extends Controller
 {
@@ -277,6 +278,8 @@ class PaymentController extends Controller
 
                     'payment_method' => $request->payment_method,
                 ]);
+                Mail::to($booking->user->email)
+                    ->send(new PaymentSuccessMail($booking));
             });
         }
 
