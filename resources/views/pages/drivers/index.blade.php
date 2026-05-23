@@ -336,6 +336,7 @@
                         this.drivers = data.data;
 
                         this.links = data.links;
+                        console.log(data.links)
                     }
                 }
             }
