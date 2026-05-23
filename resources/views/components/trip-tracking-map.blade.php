@@ -162,7 +162,7 @@
                 | Stops
                 |--------------------------------------------------------------------------
                 */
-
+                console.log(data.schedule.route.stops)
                 if (data.schedule?.route?.stops) {
                     data.schedule.route.stops.forEach(stop => {
                         if (!stop.latitude || !stop.longitude) return;
@@ -184,12 +184,6 @@
                         stopMarkers.push(stopMarker);
                     });
                 }
-
-                /*
-                |--------------------------------------------------------------------------
-                | Polyline
-                |--------------------------------------------------------------------------
-                */
 
                 if (
                     data.schedule?.route?.polyline &&
