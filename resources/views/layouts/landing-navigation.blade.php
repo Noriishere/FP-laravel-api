@@ -28,14 +28,25 @@
                 Download
             </a>
 
+            <a href="{{ route('privacy-policy') }}"
+               class="text-sm font-semibold text-grayText transition hover:text-primary">
+                Privacy Policy
+            </a>
+
+            <a href="{{ route('terms-of-service') }}"
+               class="text-sm font-semibold text-grayText transition hover:text-primary">
+                Terms of Service
+            </a>
+
         </div>
 
-        <a href="#"
+        <a href="#download"
            class="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-white transition hover:bg-primaryDark">
 
             <i class="fa-brands fa-google-play"></i>
 
             Download App
+
         </a>
 
     </div>

@@ -109,6 +109,14 @@ Route::get('/', function () {
     return view('pages.landing-pages');
 })->name('landing-pages');
 
+Route::get('/privacy-policy', function () {
+    return view('pages.privacy-policy');
+})->name('privacy-policy');
+
+Route::get('/terms-and-services', function () {
+    return view('pages.terms-and-services');
+})->name('terms-and-services');
+
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('/admin/bookings', BookingController::class);
     Route::resource('/admin/routes', RouteController::class);
