@@ -493,39 +493,6 @@
                 </a>
             </div>
         </div>
-
-        {{-- Stats grid --}}
-        <div class="hidden lg:grid grid-cols-2 gap-4">
-            <div class="rounded-3xl bg-dark text-white p-8 flex flex-col justify-between min-h-48">
-                <i class="fa-solid fa-user-tie text-3xl text-white/30"></i>
-                <div>
-                    <h3 class="font-fraunces text-4xl font-black">500+</h3>
-                    <p class="text-white/60 text-sm mt-1">Driver aktif di seluruh Jabodetabek</p>
-                </div>
-            </div>
-            <div class="rounded-3xl bg-primary text-white p-8 flex flex-col justify-between min-h-48">
-                <i class="fa-solid fa-star text-3xl text-white/30"></i>
-                <div>
-                    <h3 class="font-fraunces text-4xl font-black">4.8</h3>
-                    <p class="text-white/60 text-sm mt-1">Rating rata-rata driver GASSIN</p>
-                </div>
-            </div>
-            <div class="col-span-2 rounded-3xl bg-white border border-borderColor p-8">
-                <p class="text-grayText text-sm mb-3 font-medium">Pendapatan driver rata-rata</p>
-                <div class="flex items-end gap-2 h-16">
-                    @php $bars = [40, 55, 70, 80, 90, 100]; @endphp
-                    @foreach ($bars as $h)
-                        <div class="flex-1 bg-primary/{{ intval($h * 0.7) }} rounded-t-md" style="height:{{ $h }}%; background: rgba(232,44,44,{{ $h/100 }})"></div>
-                    @endforeach
-                </div>
-                <div class="flex justify-between mt-2 text-[9px] text-grayText">
-                    <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>Mei</span><span>Jun</span>
-                </div>
-                <p class="font-fraunces text-2xl font-black text-dark mt-3">Rp 5.2 juta <span class="text-green-500 text-sm font-jakarta font-semibold">↑ 18%</span></p>
-                <p class="text-xs text-grayText">Rata-rata bulan ini</p>
-            </div>
-        </div>
-
     </div>
 
 </section>
