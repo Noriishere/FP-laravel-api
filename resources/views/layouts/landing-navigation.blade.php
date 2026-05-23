@@ -8,40 +8,38 @@
 
         <div class="hidden items-center gap-9 md:flex">
 
-            <a href="#fitur"
-               class="text-sm font-semibold text-grayText transition hover:text-primary">
-                Fitur
-            </a>
+            @if (request()->routeIs('landing-pages'))
+                <a href="#fitur" class="text-sm font-semibold text-grayText transition hover:text-primary">
+                    Fitur
+                </a>
 
-            <a href="#cara"
-               class="text-sm font-semibold text-grayText transition hover:text-primary">
-                Cara Kerja
-            </a>
+                <a href="#cara" class="text-sm font-semibold text-grayText transition hover:text-primary">
+                    Cara Kerja
+                </a>
 
-            <a href="#driver"
-               class="text-sm font-semibold text-grayText transition hover:text-primary">
-                Jadi Driver
-            </a>
+                <a href="#driver" class="text-sm font-semibold text-grayText transition hover:text-primary">
+                    Jadi Driver
+                </a>
 
-            <a href="#download"
-               class="text-sm font-semibold text-grayText transition hover:text-primary">
-                Download
-            </a>
+                <a href="#download" class="text-sm font-semibold text-grayText transition hover:text-primary">
+                    Download
+                </a>
+            @endif
 
             <a href="{{ route('privacy-policy') }}"
-               class="text-sm font-semibold text-grayText transition hover:text-primary">
+                class="text-sm font-semibold text-grayText transition hover:text-primary">
                 Privacy Policy
             </a>
 
             <a href="{{ route('terms-of-service') }}"
-               class="text-sm font-semibold text-grayText transition hover:text-primary">
+                class="text-sm font-semibold text-grayText transition hover:text-primary">
                 Terms of Service
             </a>
 
         </div>
 
         <a href="#download"
-           class="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-white transition hover:bg-primaryDark">
+            class="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-white transition hover:bg-primaryDark">
 
             <i class="fa-brands fa-google-play"></i>
 
