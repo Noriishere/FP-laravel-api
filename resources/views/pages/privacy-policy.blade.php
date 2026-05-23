@@ -107,6 +107,3 @@
 </section>
 
 @endsection
-<a href="{{ url('/privacy-policy') }}" class="hover:text-primary transition">
-    Kebijakan Privasi
-</a>
