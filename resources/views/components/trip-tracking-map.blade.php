@@ -158,17 +158,24 @@
                     data.schedule?.route?.polyline &&
                     data.schedule.route.polyline.length
                 ) {
+                    // Parse string JSON jadi array
+                    let polylineData = data.schedule.route.polyline;
+                    if (typeof polylineData === 'string') {
+                        polylineData = JSON.parse(polylineData);
+                    }
 
-                    routeLine = L.polyline(
-                        data.schedule.route.polyline, {
+                    const validPolyline = polylineData.filter(coord =>
+                        coord && coord[0] !== null && coord[1] !== null
+                    );
+
+                    if (validPolyline.length > 1) {
+                        routeLine = L.polyline(validPolyline, {
                             color: 'blue',
                             weight: 5,
-                        }
-                    ).addTo(map);
+                        }).addTo(map);
 
-                    map.fitBounds(
-                        routeLine.getBounds()
-                    );
+                        map.fitBounds(routeLine.getBounds());
+                    }
                 }
 
             } else {
