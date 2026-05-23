@@ -4,7 +4,7 @@
 
 @section('content')
 
-<section class="relative overflow-hidden px-6 py-9 lg:px-12">
+<section class="relative overflow-hidden px-6 py-6 lg:px-12">
 
     <div class="absolute -right-24 -top-24 h-[520px] w-[520px] rounded-full bg-primary/10 blur-3xl"></div>
 
