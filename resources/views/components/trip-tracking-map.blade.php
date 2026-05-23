@@ -162,14 +162,13 @@
                 | Stops
                 |--------------------------------------------------------------------------
                 */
-                console.log(data.schedule.route.stops)
                 if (data.schedule?.route?.stops) {
                     data.schedule.route.stops.forEach(stop => {
                         if (!stop.latitude || !stop.longitude) return;
 
                         const stopMarker = L.marker([
-                            parseFloat(stop.latitude),
-                            parseFloat(stop.longitude)
+                            parseFloat(stop.lat),
+                            parseFloat(stop.lng)
                         ], {
                             icon: createStopIcon(stop.order)
                         }).addTo(map);
