@@ -114,7 +114,7 @@ Route::get('/privacy-policy', function () {
 })->name('privacy-policy');
 
 Route::get('/terms-and-services', function () {
-    return view('pages.terms-and-services');
+    return view('pages.terms-and-service');
 })->name('terms-and-services');
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
