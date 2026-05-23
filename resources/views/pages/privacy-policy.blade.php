@@ -316,67 +316,68 @@
                                         Indonesia
                                     </p>
                                 </div>
-                                {{-- Account Deletion --}}
-                                <div>
 
-                                    <div class="section-label">Penghapusan Akun</div>
+                            </div>
 
-                                    <h2 class="font-fraunces text-4xl font-black text-dark">
-                                        Penghapusan akun & data pengguna
-                                    </h2>
+                        </div>
+                        {{-- Account Deletion --}}
+                        <div>
 
-                                    <div class="mt-6 space-y-5 text-[15px] leading-8 text-grayText">
+                            <div class="section-label">Penghapusan Akun</div>
 
-                                        <p>
-                                            Pengguna memiliki hak untuk meminta penghapusan akun
-                                            dan data pribadi yang tersimpan di sistem GASSIN.
-                                        </p>
+                            <h2 class="font-fraunces text-4xl font-black text-dark">
+                                Penghapusan akun & data pengguna
+                            </h2>
 
-                                        <p>
-                                            Permintaan penghapusan data dapat dilakukan dengan
-                                            menghubungi tim kami melalui email resmi yang tersedia
-                                            pada halaman ini.
-                                        </p>
+                            <div class="mt-6 space-y-5 text-[15px] leading-8 text-grayText">
 
-                                        <p>
-                                            Setelah permintaan diverifikasi, kami akan memproses
-                                            penghapusan akun dan data terkait sesuai dengan
-                                            kebijakan dan ketentuan yang berlaku.
-                                        </p>
+                                <p>
+                                    Pengguna memiliki hak untuk meminta penghapusan akun
+                                    dan data pribadi yang tersimpan di sistem GASSIN.
+                                </p>
 
+                                <p>
+                                    Permintaan penghapusan data dapat dilakukan dengan
+                                    menghubungi tim kami melalui email resmi yang tersedia
+                                    pada halaman ini.
+                                </p>
+
+                                <p>
+                                    Setelah permintaan diverifikasi, kami akan memproses
+                                    penghapusan akun dan data terkait sesuai dengan
+                                    kebijakan dan ketentuan yang berlaku.
+                                </p>
+
+                            </div>
+
+                            <div class="mt-8 rounded-3xl border border-borderColor bg-bg p-6">
+
+                                <div class="flex items-start gap-4">
+
+                                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50">
+                                        <i class="fa-solid fa-trash text-red-500"></i>
                                     </div>
 
-                                    <div class="mt-8 rounded-3xl border border-borderColor bg-bg p-6">
+                                    <div>
 
-                                        <div class="flex items-start gap-4">
+                                        <h3 class="text-lg font-bold text-dark">
+                                            Request Account Deletion
+                                        </h3>
 
-                                            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50">
-                                                <i class="fa-solid fa-trash text-red-500"></i>
-                                            </div>
+                                        <p class="mt-2 text-sm leading-7 text-grayText">
+                                            Kirim permintaan penghapusan akun ke:
+                                        </p>
 
-                                            <div>
-
-                                                <h3 class="text-lg font-bold text-dark">
-                                                    Request Account Deletion
-                                                </h3>
-
-                                                <p class="mt-2 text-sm leading-7 text-grayText">
-                                                    Kirim permintaan penghapusan akun ke:
-                                                </p>
-
-                                                <a href="mailto:naltydev@gmail.com"
-                                                    class="mt-3 inline-flex items-center gap-2 font-semibold text-primary hover:underline">
-                                                    <i class="fa-solid fa-envelope"></i>
-                                                    naltydev@gmail.com
-                                                </a>
-
-                                            </div>
-
-                                        </div>
+                                        <a href="mailto:naltydev@gmail.com"
+                                            class="mt-3 inline-flex items-center gap-2 font-semibold text-primary hover:underline">
+                                            <i class="fa-solid fa-envelope"></i>
+                                            naltydev@gmail.com
+                                        </a>
 
                                     </div>
 
                                 </div>
+
                             </div>
 
                         </div>
