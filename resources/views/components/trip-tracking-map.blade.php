@@ -155,8 +155,8 @@
                 */
 
                 if (
-                    data.schedule?.route?.stops &&
-                    data.schedule.route.stops.length
+                    data.schedule?.route?.polyline &&
+                    data.schedule.route.polyline.length
                 ) {
 
                     routeLine = L.polyline(
