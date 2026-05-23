@@ -163,8 +163,10 @@
                 |--------------------------------------------------------------------------
                 */
                 if (data.schedule?.route?.stops) {
+
                     data.schedule.route.stops.forEach(stop => {
-                        if (!stop.latitude || !stop.longitude) return;
+
+                        if (!stop.lat || !stop.lng) return;
 
                         const stopMarker = L.marker([
                             parseFloat(stop.lat),
@@ -175,8 +177,13 @@
 
                         stopMarker.bindPopup(`
             <div style="font-family: sans-serif; min-width: 130px;">
-                <p style="font-weight: bold; margin: 0 0 4px;">${stop.name}</p>
-                <p style="margin: 0; color: #666; font-size: 12px;">${stop.address ?? '-'}</p>
+                <p style="font-weight: bold; margin: 0 0 4px;">
+                    ${stop.name}
+                </p>
+
+                <p style="margin: 0; color: #666; font-size: 12px;">
+                    ${stop.address ?? '-'}
+                </p>
             </div>
         `);
 
