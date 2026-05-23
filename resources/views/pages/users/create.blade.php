@@ -66,7 +66,7 @@
                     <option value="">Pilih Role</option>
                     <option value="admin">Admin</option>
                     <option value="driver">Driver</option>
-                    <option value="user">User</option>
+                    <option value="customer">User</option>
                 </select>
             </div>
 
