@@ -28,7 +28,7 @@ class DriverController extends Controller
 
             return response()->json([
                 'data' => $drivers->items(),
-                'links' => $drivers->linkCollection(),
+                'links' => $drivers->toArray()['links'],
             ]);
         }
 
