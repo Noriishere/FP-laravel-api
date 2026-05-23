@@ -323,9 +323,9 @@
                     links: [],
 
                     async loadData(url = '/admin/drivers') {
+                        url = url.replace('http://', 'https://');
 
                         let res = await fetch(url, {
-
                             headers: {
                                 'X-Requested-With': 'XMLHttpRequest'
                             }
@@ -334,9 +334,7 @@
                         let data = await res.json();
 
                         this.drivers = data.data;
-
                         this.links = data.links;
-                        console.log(data.links)
                     }
                 }
             }
