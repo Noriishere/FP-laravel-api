@@ -114,11 +114,11 @@
                 */
 
                 if (
-                    data.route?.stops &&
-                    data.route.stops.length
+                    data.schedule?.route?.polyline &&
+                    data.schedule.route.polyline.length
                 ) {
 
-                    data.route.stops.forEach(stop => {
+                    data.schedule.route.stops.forEach(stop => {
 
                         const stopMarker = L.marker([
                             stop.latitude,
@@ -151,8 +151,8 @@
                 */
 
                 if (
-                    data.route?.polyline &&
-                    data.route.polyline.length
+                    data.schedule?.route?.stops &&
+                    data.schedule.route.stops.length
                 ) {
 
                     routeLine = L.polyline(
