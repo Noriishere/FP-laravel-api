@@ -10,43 +10,53 @@
 <body style="
     margin:0;
     padding:0;
-    background:#f4f4f5;
+    background:#F9F7F4;
     font-family:Arial, Helvetica, sans-serif;
 ">
 
     <table width="100%" cellpadding="0" cellspacing="0" border="0"
-        style="background:#f4f4f5; padding:40px 20px;">
+        style="
+            background:#F9F7F4;
+            padding:40px 20px;
+        ">
 
         <tr>
             <td align="center">
 
+                {{-- CARD --}}
                 <table width="600" cellpadding="0" cellspacing="0" border="0"
                     style="
-                        background:#ffffff;
-                        border-radius:20px;
+                        background:#FFF5F5;
+                        border:1px solid #FFD6D6;
+                        border-radius:24px;
                         overflow:hidden;
                     ">
 
                     {{-- HEADER --}}
                     <tr>
-                        <td style="
-                            background:#C00707;
-                            padding:32px;
+                        <td
+                            style="
+                            background:linear-gradient(135deg, #E82C2C, #C41F1F);
+                            padding:40px 32px;
                             text-align:center;
                             color:white;
                         ">
 
-                            <h1 style="
+                            <h1
+                                style="
                                 margin:0;
-                                font-size:28px;
+                                font-size:30px;
+                                line-height:1.3;
+                                font-weight:bold;
                             ">
                                 Pembayaran Berhasil 🎉
                             </h1>
 
-                            <p style="
-                                margin-top:10px;
+                            <p
+                                style="
+                                margin-top:12px;
                                 font-size:15px;
-                                opacity:.9;
+                                opacity:.95;
                             ">
                                 Terima kasih sudah menggunakan GASSIN
                             </p>
@@ -56,10 +66,12 @@
 
                     {{-- BODY --}}
                     <tr>
-                        <td style="
+                        <td
+                            style="
                             padding:40px;
-                            color:#333333;
-                            line-height:1.7;
+                            color:#111010;
+                            line-height:1.8;
+                            font-size:15px;
                         ">
 
                             <p style="margin-top:0;">
@@ -71,41 +83,35 @@
 
                             <p>
                                 Pembayaran shuttle kamu berhasil diproses.
+                                Berikut detail perjalanan kamu:
                             </p>
 
-                            <hr style="
-                                border:none;
-                                border-top:1px solid #eeeeee;
-                                margin:30px 0;
-                            ">
-
-                            <h3 style="
-                                margin-top:0;
-                                color:#111827;
-                            ">
-                                Detail Perjalanan
-                            </h3>
-
+                            {{-- DETAIL BOX --}}
                             <table width="100%" cellpadding="0" cellspacing="0"
                                 style="
-                                    background:#fafafa;
-                                    border-radius:12px;
-                                    padding:20px;
+                                    margin-top:30px;
+                                    background:#FFFFFF;
+                                    border:1px solid #F3D7D7;
+                                    border-radius:16px;
+                                    padding:24px;
                                 ">
 
                                 {{-- RUTE --}}
                                 <tr>
-                                    <td style="
-                                        padding:12px 0;
-                                        color:#666;
+                                    <td
+                                        style="
+                                        padding:14px 0;
+                                        color:#6B6B6B;
+                                        font-size:14px;
                                     ">
                                         Rute
                                     </td>
 
-                                    <td align="right" style="
-                                        padding:12px 0;
+                                    <td align="right"
+                                        style="
+                                        padding:14px 0;
+                                        color:#111010;
                                         font-weight:bold;
-                                        color:#111827;
                                     ">
 
                                         {{ $booking->schedule?->origin?->name }}
@@ -118,40 +124,44 @@
 
                                 {{-- KURSI --}}
                                 <tr>
-                                    <td style="
-                                        padding:12px 0;
-                                        color:#666;
+                                    <td
+                                        style="
+                                        padding:14px 0;
+                                        color:#6B6B6B;
+                                        font-size:14px;
                                     ">
                                         Kursi
                                     </td>
 
-                                    <td align="right" style="
-                                        padding:12px 0;
+                                    <td align="right"
+                                        style="
+                                        padding:14px 0;
+                                        color:#111010;
                                         font-weight:bold;
-                                        color:#111827;
                                     ">
 
-                                        {{ $booking->seat_number
-                                            ?? $booking->seat?->seat_number
-                                            ?? '-' }}
+                                        {{ $booking->seat_number ?? ($booking->seat?->seat_number ?? '-') }}
 
                                     </td>
                                 </tr>
 
                                 {{-- TOTAL --}}
                                 <tr>
-                                    <td style="
-                                        padding:12px 0;
-                                        color:#666;
+                                    <td
+                                        style="
+                                        padding:14px 0;
+                                        color:#6B6B6B;
+                                        font-size:14px;
                                     ">
-                                        Total
+                                        Total Pembayaran
                                     </td>
 
-                                    <td align="right" style="
-                                        padding:12px 0;
+                                    <td align="right"
+                                        style="
+                                        padding:14px 0;
+                                        color:#E82C2C;
                                         font-weight:bold;
-                                        color:#C00707;
-                                        font-size:18px;
+                                        font-size:20px;
                                     ">
 
                                         Rp {{ number_format($booking->total_price, 0, ',', '.') }}
@@ -166,16 +176,18 @@
 
                     {{-- FOOTER --}}
                     <tr>
-                        <td style="
+                        <td
+                            style="
+                            background:#FFF0F0;
                             padding:24px;
                             text-align:center;
+                            color:#888888;
                             font-size:13px;
-                            color:#999999;
-                            background:#fafafa;
+                            line-height:1.6;
                         ">
 
-                            © {{ date('Y') }} GASSIN.
-                            Semua hak dilindungi.
+                            © {{ date('Y') }} GASSIN <br>
+                            Shuttle nyaman untuk perjalananmu.
 
                         </td>
                     </tr>
