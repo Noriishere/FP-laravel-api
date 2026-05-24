@@ -3,7 +3,7 @@
 use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\RouteController;
 use App\Http\Controllers\Admin\ScheduleController;
-use App\Http\Controllers\Dashbard\ApiLogController;
+use App\Http\Controllers\Dashboard\ApiLogController;
 use App\Http\Controllers\Dashboard\DriverController;
 use App\Http\Controllers\Dashboard\TripMonitoringController;
 use App\Http\Controllers\Dashboard\UsersController;

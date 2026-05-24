@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Dashbard;
+namespace App\Http\Controllers\Dashboard;
 
 use Illuminate\Http\Request;
 use App\Models\ApiCrashLog;
