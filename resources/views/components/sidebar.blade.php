@@ -81,6 +81,53 @@
         {{-- TRIP MONITORING --}}
         <x-sidebar-link href="{{ url('/admin/trip-monitoring') }}" icon="fa-location-arrow" label="Trip Monitoring"
             :active="request()->is('admin/trip-monitoring*')" />
+        {{-- LOGS --}}
+        <div class="pt-4">
+
+            <p class="px-3 mb-2 text-xs font-semibold tracking-wider text-gray-400 uppercase">
+                System Logs
+            </p>
+
+            <div class="space-y-1">
+
+                {{-- API ACTIVITY LOGS --}}
+                <x-sidebar-link href="{{ route('api-logs.activity') }}" icon="fa-wave-square" label="API Activity"
+                    :active="request()->is('admin/api-logs/activity*')" />
+
+                {{-- API CRASH LOGS --}}
+                <a href="{{ route('api-logs.crashes') }}"
+                    class="
+        flex items-center gap-3 px-3 py-2.5 rounded-xl transition
+        {{ request()->is('admin/api-logs/crashes*')
+            ? 'bg-red-50 text-red-600'
+            : 'text-gray-600 hover:bg-red-50 hover:text-red-600' }}
+    ">
+
+                    <i class="fa-solid fa-triangle-exclamation w-5"></i>
+
+                    <span class="font-medium">
+                        Crash Logs
+                    </span>
+
+                    @php
+                        $crashCount = \App\Models\ApiCrashLog::whereDate('created_at', today())->count();
+                    @endphp
+
+                    @if ($crashCount > 0)
+                        <span
+                            class="
+            ml-auto text-xs px-2 py-0.5 rounded-full
+            bg-red-100 text-red-600 font-semibold
+        ">
+                            {{ $crashCount }}
+                        </span>
+                    @endif
+
+                </a>
+
+            </div>
+
+        </div>
     </nav>
 
     {{-- ── LOGOUT ── --}}

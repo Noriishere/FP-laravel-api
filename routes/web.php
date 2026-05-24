@@ -3,14 +3,12 @@
 use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\RouteController;
 use App\Http\Controllers\Admin\ScheduleController;
+use App\Http\Controllers\Dashbard\ApiLogController;
 use App\Http\Controllers\Dashboard\DriverController;
-use App\Http\Controllers\Dashboard\DriverDocumentController;
 use App\Http\Controllers\Dashboard\TripMonitoringController;
 use App\Http\Controllers\Dashboard\UsersController;
 use App\Http\Controllers\Dashboard\VehicleController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\Driver\AuthController;
-use App\Http\Controllers\Driver\DashboardController as DriverDashboardController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
@@ -23,73 +21,6 @@ Route::get('/reset-password/{token}', function ($token) {
     ]);
 })->name('password.reset');
 
-Route::prefix('driver')
-    ->name('driver.')
-    ->group(function () {
-
-        Route::middleware('guest')->group(function () {
-            Route::get('/', function () {
-                return view('driver.home');
-            });
-
-            Route::get('/login', [
-                AuthController::class,
-                'showLogin',
-            ])->name('login');
-
-            Route::post('/login', [
-                AuthController::class,
-                'login',
-            ]);
-
-            Route::get('/register', [
-                AuthController::class,
-                'showRegister',
-            ])->name('register');
-
-            Route::post('/register', [
-                AuthController::class,
-                'register',
-            ]);
-        });
-
-        Route::get(
-            '/email/verify/{id}/{hash}',
-            [AuthController::class, 'verify']
-        )->name('verification.verify');
-
-        Route::middleware('auth')->group(function () {
-
-            Route::get('/dashboard', [
-                DriverDashboardController::class,
-                'dashboard',
-            ])->name('dashboard');
-
-            Route::get('/me', [
-                AuthController::class,
-                'me',
-            ])->name('me');
-
-            Route::post('/logout', [
-                AuthController::class,
-                'logout',
-            ])->name('logout');
-
-            Route::post('/email/resend', [
-                AuthController::class,
-                'resend',
-            ])->name('verification.resend');
-            Route::get('/documents', [
-                DriverDashboardController::class,
-                'documents',
-            ])->name('documents');
-
-            Route::post('/documents/upload', [
-                DriverDashboardController::class,
-                'uploadDocument',
-            ])->name('documents.upload');
-        });
-    });
 
 Route::get('/admin/', function () {
     return view('pages.home');
@@ -134,13 +65,16 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::put('/admin/password', [PasswordController::class, 'update'])->name('password.update');
 
     Route::resource('/admin/users', UsersController::class);
-    Route::resource('/admin/drivers',DriverController::class);
+    Route::resource('/admin/drivers', DriverController::class);
     Route::get('/users/deleted', [UsersController::class, 'deletedAccounts'])->name('users.deleted');
     Route::patch('/admin/users/{id}/restore', [UsersController::class, 'restore'])->name('users.restore');
     Route::delete('/admin/users/{id}/force-delete', [UsersController::class, 'forceDelete'])->name('users.forceDelete');
-    Route::get('/admin/trip-monitoring',[TripMonitoringController::class, 'index'])->name('trip-monitoring.index');
-    Route::get('/admin/trip-monitoring/{id}',[TripMonitoringController::class, 'show'])->name('trip-monitoring.show');
-    Route::get('/admin/trip-monitoring/{id}/data',[TripMonitoringController::class, 'trackingData'])->name('trip-monitoring.data');
+    Route::get('/admin/trip-monitoring', [TripMonitoringController::class, 'index'])->name('trip-monitoring.index');
+    Route::get('/admin/trip-monitoring/{id}', [TripMonitoringController::class, 'show'])->name('trip-monitoring.show');
+    Route::get('/admin/trip-monitoring/{id}/data', [TripMonitoringController::class, 'trackingData'])->name('trip-monitoring.data');
+    Route::get('/activity', [ApiLogController::class, 'activity'])->name('api-logs.activity');
+    Route::get('/crashes', [ApiLogController::class, 'crashes'])->name('api-logs.crashes');
+    Route::get('/crashes/{log}', [ApiLogController::class, 'showCrash'])->name('api-logs.crashes.show');
 });
 Route::middleware(['auth', 'role:driver'])->group(function () {});
 
