@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Mail\PaymentSuccessMail;
 use App\Models\Booking;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -278,8 +279,12 @@ class PaymentController extends Controller
 
                     'payment_method' => $request->payment_method,
                 ]);
-                Mail::to($booking->user->email)
-                    ->send(new PaymentSuccessMail($booking));
+                try {
+                    Mail::to($booking->user->email)
+                        ->send(new PaymentSuccessMail($booking));
+                } catch (Exception $e) {
+                    Log::error('Failed to send payment email: '.$e->getMessage());
+                }
             });
         }
 
