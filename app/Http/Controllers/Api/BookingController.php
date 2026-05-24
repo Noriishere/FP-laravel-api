@@ -326,10 +326,20 @@ class BookingController extends Controller
             ], 400);
         }
 
-        $booking->update([
-            'checked_at' => now(),
-            'checked_by' => $user->id,
-        ]);
+        DB::transaction(function () use ($booking, $user) {
+
+            $booking = Booking::lockForUpdate()
+                ->find($booking->id);
+
+            if ($booking->checked_at) {
+                throw new \Exception('Ticket already used');
+            }
+
+            $booking->update([
+                'checked_at' => now(),
+                'checked_by' => $user->id,
+            ]);
+        });
 
         return response()->json([
             'message' => 'Valid ticket',
