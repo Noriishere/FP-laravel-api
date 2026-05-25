@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\RouteController;
 use App\Http\Controllers\Admin\ScheduleController;
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Dashboard\ApiLogController;
 use App\Http\Controllers\Dashboard\DriverController;
 use App\Http\Controllers\Dashboard\TripMonitoringController;
@@ -25,7 +26,6 @@ Route::get('/reset-password/{token}', function ($token) {
 Route::get('/admin/', function () {
     return view('pages.home');
 });
-
 Route::get('/reset-password/{token}', function (
     Request $request,
     string $token
@@ -47,6 +47,10 @@ Route::get('/privacy-policy', function () {
 Route::get('/terms-of-services', function () {
     return view('pages.terms-of-service');
 })->name('terms-of-service');
+
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
+    ->middleware(['signed'])
+    ->name('verification.verify');
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('/admin/bookings', BookingController::class);

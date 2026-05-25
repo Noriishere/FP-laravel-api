@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
 
 class AuthController extends Controller
 {
@@ -55,11 +54,11 @@ class AuthController extends Controller
             auth('api')->logout();
 
             return response()->json([
-                
+
                 'message' => 'Unauthorized role',
                 'errors' => [
-                    'role' => ['Login ini khusus customer']
-                ]
+                    'role' => ['Login ini khusus customer'],
+                ],
             ], 403);
         }
         if (! $user->hasVerifiedEmail()) {
@@ -86,32 +85,30 @@ class AuthController extends Controller
         ]);
     }
 
-    
-
     public function me()
-{
-    $user = auth('api')->user();
+    {
+        $user = auth('api')->user();
 
-    return response()->json([
+        return response()->json([
 
-        'success' => true,
+            'success' => true,
 
-        'data' => [
+            'data' => [
 
-            'id' => $user->id,
+                'id' => $user->id,
 
-            'name' => $user->name,
+                'name' => $user->name,
 
-            'email' => $user->email,
+                'email' => $user->email,
 
-            'role' => $user->role,
+                'role' => $user->role,
 
-            'email_verified_at' => $user->email_verified_at,
+                'email_verified_at' => $user->email_verified_at,
 
-            'created_at' => $user->created_at,
-        ],
-    ]);
-}
+                'created_at' => $user->created_at,
+            ],
+        ]);
+    }
 
     public function logout()
     {
@@ -162,22 +159,36 @@ class AuthController extends Controller
         $user = User::find($id);
 
         if (! $user) {
-            return response()->json(['message' => 'User not found'], 404);
+
+            return view('verify-status', [
+                'status' => 'not-found',
+            ]);
         }
 
-        if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
-            return response()->json(['message' => 'Invalid verification link'], 400);
+        if (! hash_equals(
+            (string) $hash,
+            sha1($user->getEmailForVerification())
+        )) {
+
+            return view('verify-status', [
+                'status' => 'invalid',
+            ]);
         }
 
         if ($user->hasVerifiedEmail()) {
-            return response()->json(['message' => 'Already verified']);
+
+            return view('verify-status', [
+                'status' => 'already',
+            ]);
         }
 
         $user->markEmailAsVerified();
 
         event(new Verified($user));
 
-        return response()->json(['message' => 'Email verified']);
+        return view('verify-status', [
+            'status' => 'success',
+        ]);
     }
 
     public function resendVerification(Request $request)

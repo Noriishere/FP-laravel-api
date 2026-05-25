@@ -21,10 +21,6 @@ Route::post('/payment/pakasir/webhook', [PaymentController::class, 'webhook']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
-Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
-    ->middleware(['signed'])
-    ->name('verification.verify');
-
 Route::post('/debug', function () {
     return response()->json(['masuk' => true]);
 });
