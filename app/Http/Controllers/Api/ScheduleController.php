@@ -94,6 +94,7 @@ class ScheduleController extends Controller
 
         $schedules = $query
             ->latest()
+            ->limit(20)
             ->get();
 
         if (
