@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\URL;
 
 class AuthController extends Controller
 {
@@ -159,36 +160,30 @@ class AuthController extends Controller
         $user = User::find($id);
 
         if (! $user) {
-
-            return view('verify-status', [
-                'status' => 'not-found',
-            ]);
+            return view('verify-status', ['status' => 'not-found']);
         }
 
+        // Validasi signature URL sekalian
+        if (! URL::hasValidSignature($request)) {
+            return view('verify-status', ['status' => 'invalid']);
+        }
+
+        // Validasi hash email
         if (! hash_equals(
             (string) $hash,
             sha1($user->getEmailForVerification())
         )) {
-
-            return view('verify-status', [
-                'status' => 'invalid',
-            ]);
+            return view('verify-status', ['status' => 'invalid']);
         }
 
         if ($user->hasVerifiedEmail()) {
-
-            return view('verify-status', [
-                'status' => 'already',
-            ]);
+            return view('verify-status', ['status' => 'already']);
         }
 
         $user->markEmailAsVerified();
-
         event(new Verified($user));
 
-        return view('verify-status', [
-            'status' => 'success',
-        ]);
+        return view('verify-status', ['status' => 'success']);
     }
 
     public function resendVerification(Request $request)
