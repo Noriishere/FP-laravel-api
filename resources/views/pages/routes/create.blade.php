@@ -157,18 +157,6 @@
                             Hapus semua via-stop
                         </button>
                     </div>
-
-                    {{-- Legend --}}
-                    <div class="flex flex-wrap gap-2 mb-3">
-                        <span class="text-xs text-gray-400">Toggle per stop:</span>
-                        <span class="inline-flex items-center gap-1 text-xs text-blue-500">
-                            <span class="w-2 h-2 rounded-sm bg-blue-400 inline-block"></span> Pickup
-                        </span>
-                        <span class="inline-flex items-center gap-1 text-xs text-orange-500">
-                            <span class="w-2 h-2 rounded-sm bg-orange-400 inline-block"></span> Dropoff
-                        </span>
-                    </div>
-
                     <div id="stopsList" class="space-y-2"></div>
                 </div>
 
