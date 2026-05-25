@@ -326,7 +326,12 @@ class RouteController extends Controller
     public function destroy($id)
     {
         $route = Route::findOrFail($id);
-
+        $hasSchedule = $route->schedules()->exists();
+        if ($hasSchedule) {
+            return redirect()
+                ->route('pages.routes.index')
+                ->with('error', 'Route tidak bisa dihapus karena masih digunakan oleh jadwal.');
+        }
         $route->delete();
 
         return redirect()
