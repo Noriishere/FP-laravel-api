@@ -18,7 +18,20 @@
                 Tambah Route
             </a>
         </div>
+        {{-- Alert Error --}}
+        @if (session('error'))
+            <div class="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">
 
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 8v4m0 4h.01M10.29 3.86l-7.5 13A1 1 0 003.66 18h16.68a1 1 0 00.87-1.5l-7.5-13a1 1 0 00-1.74 0z" />
+                </svg>
+
+                {{ session('error') }}
+            </div>
+        @endif
         {{-- Alert Success --}}
         @if (session('success'))
             <div
@@ -129,8 +142,8 @@
                             <td colspan="7" class="px-5 py-16 text-center">
                                 <div class="flex flex-col items-center gap-3">
                                     <div class="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-gray-400" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-gray-400"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                 d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                                         </svg>
