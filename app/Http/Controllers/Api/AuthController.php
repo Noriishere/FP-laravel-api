@@ -157,10 +157,38 @@ class AuthController extends Controller
 
     public function verify(Request $request, $id, $hash)
     {
-        dd([
-            'full_url' => $request->fullUrl(),
-            'app_url' => config('app.url'),
-            'valid' => URL::hasValidSignature($request),
+        $user = User::find($id);
+
+        if (! $user) {
+
+            return view('verify-status', [
+                'status' => 'not-found'
+            ]);
+        }
+
+        if (! hash_equals(
+            (string) $hash,
+            sha1($user->getEmailForVerification())
+        )) {
+
+            return view('verify-status', [
+                'status' => 'invalid'
+            ]);
+        }
+
+        if ($user->hasVerifiedEmail()) {
+
+            return view('verify-status', [
+                'status' => 'already'
+            ]);
+        }
+
+        $user->markEmailAsVerified();
+
+        event(new Verified($user));
+
+        return view('verify-status', [
+            'status' => 'success'
         ]);
     }
 
