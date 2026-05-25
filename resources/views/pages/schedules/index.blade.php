@@ -10,7 +10,32 @@
                 + Tambah Jadwal
             </a>
         </div>
+        @if (session('success'))
+            <div
+                class="flex items-center gap-3 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-xl">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
 
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+
+                {{ session('success') }}
+            </div>
+        @endif
+        {{-- Alert Error --}}
+        @if (session('error'))
+            <div class="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">
+
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 8v4m0 4h.01M10.29 3.86l-7.5 13A1 1 0 003.66 18h16.68a1 1 0 00.87-1.5l-7.5-13a1 1 0 00-1.74 0z" />
+                </svg>
+
+                {{ session('error') }}
+            </div>
+        @endif
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
 
@@ -73,7 +98,8 @@
                                 <div class="flex gap-2 items-center">
                                     <a href="{{ route('schedules.show', $schedule->id) }}"
                                         class="text-blue-600 text-xs">Detail</a>
-                                    <a href="{{ route('schedules.edit', $schedule->id) }}" class="text-yellow-600 text-xs">Edit</a>
+                                    <a href="{{ route('schedules.edit', $schedule->id) }}"
+                                        class="text-yellow-600 text-xs">Edit</a>
 
                                     <form action="{{ route('schedules.destroy', $schedule->id) }}" method="POST"
                                         onsubmit="return confirm('Yakin mau hapus jadwal ini?')">
