@@ -329,7 +329,7 @@ class RouteController extends Controller
         $hasSchedule = $route->schedules()->exists();
         if ($hasSchedule) {
             return redirect()
-                ->route('pages.routes.index')
+                ->route('routes.index')
                 ->with('error', 'Route tidak bisa dihapus karena masih digunakan oleh jadwal.');
         }
         $route->delete();
