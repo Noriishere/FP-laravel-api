@@ -49,7 +49,6 @@ Route::get('/terms-of-services', function () {
 })->name('terms-of-service');
 
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
-    ->middleware(['signed'])
     ->name('verification.verify');
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
