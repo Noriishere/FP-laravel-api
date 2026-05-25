@@ -346,19 +346,6 @@
                             </div>
                             <p class="text-sm text-gray-700 truncate">${s.name}</p>
                             <p class="text-xs font-mono text-gray-400 mt-0.5">${Number(s.lat).toFixed(5)}, ${Number(s.lng).toFixed(5)}</p>
-
-                            <div class="flex items-center gap-4 mt-2">
-                                <label class="inline-flex items-center gap-1.5 cursor-pointer select-none">
-                                    <input type="checkbox" class="pickup-toggle rounded accent-blue-500"
-                                        data-index="${i}" ${s.is_pickup ? 'checked' : ''}>
-                                    <span class="text-xs text-blue-600 font-medium">Pickup</span>
-                                </label>
-                                <label class="inline-flex items-center gap-1.5 cursor-pointer select-none">
-                                    <input type="checkbox" class="dropoff-toggle rounded accent-orange-500"
-                                        data-index="${i}" ${s.is_dropoff ? 'checked' : ''}>
-                                    <span class="text-xs text-orange-500 font-medium">Dropoff</span>
-                                </label>
-                            </div>
                         </div>
                     `;
 
@@ -410,19 +397,6 @@
                 hideError();
 
                 if (stops.length < 2) return false;
-
-                const hasPickup = stops.some(s => s.is_pickup);
-                const hasDropoff = stops.some(s => s.is_dropoff);
-
-                if (!hasPickup) {
-                    showError('Minimal harus ada satu stop bertipe Pickup.');
-                    return false;
-                }
-
-                if (!hasDropoff) {
-                    showError('Minimal harus ada satu stop bertipe Dropoff.');
-                    return false;
-                }
 
                 const names = stops.map(s => s.name.trim().toLowerCase());
                 const hasDuplicate = names.some((n, i) => names.indexOf(n) !== i);
