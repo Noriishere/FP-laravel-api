@@ -51,7 +51,7 @@ class VehicleController extends Controller
         ]);
 
         return redirect()->route('vehicles.index')
-            ->with('success', 'Vehicle created');
+            ->with('success', 'Kendaraan berhasil ditambahkan');
     }
 
     public function edit($id)
@@ -99,13 +99,18 @@ class VehicleController extends Controller
 
         return redirect()
             ->route('vehicles.index')
-            ->with('success', 'Vehicle updated');
+            ->with('success', 'Kendaraan berhasil diupdate');
     }
 
     public function destroy($id)
     {
-        Vehicle::findOrFail($id)->delete();
+        $vehicle = Vehicle::findOrFail($id);
+        if($vehicle->schedules()->count() > 0) {
+            return back()->with('error', 'Kendaraan tidak bisa dihapus karena berkaitan dengan jadwal.');
+        }
 
-        return back()->with('success', 'Vehicle deleted');
+        $vehicle->delete();
+
+        return back()->with('success', 'Kendaraan berhasil dihapus');
     }
 }
