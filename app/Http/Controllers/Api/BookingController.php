@@ -232,7 +232,7 @@ class BookingController extends Controller
 
                 'payment_provider' => null,
 
-                'expired_at' => now()->addMinutes(15),
+                'expired_at' => now()->addMinutes(30),
             ]);
 
             foreach ($seatIds as $seatId) {
