@@ -140,7 +140,9 @@
                                         font-weight:bold;
                                     ">
 
-                                        {{ $booking->seat_number ?? ($booking->seat?->seat_number ?? '-') }}
+                                        {{ $booking->bookingSeats->isNotEmpty()
+                                            ? $booking->bookingSeats->pluck('seat.seat_number')->filter()->join(', ')
+                                            : '-' }}
 
                                     </td>
                                 </tr>
