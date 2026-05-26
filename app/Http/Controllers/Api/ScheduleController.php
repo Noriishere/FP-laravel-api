@@ -232,9 +232,9 @@ class ScheduleController extends Controller
                         'name' => $schedule->route?->destination?->name,
                     ],
 
-                    'polyline' => json_decode(
-                        $schedule->route?->polyline
-                    ),
+                    // 'polyline' => json_decode(
+                    //     $schedule->route?->polyline
+                    // ),
 
                     'stops' => $stops,
                 ],
