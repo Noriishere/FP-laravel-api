@@ -57,12 +57,12 @@ Route::middleware(['auth:api', 'role:driver'])->group(function () {
     Route::post('/drivers/{id}/documents', [DriverController::class, 'uploadDocument']);
     Route::get('/me/schedules', [UserController::class, 'mySchedules']);
     Route::post('/driver/schedules/{id}/start', [LocationController::class, 'start']);
-    Route::post('/driver/schedules/{id}/location',[LocationController::class, 'update'])->middleware('driver.location.throttle');
+    Route::post('/driver/schedules/{id}/location', [LocationController::class, 'update'])->middleware('driver.location.throttle');
     Route::get('/driver/schedules/{id}/route', [DriverController::class, 'routeDetail']);
     Route::get('/driver/schedules', [DriverController::class, 'mySchedules']);
-    Route::post('/driver/schedules/{id}/stop',[LocationController::class, 'stop']);
+    Route::post('/driver/schedules/{id}/stop', [LocationController::class, 'stop']);
     Route::get('/driver/me', [DriverAuthController::class, 'me']);
-    Route::get('/driver/history',[DriverController::class, 'history']);
+    Route::get('/driver/history', [DriverController::class, 'history']);
 });
 
 Route::middleware(['auth:api'])->group(function () {
@@ -70,7 +70,8 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/me', [AuthController::class, 'updateMe']);
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::post('/refresh', [AuthController::class, 'refresh']);
 
     Route::post('/bookings', [BookingController::class, 'store']);
 });
+
+Route::post('/refresh', [AuthController::class, 'refresh']);
