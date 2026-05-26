@@ -96,28 +96,40 @@
                                     padding:24px;
                                 ">
 
-                                {{-- RUTE --}}
+                                {{-- PERJALANAN --}}
                                 <tr>
                                     <td
                                         style="
-                                        padding:14px 0;
-                                        color:#6B6B6B;
-                                        font-size:14px;
-                                    ">
-                                        Rute
+        padding:14px 0;
+        color:#6B6B6B;
+        font-size:14px;
+        vertical-align:top;
+    ">
+                                        Perjalanan
                                     </td>
 
                                     <td align="right"
                                         style="
-                                        padding:14px 0;
-                                        color:#111010;
-                                        font-weight:bold;
-                                    ">
+        padding:14px 0;
+        color:#111010;
+        font-weight:bold;
+        line-height:1.6;
+    ">
 
-                                        {{ $booking->schedule?->origin?->name }}
+                                        {{ $booking->pickupStop?->name }}
                                         →
+                                        {{ $booking->dropoffStop?->name }}
 
-                                        {{ $booking->schedule?->destination?->name }}
+                                        <br>
+
+                                        <span
+                                            style="
+                font-size:12px;
+                color:#6B6B6B;
+                font-weight:normal;
+            ">
+                                            {{ $booking->schedule?->route?->name }}
+                                        </span>
 
                                     </td>
                                 </tr>
