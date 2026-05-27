@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\URL;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenBlacklistedException;
 
 class AuthController extends Controller
 {
@@ -152,7 +154,24 @@ class AuthController extends Controller
 
     public function refresh()
     {
-        return $this->respondWithToken(auth('api')->refresh());
+        try {
+
+            $token = auth('api')->refresh();
+
+            return $this->respondWithToken($token);
+
+        } catch (TokenBlacklistedException $e) {
+
+            return response()->json([
+                'message' => 'Token has been blacklisted'
+            ], 401);
+
+        } catch (JWTException $e) {
+
+            return response()->json([
+                'message' => 'Token invalid or missing'
+            ], 401);
+        }
     }
 
     public function verify(Request $request, $id, $hash)
