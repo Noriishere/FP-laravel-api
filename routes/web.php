@@ -58,6 +58,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('/admin')->group(function () {
 
     Route::resource('/vehicles', VehicleController::class);
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export-pdf', [ReportController::class, 'exportPdf'])->name('reports.pdf');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -80,7 +81,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('/admin')->group(function () {
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/reports/export-pdf', [ReportController::class, 'exportPdf'])->name('reports.pdf');
     Route::get('/available-drivers', [ScheduleController::class, 'availableDrivers']);
     Route::get('/available-vehicles', [ScheduleController::class, 'availableVehicles']);
 });

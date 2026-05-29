@@ -25,7 +25,7 @@
 
                     <div class="flex gap-2">
 
-                        <a href="{{ route('reports.pdf', ['period' => request('period')]) }}"
+                        <a href="{{ route('admin.reports.pdf', request()->query()) }}"
                             class="bg-red-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-red-700 transition">
 
                             <i class="fa-solid fa-file-pdf mr-2"></i>
@@ -112,19 +112,15 @@
 
                         <select name="payment_status" class="w-full border border-gray-200 rounded-xl px-4 py-2.5">
 
-                            <option value="">
-                                Semua Payment
-                            </option>
-
-                            <option value="paid">
+                            <option value="paid" {{ request('payment_status') == 'paid' ? 'selected' : '' }}>
                                 Paid
                             </option>
 
-                            <option value="pending">
+                            <option value="pending" {{ request('payment_status') == 'pending' ? 'selected' : '' }}>
                                 Pending
                             </option>
 
-                            <option value="failed">
+                            <option value="failed" {{ request('payment_status') == 'failed' ? 'selected' : '' }}>
                                 Failed
                             </option>
 
