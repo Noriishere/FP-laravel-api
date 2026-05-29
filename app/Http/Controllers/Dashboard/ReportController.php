@@ -107,10 +107,20 @@ class ReportController extends Controller
             ->whereYear('created_at', $date->year)
             ->whereMonth('created_at', $date->month)
             ->get();
+        $summary = [
+            'total_booking' => $bookings->count(),
+            'total_paid' => $bookings->where('payment_status', 'paid')->count(),
+            'total_seat' => $bookings->sum('total_seat'),
+            'revenue' => $bookings->where('payment_status', 'paid')->sum('total_price'),
+        ];
 
         $pdf = Pdf::loadView(
             'reports.pdf',
-            compact('bookings', 'period')
+            compact(
+                'bookings',
+                'period',
+                'summary'
+            )
         );
 
         return $pdf->download(
