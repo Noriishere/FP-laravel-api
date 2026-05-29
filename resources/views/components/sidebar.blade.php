@@ -81,6 +81,8 @@
         {{-- TRIP MONITORING --}}
         <x-sidebar-link href="{{ url('/admin/trip-monitoring') }}" icon="fa-location-arrow" label="Trip Monitoring"
             :active="request()->is('admin/trip-monitoring*')" />
+        {{-- REPORTS --}}
+        <x-sidebar-link href="{{ url('/admin/reports') }}" icon="fa-chart-pie" label="Reports" :active="request()->is('admin/reports*')" />
         {{-- LOGS --}}
         <div class="pt-4">
 
