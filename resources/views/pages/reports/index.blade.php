@@ -25,7 +25,7 @@
 
                     <div class="flex gap-2">
 
-                        <a href="{{ route('reports.pdf', ['period' => request('period')]) }}"
+                        <a href="{{ route('admin.reports.pdf', ['period' => request('period')]) }}" target="_blank" download="{{ route('admin.reports.pdf', ['period' => request('period')]) }}"
                             class="bg-red-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-red-700 transition">
 
                             <i class="fa-solid fa-file-pdf mr-2"></i>
