@@ -21,14 +21,14 @@
 
         .header {
             margin-bottom: 20px;
-            border-bottom: 2px solid #2563eb;
+            border-bottom: 2px solid #C00707;
             padding-bottom: 15px;
         }
 
         .company {
             font-size: 24px;
             font-weight: bold;
-            color: #2563eb;
+            color: #C00707;
         }
 
         .subtitle {
@@ -77,7 +77,7 @@
         }
 
         .table th {
-            background: #2563eb;
+            background: #C00707;
             color: white;
             padding: 10px;
             border: 1px solid #ddd;
