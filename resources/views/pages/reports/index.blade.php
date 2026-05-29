@@ -265,7 +265,7 @@
                                 </td>
 
                                 <td class="px-6 py-4">
-                                    {{ $booking->user->name }}
+                                    {{ $booking->user?->name ?? 'User Deleted' }}
                                 </td>
 
                                 <td class="px-6 py-4">
