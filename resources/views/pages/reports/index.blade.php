@@ -120,8 +120,8 @@
                                 Pending
                             </option>
 
-                            <option value="failed" {{ request('payment_status') == 'failed' ? 'selected' : '' }}>
-                                Failed
+                            <option value="failed" {{ request('payment_status') == 'cancelled' ? 'selected' : '' }}>
+                                Cancelled
                             </option>
 
                         </select>
