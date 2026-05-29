@@ -51,7 +51,7 @@ Route::get('/term-of-services', function () {
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
     ->name('verification.verify');
 
-Route::middleware(['auth', 'role:admin'])->group('/admin')->group(function () {
+Route::middleware(['auth', 'role:admin'])->prefix('/admin')->group(function () {
     Route::resource('/bookings', BookingController::class);
     Route::resource('/routes', RouteController::class);
     Route::resource('/schedules', ScheduleController::class);
