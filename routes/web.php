@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountDeletionController;
 use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\RouteController;
 use App\Http\Controllers\Admin\ScheduleController;
@@ -26,6 +27,7 @@ Route::get('/reset-password/{token}', function ($token) {
 Route::get('/admin/', function () {
     return view('pages.home');
 });
+
 Route::get('/reset-password/{token}', function (
     Request $request,
     string $token
@@ -33,20 +35,15 @@ Route::get('/reset-password/{token}', function (
     return view('auth.reset-password', [
         'token' => $token,
         'email' => $request->email,
-    ]);
-})->name('password.reset');
+    ]);})->name('password.reset');
 
-Route::get('/', function () {
-    return view('pages.landing-pages');
-})->name('landing-pages');
+Route::get('/', function () {return view('pages.landing-pages');})->name('landing-pages');
 
-Route::get('/privacy-policy', function () {
-    return view('pages.privacy-policy');
-})->name('privacy-policy');
+Route::get('/privacy-policy', function () {return view('pages.privacy-policy');})->name('privacy-policy');
 
-Route::get('/term-of-services', function () {
-    return view('pages.terms-of-service');
-})->name('terms-of-service');
+Route::get('/term-of-services', function () {return view('pages.terms-of-service');})->name('terms-of-service');
+
+Route::post('/account-deletion',[AccountDeletionController::class, 'store'])->name('account.deletion.request');
 
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
     ->name('verification.verify');

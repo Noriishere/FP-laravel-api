@@ -360,21 +360,52 @@
                                     <i class="fa-solid fa-trash text-red-500"></i>
                                 </div>
 
-                                <div>
+                                <div class="w-full">
 
                                     <h3 class="text-lg font-bold text-dark">
                                         Request Account Deletion
                                     </h3>
 
                                     <p class="mt-2 text-sm leading-7 text-grayText">
-                                        Kirim permintaan penghapusan akun ke:
+                                        Masukkan email akun yang ingin dihapus. Kami akan memproses permintaan penghapusan
+                                        akun Anda.
                                     </p>
 
-                                    <a href="mailto:naltydev@gmail.com"
-                                        class="mt-3 inline-flex items-center gap-2 font-semibold text-primary hover:underline">
-                                        <i class="fa-solid fa-envelope"></i>
-                                        naltydev@gmail.com
-                                    </a>
+                                    @if (session('success'))
+                                        <div class="mt-4 rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700">
+                                            {{ session('success') }}
+                                        </div>
+                                    @endif
+                                    <div class="mt-4 rounded-2xl bg-blue-50 p-4 text-sm text-blue-700">
+                                        Permintaan penghapusan akun akan diproses maksimal dalam 7 hari kerja setelah
+                                        verifikasi.
+                                    </div>
+                                    <form action="{{ route('account.deletion.request') }}" method="POST" class="mt-5">
+                                        @csrf
+
+                                        <div>
+                                            <label class="mb-2 block text-sm font-medium text-dark">
+                                                Email
+                                            </label>
+
+                                            <input type="email" name="email" value="{{ old('email') }}"
+                                                placeholder="example@email.com"
+                                                class="w-full rounded-2xl border border-borderColor bg-white px-4 py-3 outline-none transition focus:border-primary"
+                                                required>
+
+                                            @error('email')
+                                                <p class="mt-2 text-sm text-red-500">
+                                                    {{ $message }}
+                                                </p>
+                                            @enderror
+                                        </div>
+
+                                        <button type="submit"
+                                            class="mt-4 inline-flex items-center gap-2 rounded-2xl bg-red-500 px-5 py-3 font-semibold text-white transition hover:bg-red-600">
+                                            <i class="fa-solid fa-trash"></i>
+                                            Request Deletion
+                                        </button>
+                                    </form>
 
                                 </div>
 
