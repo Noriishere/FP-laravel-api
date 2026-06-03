@@ -80,12 +80,6 @@ class AuthController extends Controller
             'last_login_at' => now(),
         ]);
         
-        $verification = LoginVerification::create([
-            'user_id' => $user->id,
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-            'status' => 'approved',
-        ]);
         return $this->respondWithToken($token);
     }
 
