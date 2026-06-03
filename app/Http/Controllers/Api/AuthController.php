@@ -74,7 +74,18 @@ class AuthController extends Controller
                 ],
             ], 403);
         }
-
+        $user->update([
+            'last_user_agent' => $request->userAgent(),
+            'last_ip_address' => $request->ip(),
+            'last_login_at' => now(),
+        ]);
+        
+        $verification = LoginVerification::create([
+            'user_id' => $user->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'status' => 'approved',
+        ]);
         return $this->respondWithToken($token);
     }
 
@@ -83,7 +94,7 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => auth('api')->factory()->getTTL() * 60,
+            'expires_in' => auth('api')->factory()->getTTL() * 1,
             'user' => auth('api')->user(),
         ]);
     }
