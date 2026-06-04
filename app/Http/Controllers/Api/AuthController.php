@@ -160,7 +160,9 @@ class AuthController extends Controller
     public function refresh()
     {
         \Log::info('REFRESH HIT');
-
+        \Log::info('REFRESH HEADER', [
+            'auth' => request()->header('Authorization')
+        ]);
         try {
             $token = auth('api')->refresh();
 
