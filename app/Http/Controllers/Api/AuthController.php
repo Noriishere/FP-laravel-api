@@ -88,7 +88,7 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => auth('api')->factory()->getTTL() * 60,
+            'expires_in' => auth('api')->factory()->getTTL() * 5,
             'user' => auth('api')->user(),
         ]);
     }
@@ -159,22 +159,21 @@ class AuthController extends Controller
 
     public function refresh()
     {
-        try {
+        \Log::info('REFRESH HIT');
 
+        try {
             $token = auth('api')->refresh();
+
+            \Log::info('REFRESH SUCCESS');
 
             return $this->respondWithToken($token);
 
         } catch (TokenBlacklistedException $e) {
 
+            \Log::info('REFRESH BLACKLISTED');
+
             return response()->json([
                 'message' => 'Token has been blacklisted'
-            ], 401);
-
-        } catch (JWTException $e) {
-
-            return response()->json([
-                'message' => 'Token invalid or missing'
             ], 401);
         }
     }
