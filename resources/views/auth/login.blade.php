@@ -22,8 +22,7 @@
                 </a>
 
                 <p class="mt-4 text-sm leading-7 text-gray-500">
-                    Login untuk melanjutkan pemesanan shuttle,
-                    tracking perjalanan, dan akses tiketmu.
+                    Login ke dashboard sebagai admin
                 </p>
 
             </div>
