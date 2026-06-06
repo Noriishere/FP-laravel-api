@@ -38,7 +38,7 @@
                     </h1>
 
                     <p class="mt-3 text-sm leading-7 text-gray-500">
-                        Masuk ke akun GASSIN milikmu.
+                        Masuk ke Halaman Admin.
                     </p>
 
                 </div>
@@ -98,13 +98,6 @@
 
                         </label>
 
-                        @if (Route::has('password.request'))
-                            <a href="{{ route('password.request') }}"
-                                class="text-sm font-semibold text-primary transition hover:opacity-80">
-                                Forgot password?
-                            </a>
-                        @endif
-
                     </div>
 
                     {{-- Button --}}
@@ -118,19 +111,6 @@
                     </button>
 
                 </form>
-
-                {{-- Bottom --}}
-                <div class="mt-8 border-t border-[#E8E3DC] pt-6 text-center">
-
-                    <p class="text-sm text-gray-500">
-                        Belum punya akun?
-
-                        <a href="{{ route('register') }}" class="font-bold text-primary hover:underline">
-                            Daftar sekarang
-                        </a>
-                    </p>
-
-                </div>
 
             </div>
 
