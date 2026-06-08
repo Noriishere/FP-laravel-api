@@ -162,7 +162,7 @@
                                 class="w-full border border-gray-200 rounded-lg pl-9 pr-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition @error('price') border-red-400 @enderror"
                                 required>
                         </div>
-                        <p class="mt-1.5 text-xs text-gray-500">Harga akan dibagi menjadi harga/banyaknya segmen</p>
+                        <p class="mt-1.5 text-xs text-gray-500">Harga akan dibagi menjadi harga : jumlah routestop(titik henti)</p>
                         @error('price')
                             <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                         @enderror
