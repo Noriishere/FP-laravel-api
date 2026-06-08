@@ -1,9 +1,9 @@
 <?php
 
 use App\Http\Controllers\AccountDeletionController;
-use App\Http\Controllers\Admin\BookingController;
-use App\Http\Controllers\Admin\RouteController;
-use App\Http\Controllers\Admin\ScheduleController;
+use App\Http\Controllers\Dashboard\BookingController;
+use App\Http\Controllers\Dashboard\RouteController;
+use App\Http\Controllers\Dashboard\ScheduleController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Dashboard\ApiLogController;
 use App\Http\Controllers\Dashboard\DriverController;

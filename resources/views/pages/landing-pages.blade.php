@@ -927,9 +927,9 @@
                     <h4 class="font-bold text-dark text-sm mb-4">Kontak</h4>
                     <ul class="space-y-2.5 text-sm text-grayText">
                         <li class="flex items-center gap-2"><i class="fa-solid fa-envelope text-xs text-primary"></i>
-                            naltydev@gmail.com</li>
+                            naltydevstudio@gmail.com</li>
                         <li class="flex items-center gap-2"><i class="fa-brands fa-whatsapp text-xs text-green-500"></i>
-                            +62 8xx-xxxx-xxxx</li>
+                            +62 89686027339</li>
                         <li class="flex items-center gap-2"><i class="fa-solid fa-location-dot text-xs text-primary"></i>
                             Jakarta, Indonesia</li>
                     </ul>

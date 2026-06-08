@@ -178,48 +178,6 @@ class DriverController extends Controller
         ]);
     }
 
-    public function uploadDocument(Request $request, $id)
-    {
-        $user = Auth::user();
-
-        $driver = Driver::find($id);
-
-        if (! $driver || $driver->user_id !== $user->id) {
-            return response()->json([
-                'message' => 'Unauthorized driver access',
-            ], 403);
-        }
-
-        $request->validate([
-            'type' => 'required|in:ktp,sim,selfie',
-            'file' => 'required|file|mimes:jpg,jpeg,png|max:2048',
-        ]);
-
-        $existing = DriverDocument::where('driver_id', $id)
-            ->where('type', $request->type)
-            ->first();
-
-        if ($existing) {
-            return response()->json([
-                'message' => 'Document already uploaded',
-            ], 400);
-        }
-
-        $filePath = $request->file('file')->store('driver_documents', 'public');
-
-        $doc = DriverDocument::create([
-            'driver_id' => $driver->id,
-            'type' => $request->type,
-            'file_path' => $filePath,
-            'status' => 'pending',
-        ]);
-
-        return response()->json([
-            'message' => 'Document uploaded',
-            'document' => $doc,
-        ]);
-    }
-
     public function routeDetail($id)
     {
         $user = auth('api')->user();
