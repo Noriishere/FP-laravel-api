@@ -64,11 +64,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('/admin')->group(function () {
 
     Route::put('/password', [PasswordController::class, 'update'])->name('password.update');
 
-    Route::resource('/users', UsersController::class);
-    Route::resource('/drivers', DriverController::class);
     Route::get('/users/deleted', [UsersController::class, 'deletedAccounts'])->name('users.deleted');
     Route::patch('/users/{id}/restore', [UsersController::class, 'restore'])->name('users.restore');
     Route::delete('/users/{id}/force-delete', [UsersController::class, 'forceDelete'])->name('users.forceDelete');
+    Route::resource('/users', UsersController::class);
+    Route::resource('/drivers', DriverController::class);
     Route::get('/trip-monitoring', [TripMonitoringController::class, 'index'])->name('trip-monitoring.index');
     Route::get('/trip-monitoring/{id}', [TripMonitoringController::class, 'show'])->name('trip-monitoring.show');
     Route::get('/trip-monitoring/{id}/data', [TripMonitoringController::class, 'trackingData'])->name('trip-monitoring.data');
