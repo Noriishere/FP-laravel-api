@@ -34,7 +34,7 @@ class PaymentController extends Controller
         }
         $user = auth('api')->user();
 
-        if ($user->email === 'reviewer@gassin.com') {
+        if ($user->email === 'reviewer@gassin.app') {
 
             $booking->update([
                 'status' => 'paid',
