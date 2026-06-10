@@ -14,7 +14,7 @@ class CleanupApiLogs extends Command
 
     public function handle()
     {
-        $days = 10;
+        $days = 3;
 
         $activityDeleted = ApiActivityLog::where(
             'created_at',
