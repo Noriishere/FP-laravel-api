@@ -67,7 +67,7 @@
 
                     <option value="admin" {{ old('role', $user->role)=='admin'?'selected':'' }}>Admin</option>
                     <option value="driver" {{ old('role', $user->role)=='driver'?'selected':'' }}>Driver</option>
-                    <option value="user" {{ old('role', $user->role)=='user'?'selected':'' }}>User</option>
+                    <option value="customer" {{ old('role', $user->role)=='customer'?'selected':'' }}>User</option>
 
                 </select>
             </div>

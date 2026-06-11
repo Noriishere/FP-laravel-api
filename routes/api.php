@@ -15,15 +15,11 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/email/resend', [AuthController::class, 'resendVerification']);
-Route::post('/drivers/register', [DriverAuthController::class, 'register']);
 Route::post('/drivers/login', [DriverAuthController::class, 'login']);
 Route::post('/payment/pakasir/webhook', [PaymentController::class, 'webhook']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
-Route::post('/debug', function () {
-    return response()->json(['masuk' => true]);
-});
 Route::get('/schedules/search', [ScheduleController::class, 'search']);
 
 Route::get('/schedules', [ScheduleController::class, 'index']);
@@ -53,8 +49,6 @@ Route::middleware(['auth:api', 'role:customer'])
 
 Route::middleware(['auth:api', 'role:driver'])->group(function () {
     Route::post('/scan-booking', [BookingController::class, 'scan']);
-    Route::post('/drivers/create', [DriverController::class, 'create']);
-    Route::post('/drivers/{id}/documents', [DriverController::class, 'uploadDocument']);
     Route::get('/me/schedules', [UserController::class, 'mySchedules']);
     Route::post('/driver/schedules/{id}/start', [LocationController::class, 'start']);
     Route::post('/driver/schedules/{id}/location', [LocationController::class, 'update'])->middleware('driver.location.throttle');
