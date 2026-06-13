@@ -30,7 +30,7 @@ class DriverLocationThrottle
             ], 429);
         }
 
-        Cache::put($key, true, 5);
+        Cache::put($key, true, 2);
 
         return $next($request);
     }
