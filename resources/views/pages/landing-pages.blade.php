@@ -295,7 +295,7 @@
                 </p>
 
                 <div class="mt-10 flex flex-wrap gap-4">
-                    <a href="#" class="btn-primary">
+                    <a href="https://play.google.com/store/apps/details?id=com.naltylabs.gassin&pcampaignid=web_share" target="_blank" class="btn-primary">
                         <i class="fa-brands fa-google-play"></i>
                         Download di Play Store
                     </a>
