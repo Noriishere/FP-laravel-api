@@ -871,7 +871,7 @@
             </p>
 
             <div class="mt-10 flex flex-wrap items-center justify-center gap-4">
-                <a href="#" class="btn-primary text-base !px-8 !py-4">
+                <a href="https://play.google.com/store/apps/details?id=com.naltylabs.gassin&pcampaignid=web_share" target="_blank" class="btn-primary text-base !px-8 !py-4">
                     <i class="fa-brands fa-google-play text-base"></i>
                     Download di Play Store
                 </a>
