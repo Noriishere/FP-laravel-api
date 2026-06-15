@@ -556,7 +556,7 @@
 
                     timeout = setTimeout(() => {
                         fetch(
-                                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`)
+                                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5&countrycodes=id`)
                             .then(r => r.json())
                             .then(data => {
                                 viaSuggestions.innerHTML = '';
