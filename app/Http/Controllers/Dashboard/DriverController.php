@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Driver;
 use App\Models\DriverDocument;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -90,14 +91,15 @@ class DriverController extends Controller
         ]);
 
         try {
-            // Langsung menandai email sebagai terverifikasi di database
-            $user->markEmailAsVerified();
+            // Coba kirim email verifikasi terlebih dahulu
+            event(new Registered($user));
 
         } catch (\Exception $e) {
-
-            Log::error('Gagal melakukan auto-verify pada driver: '.$user->email.' - Error: '.$e->getMessage());
+            // Jika gagal kirim email (misal SMTP error), langsung auto-verify akunnya
+            $user->markEmailAsVerified();
+            Log::warning('Email verifikasi gagal dikirim ke driver, otomatis diverifikasi: '.$user->email.' - Error: '.$e->getMessage());
         }
-        
+
         $driver = Driver::create([
 
             'user_id' => $user->id,
