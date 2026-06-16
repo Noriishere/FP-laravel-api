@@ -8,6 +8,7 @@ use App\Models\DriverDocument;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class DriverController extends Controller
@@ -88,6 +89,15 @@ class DriverController extends Controller
             'role' => 'driver',
         ]);
 
+        try {
+            // Langsung menandai email sebagai terverifikasi di database
+            $user->markEmailAsVerified();
+
+        } catch (\Exception $e) {
+
+            Log::error('Gagal melakukan auto-verify pada driver: '.$user->email.' - Error: '.$e->getMessage());
+        }
+        
         $driver = Driver::create([
 
             'user_id' => $user->id,
