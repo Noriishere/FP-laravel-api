@@ -81,8 +81,6 @@ class DriverController extends Controller
 
             'email' => $request->email,
 
-            'phone' => $request->phone,
-
             'password' => Hash::make(
                 $request->password
             ),
@@ -93,7 +91,7 @@ class DriverController extends Controller
         $driver = Driver::create([
 
             'user_id' => $user->id,
-
+            'phone' => $request->phone,
             'verification_status' => 'approved',
 
             'status' => 'offline',
