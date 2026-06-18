@@ -349,7 +349,7 @@
                             Rute Tersedia
                         </p>
                     </div>
-
+                    {{ dd($stats) }}
                 </div>
 
             </div>

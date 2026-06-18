@@ -38,8 +38,7 @@ Route::get('/reset-password/{token}', function (
         'email' => $request->email,
     ]);})->name('password.reset');
 
-Route::get('/', [LandingPageController::class, 'index'])
-    ->name('landing-pages');
+Route::get('/', [LandingPageController::class, 'index'])->name('landing-pages');
 
 Route::get('/privacy-policy', function () {return view('pages.privacy-policy');})->name('privacy-policy');
 
