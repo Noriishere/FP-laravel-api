@@ -310,10 +310,8 @@
 
                     <div>
                         <div class="flex items-end gap-0.5">
-                            <h3
-                                class="font-fraunces text-3xl font-black text-dark counter"
-                                data-target="{{ $stats['bookings'] }}">
-                                0
+                            <h3 class="font-fraunces text-3xl font-black text-dark">
+                                {{ $stats['bookings'] }}
                             </h3>
                             <span class="font-fraunces text-3xl font-black text-dark">+</span>
                         </div>
@@ -324,10 +322,8 @@
 
                     <div>
                         <div class="flex items-end gap-0.5">
-                            <h3
-                                class="font-fraunces text-3xl font-black text-dark counter"
-                                data-target="{{ $stats['drivers'] }}">
-                                0
+                            <h3 class="font-fraunces text-3xl font-black text-dark">
+                                {{ $stats['drivers'] }}
                             </h3>
                             <span class="font-fraunces text-3xl font-black text-dark">+</span>
                         </div>
@@ -338,10 +334,8 @@
 
                     <div>
                         <div class="flex items-end gap-0.5">
-                            <h3
-                                class="font-fraunces text-3xl font-black text-dark counter"
-                                data-target="{{ $stats['routes'] }}">
-                                0
+                            <h3 class="font-fraunces text-3xl font-black text-dark">
+                                {{ $stats['routes'] }}
                             </h3>
                             <span class="font-fraunces text-3xl font-black text-dark">+</span>
                         </div>
