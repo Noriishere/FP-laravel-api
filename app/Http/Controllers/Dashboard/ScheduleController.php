@@ -379,216 +379,80 @@ class ScheduleController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-
             'route_id' => 'required|exists:routes,id',
-
             'driver_id' => 'required|exists:drivers,id',
-
             'vehicle_id' => 'required|exists:vehicles,id',
-
             'departure_time' => 'required|date',
-
             'duration' => 'required|integer|min:1',
-
             'price' => 'required|numeric|min:0',
         ]);
 
-        $route = Route::with([
-            'stops',
-        ])->findOrFail(
-            $request->route_id
-        );
+        $route = Route::with(['stops'])->findOrFail($request->route_id);
 
         if ($route->stops->count() < 2) {
-
             return back()->withErrors([
                 'route' => 'Route minimal harus memiliki 2 stop',
             ]);
         }
 
-        $start = Carbon::parse(
-            $request->departure_time
-        );
+        $start = Carbon::parse($request->departure_time);
+        $end = $start->copy()->addMinutes((int) $request->duration);
 
-        $end = $start->copy()
-            ->addMinutes(
-                (int) $request->duration
-            );
-
-        $driverBusy = Schedule::where(
-            'driver_id',
-            $request->driver_id
-        )
-            ->whereIn('status', [
-                'scheduled',
-                'on-going',
-            ])
-            ->where(function ($q) use (
-                $start,
-                $end
-            ) {
-
-                $q->whereBetween(
-                    'departure_time',
-                    [$start, $end]
-                )
-                    ->orWhereBetween(
-                        'arrival_time',
-                        [$start, $end]
-                    )
-                    ->orWhere(function ($q2) use (
-                        $start,
-                        $end
-                    ) {
-
-                        $q2->where(
-                            'departure_time',
-                            '<=',
-                            $start
-                        )
-                            ->where(
-                                'arrival_time',
-                                '>=',
-                                $end
-                            );
+        $driverBusy = Schedule::where('driver_id', $request->driver_id)
+            ->whereIn('status', ['scheduled', 'on-going'])
+            ->where(function ($q) use ($start, $end) {
+                $q->whereBetween('departure_time', [$start, $end])
+                    ->orWhereBetween('arrival_time', [$start, $end])
+                    ->orWhere(function ($q2) use ($start, $end) {
+                        $q2->where('departure_time', '<=', $start)
+                            ->where('arrival_time', '>=', $end);
                     });
             })
             ->exists();
 
         if ($driverBusy) {
-
             return back()->withErrors([
                 'driver' => 'Driver sedang digunakan di waktu tersebut',
             ]);
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | Vehicle Conflict
-    |--------------------------------------------------------------------------
-    */
-
-        $vehicleBusy = Schedule::where(
-            'vehicle_id',
-            $request->vehicle_id
-        )->whereIn('status', [
-            'scheduled',
-            'on-going',
-        ])
-            ->where(function ($q) use (
-                $start,
-                $end
-            ) {
-
-                $q->whereBetween(
-                    'departure_time',
-                    [$start, $end]
-                )
-                    ->orWhereBetween(
-                        'arrival_time',
-                        [$start, $end]
-                    )
-                    ->orWhere(function ($q2) use (
-                        $start,
-                        $end
-                    ) {
-
-                        $q2->where(
-                            'departure_time',
-                            '<=',
-                            $start
-                        )
-                            ->where(
-                                'arrival_time',
-                                '>=',
-                                $end
-                            );
+        $vehicleBusy = Schedule::where('vehicle_id', $request->vehicle_id)
+            ->whereIn('status', ['scheduled', 'on-going'])
+            ->where(function ($q) use ($start, $end) {
+                $q->whereBetween('departure_time', [$start, $end])
+                    ->orWhereBetween('arrival_time', [$start, $end])
+                    ->orWhere(function ($q2) use ($start, $end) {
+                        $q2->where('departure_time', '<=', $start)
+                            ->where('arrival_time', '>=', $end);
                     });
             })
             ->exists();
 
         if ($vehicleBusy) {
-
             return back()->withErrors([
                 'vehicle' => 'Kendaraan sedang digunakan di waktu tersebut',
             ]);
         }
 
-        DB::transaction(function () use (
-            $request,
-            $route,
-            $start,
-            $end
-        ) {
+        $schedule = null;
 
-            /*
-        |--------------------------------------------------------------------------
-        | Create Schedule
-        |--------------------------------------------------------------------------
-        */
+        DB::transaction(function () use ($request, $route, $start, $end, &$schedule) {
 
             $schedule = Schedule::create([
-
                 'route_id' => $route->id,
-
                 'driver_id' => $request->driver_id,
-
                 'vehicle_id' => $request->vehicle_id,
-
                 'departure_time' => $start,
-
                 'arrival_time' => $end,
-
                 'estimated_duration' => $request->duration,
-
                 'price' => $request->price,
-
                 'status' => 'scheduled',
             ]);
-            $driver = Driver::with('user')->findOrFail($request->driver_id);
 
-            try {
-
-                Mail::to($driver->user->email)
-                    ->send(new DriverAssignmentMail($schedule));
-
-                return redirect()
-                    ->route('schedules.index')
-                    ->with('success', 'Jadwal berhasil dibuat dan email terkirim.');
-
-            } catch (\Throwable $e) {
-
-                Log::error('Driver assignment email failed', [
-                    'schedule_id' => $schedule->id,
-                    'message' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ]);
-
-                return redirect()
-                    ->route('schedules.index')
-                    ->with(
-                        'warning',
-                        'Jadwal berhasil dibuat, tetapi email notifikasi gagal dikirim.'
-                    );
-            }
-            /*
-        |--------------------------------------------------------------------------
-        | Generate Seats
-        |--------------------------------------------------------------------------
-        */
-
-            $vehicle = Vehicle::findOrFail(
-                $request->vehicle_id
-            );
-
+            $vehicle = Vehicle::findOrFail($request->vehicle_id);
             $seats = [];
 
-            for (
-                $i = 1;
-                $i <= $vehicle->capacity;
-                $i++
-            ) {
-
+            for ($i = 1; $i <= $vehicle->capacity; $i++) {
                 $seats[] = [
                     'schedule_id' => $schedule->id,
                     'seat_number' => $i,
@@ -599,32 +463,12 @@ class ScheduleController extends Controller
 
             Seat::insert($seats);
 
-            /*
-        |--------------------------------------------------------------------------
-        | Generate Stop Times
-        |--------------------------------------------------------------------------
-        */
-
             $stopCount = $route->stops->count();
+            $durationPerSegment = $request->duration / max(1, ($stopCount - 1));
 
-            $durationPerSegment =
-                $request->duration
-                / max(1, ($stopCount - 1));
-
-            foreach (
-                $route->stops as $index => $stop
-            ) {
-
-                $arrival =
-                    $start->copy()
-                        ->addMinutes(
-                            floor(
-                                $durationPerSegment * $index
-                            )
-                        );
-
-                $departure =
-                    $arrival->copy()->addMinutes(5);
+            foreach ($route->stops as $index => $stop) {
+                $arrival = $start->copy()->addMinutes(floor($durationPerSegment * $index));
+                $departure = $arrival->copy()->addMinutes(5);
 
                 if ($index === 0) {
                     $arrival = null;
@@ -635,30 +479,37 @@ class ScheduleController extends Controller
                 }
 
                 ScheduleStopTime::create([
-
                     'schedule_id' => $schedule->id,
-
                     'route_stop_id' => $stop->id,
-
                     'arrival_time' => $arrival,
-
                     'departure_time' => $departure,
-
                     'status' => 'pending',
-
                     'stop_order' => $stop->order,
-
                     'delay_minutes' => 0,
                 ]);
             }
         });
 
-        return redirect()
-            ->route('schedules.index')
-            ->with(
-                'success',
-                'Schedule berhasil dibuat'
-            );
+        $driver = Driver::with('user')->findOrFail($request->driver_id);
+
+        try {
+            Mail::to($driver->user->email)->send(new DriverAssignmentMail($schedule));
+
+            return redirect()
+                ->route('schedules.index')
+                ->with('success', 'Jadwal dan kursi otomatis berhasil dibuat, email terkirim.');
+
+        } catch (\Throwable $e) {
+            Log::error('Driver assignment email failed', [
+                'schedule_id' => $schedule->id,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()
+                ->route('schedules.index')
+                ->with('warning', 'Jadwal dan kursi berhasil dibuat, tetapi email notifikasi gagal dikirim.');
+        }
     }
 
     public function availableDrivers(Request $request)
