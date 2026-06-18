@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Mail\DriverAssignmentMail;
 use App\Models\Driver;
 use App\Models\Route;
 use App\Models\Schedule;
@@ -12,6 +13,8 @@ use App\Models\Vehicle;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Resend\Log;
 
 class ScheduleController extends Controller
 {
@@ -411,7 +414,7 @@ class ScheduleController extends Controller
             ->addMinutes(
                 (int) $request->duration
             );
-            
+
         $driverBusy = Schedule::where(
             'driver_id',
             $request->driver_id
@@ -542,7 +545,32 @@ class ScheduleController extends Controller
 
                 'status' => 'scheduled',
             ]);
+            $driver = Driver::with('user')->findOrFail($request->driver_id);
 
+            try {
+
+                Mail::to($driver->user->email)
+                    ->send(new DriverAssignmentMail($schedule));
+
+                return redirect()
+                    ->route('schedules.index')
+                    ->with('success', 'Jadwal berhasil dibuat dan email terkirim.');
+
+            } catch (\Throwable $e) {
+
+                Log::error('Driver assignment email failed', [
+                    'schedule_id' => $schedule->id,
+                    'message' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+
+                return redirect()
+                    ->route('schedules.index')
+                    ->with(
+                        'warning',
+                        'Jadwal berhasil dibuat, tetapi email notifikasi gagal dikirim.'
+                    );
+            }
             /*
         |--------------------------------------------------------------------------
         | Generate Seats
