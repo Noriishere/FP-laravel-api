@@ -121,15 +121,14 @@ class ReportController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('pages.reports.index', [
-            'bookings' => $bookings,
-            'summary' => $summary,
-            'period' => $period,
-            'traffic' => $traffic,
-            'topCustomers' => $topCustomers,
-            'navtitle',
-            'title'
-        ]);
+        return view('pages.reports.index', compact('navtitle',
+            'title'), [
+                'bookings' => $bookings,
+                'summary' => $summary,
+                'period' => $period,
+                'traffic' => $traffic,
+                'topCustomers' => $topCustomers,
+            ]);
     }
 
     public function exportPdf(Request $request)
