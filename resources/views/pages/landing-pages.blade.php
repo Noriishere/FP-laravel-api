@@ -349,7 +349,6 @@
                             Rute Tersedia
                         </p>
                     </div>
-                    {{ dd($stats) }}
                 </div>
 
             </div>
@@ -982,29 +981,28 @@
         // Counter animation
         function animateCounters() {
             document.querySelectorAll('.counter').forEach(el => {
-                const target = parseInt(el.dataset.target);
+                const target = Number(el.dataset.target);
+
                 let current = 0;
-                const step = Math.ceil(target / 40);
+                const step = Math.max(1, Math.ceil(target / 40));
+
                 const timer = setInterval(() => {
-                    current = Math.min(current + step, target);
+                    current += step;
+
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+
                     el.textContent = current;
-                    if (current >= target) clearInterval(timer);
                 }, 40);
             });
         }
 
-        // Trigger counters on scroll
-        const firstCounter = document.querySelector('.counter');
-        if (firstCounter) {
-            new IntersectionObserver((entries, obs) => {
-                if (entries[0].isIntersecting) {
-                    animateCounters();
-                    obs.disconnect();
-                }
-            }, {
-                threshold: 0.5
-            }).observe(firstCounter.closest('div'));
-        }
+        // Jalankan counter setelah halaman selesai dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            animateCounters();
+        });
 
         // Animate stat bars from 0 on scroll
         document.querySelectorAll('.stat-bar-fill').forEach(bar => {
