@@ -60,48 +60,48 @@
                 {{-- Stats --}}
                 <div class="grid w-full max-w-lg grid-cols-2 gap-5">
 
-                    @foreach([
-                        [
-                            'title' => 'Total Bookings',
-                            'value' => $stats['bookings'],
-                            'desc' => 'Total reservasi'
-                        ],
-                        [
-                            'title' => 'Active Schedules',
-                            'value' => $stats['schedules'],
-                            'desc' => 'Jadwal tersedia'
-                        ],
-                        [
-                            'title' => 'Drivers On Duty',
-                            'value' => $stats['drivers'],
-                            'desc' => 'Driver terdaftar'
-                        ],
-                        [
-                            'title' => 'Fleet Availability',
-                            'value' => $stats['vehicles'],
-                            'desc' => 'Kendaraan aktif'
-                        ],
-                    ] as $stat)
+                @foreach([
+                    [
+                        'title' => 'Total Bookings',
+                        'value' => $stats['bookings'],
+                        'desc' => 'Total reservasi'
+                    ],
+                    [
+                        'title' => 'Active Schedules',
+                        'value' => $stats['schedules'],
+                        'desc' => 'Jadwal tersedia'
+                    ],
+                    [
+                        'title' => 'Drivers On Duty',
+                        'value' => $stats['drivers'],
+                        'desc' => 'Driver terdaftar'
+                    ],
+                    [
+                        'title' => 'Fleet Availability',
+                        'value' => $stats['vehicles'],
+                        'desc' => 'Kendaraan aktif'
+                    ],
+                ] as $stat)
 
-                    @foreach ($stats as $stat)
-                        <div class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+                    <div class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
 
-                            <p class="text-sm text-white/50">
-                                {{ $stat['title'] }}
-                            </p>
+                        <p class="text-sm text-white/50">
+                            {{ $stat['title'] }}
+                        </p>
 
-                            <h3 class="font-fraunces mt-3 text-4xl font-black text-white">
-                                {{ $stat['value'] }}
-                            </h3>
+                        <h3 class="font-fraunces mt-3 text-4xl font-black text-white">
+                            {{ number_format($stat['value']) }}
+                        </h3>
 
-                            <p class="mt-2 text-xs text-green-400">
-                                {{ $stat['desc'] }}
-                            </p>
+                        <p class="mt-2 text-xs text-green-400">
+                            {{ $stat['desc'] }}
+                        </p>
 
-                        </div>
-                    @endforeach
+                    </div>
 
-                </div>
+                @endforeach
+
+            </div>
 
             </div>
 
