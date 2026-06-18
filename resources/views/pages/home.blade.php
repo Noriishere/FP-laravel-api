@@ -60,14 +60,28 @@
                 {{-- Stats --}}
                 <div class="grid w-full max-w-lg grid-cols-2 gap-5">
 
-                    @php
-                        $stats = [
-                            ['title' => 'Total Bookings', 'value' => '1,284', 'desc' => '+8% from last week'],
-                            ['title' => 'Active Schedules', 'value' => '42', 'desc' => 'Operational today'],
-                            ['title' => 'Drivers On Duty', 'value' => '18', 'desc' => 'Verified & active'],
-                            ['title' => 'Fleet Availability', 'value' => '76%', 'desc' => 'Vehicles ready'],
-                        ];
-                    @endphp
+                    @foreach([
+                        [
+                            'title' => 'Total Bookings',
+                            'value' => $stats['bookings'],
+                            'desc' => 'Total reservasi'
+                        ],
+                        [
+                            'title' => 'Active Schedules',
+                            'value' => $stats['schedules'],
+                            'desc' => 'Jadwal tersedia'
+                        ],
+                        [
+                            'title' => 'Drivers On Duty',
+                            'value' => $stats['drivers'],
+                            'desc' => 'Driver terdaftar'
+                        ],
+                        [
+                            'title' => 'Fleet Availability',
+                            'value' => $stats['vehicles'],
+                            'desc' => 'Kendaraan aktif'
+                        ],
+                    ] as $stat)
 
                     @foreach ($stats as $stat)
                         <div class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">

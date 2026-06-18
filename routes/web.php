@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountDeletionController;
+use App\Http\Controllers\AdminLandingController;
 use App\Http\Controllers\Dashboard\BookingController;
 use App\Http\Controllers\Dashboard\RouteController;
 use App\Http\Controllers\Dashboard\ScheduleController;
@@ -25,9 +26,7 @@ Route::get('/reset-password/{token}', function ($token) {
     ]);
 })->name('password.reset');
 
-Route::get('/admin/', function () {
-    return view('pages.home');
-});
+Route::get('/admin', [AdminLandingController::class, 'index'])->name('admin.landing');
 
 Route::get('/reset-password/{token}', function (
     Request $request,
