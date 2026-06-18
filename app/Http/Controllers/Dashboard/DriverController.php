@@ -91,16 +91,12 @@ class DriverController extends Controller
         ]);
 
         try {
-            // 1. Coba kirim email verifikasi terlebih dahulu
-            // (Jika sukses, email terkirim ke driver)
             event(new Registered($user));
 
         } catch (\Exception $e) {
-            // 2. Jika gagal kirim email (misal SMTP error), catat errornya
             Log::warning('Email verifikasi gagal dikirim ke driver: '.$user->email.' - Error: '.$e->getMessage());
         }
 
-        // 3. APAPUN YANG TERJADI (sukses kirim email ataupun gagal), akun tetap langsung di-acc / diverifikasi otomatis
         if (! $user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
         }

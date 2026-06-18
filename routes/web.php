@@ -12,6 +12,7 @@ use App\Http\Controllers\Dashboard\TripMonitoringController;
 use App\Http\Controllers\Dashboard\UsersController;
 use App\Http\Controllers\Dashboard\VehicleController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
@@ -37,7 +38,8 @@ Route::get('/reset-password/{token}', function (
         'email' => $request->email,
     ]);})->name('password.reset');
 
-Route::get('/', function () {return view('pages.landing-pages');})->name('landing-pages');
+Route::get('/', [LandingPageController::class, 'index'])
+    ->name('landing-pages');
 
 Route::get('/privacy-policy', function () {return view('pages.privacy-policy');})->name('privacy-policy');
 

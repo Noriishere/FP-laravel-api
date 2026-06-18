@@ -307,27 +307,49 @@
 
                 {{-- Stats --}}
                 <div class="mt-14 grid grid-cols-3 gap-6 border-t border-borderColor pt-10">
+
                     <div>
                         <div class="flex items-end gap-0.5">
-                            <h3 class="font-fraunces text-3xl font-black text-dark counter" data-target="10">0</h3>
-                            <span class="font-fraunces text-3xl font-black text-dark">K+</span>
-                        </div>
-                        <p class="mt-1 text-xs text-grayText font-medium">Pengguna Aktif</p>
-                    </div>
-                    <div>
-                        <div class="flex items-end gap-0.5">
-                            <h3 class="font-fraunces text-3xl font-black text-dark counter" data-target="98">0</h3>
-                            <span class="font-fraunces text-3xl font-black text-dark">%</span>
-                        </div>
-                        <p class="mt-1 text-xs text-grayText font-medium">Kepuasan User</p>
-                    </div>
-                    <div>
-                        <div class="flex items-end gap-0.5">
-                            <h3 class="font-fraunces text-3xl font-black text-dark counter" data-target="50">0</h3>
+                            <h3
+                                class="font-fraunces text-3xl font-black text-dark counter"
+                                data-target="{{ $stats['bookings'] }}">
+                                0
+                            </h3>
                             <span class="font-fraunces text-3xl font-black text-dark">+</span>
                         </div>
-                        <p class="mt-1 text-xs text-grayText font-medium">Rute Tersedia</p>
+                        <p class="mt-1 text-xs text-grayText font-medium">
+                            Perjalanan
+                        </p>
                     </div>
+
+                    <div>
+                        <div class="flex items-end gap-0.5">
+                            <h3
+                                class="font-fraunces text-3xl font-black text-dark counter"
+                                data-target="{{ $stats['drivers'] }}">
+                                0
+                            </h3>
+                            <span class="font-fraunces text-3xl font-black text-dark">+</span>
+                        </div>
+                        <p class="mt-1 text-xs text-grayText font-medium">
+                            Driver Aktif
+                        </p>
+                    </div>
+
+                    <div>
+                        <div class="flex items-end gap-0.5">
+                            <h3
+                                class="font-fraunces text-3xl font-black text-dark counter"
+                                data-target="{{ $stats['routes'] }}">
+                                0
+                            </h3>
+                            <span class="font-fraunces text-3xl font-black text-dark">+</span>
+                        </div>
+                        <p class="mt-1 text-xs text-grayText font-medium">
+                            Rute Tersedia
+                        </p>
+                    </div>
+
                 </div>
 
             </div>
