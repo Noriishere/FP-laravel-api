@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers\Dashboard;
 
-use Illuminate\Http\Request;
-use App\Models\ApiCrashLog;
-use App\Models\ApiActivityLog;
 use App\Http\Controllers\Controller;
+use App\Models\ApiActivityLog;
+use App\Models\ApiCrashLog;
+use Illuminate\Http\Request;
 
 class ApiLogController extends Controller
 {
-
     public function activity(Request $request)
     {
+        $title = 'Apilog Activity || Admin Gassin!';
+        $navtitle = 'Apilog';
         $logs = ApiActivityLog::query()
 
             ->when($request->search, function ($query, $search) {
@@ -35,12 +36,14 @@ class ApiLogController extends Controller
 
         return view(
             'pages.api-logs.activity',
-            compact('logs')
+            compact('logs', 'navtitle', 'title')
         );
     }
 
     public function crashes(Request $request)
     {
+        $title = 'Crash Log Activity || Admin Gassin!';
+        $navtitle = 'Crash Log';
         $logs = ApiCrashLog::query()
 
             ->when($request->search, function ($query, $search) {
@@ -58,7 +61,7 @@ class ApiLogController extends Controller
 
         return view(
             'pages.api-logs.crashes',
-            compact('logs')
+            compact('logs', 'navtitle', 'title')
         );
     }
 

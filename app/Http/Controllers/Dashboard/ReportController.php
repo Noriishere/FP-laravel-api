@@ -13,6 +13,8 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
+        $title = 'Report Analytics || Admin Gassin!';
+        $navtitle = 'Laporan';
         $period = $request->get('period', now()->format('Y-m'));
 
         try {
@@ -125,6 +127,8 @@ class ReportController extends Controller
             'period' => $period,
             'traffic' => $traffic,
             'topCustomers' => $topCustomers,
+            'navtitle',
+            'title'
         ]);
     }
 

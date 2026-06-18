@@ -109,24 +109,6 @@
                                         color:#6B6B6B;
                                         font-size:14px;
                                     ">
-                                        Durasi
-                                    </td>
-
-                                    <td align="right" style="
-                                        padding:14px 0;
-                                        color:#111010;
-                                        font-weight:bold;
-                                    ">
-                                        {{ $schedule->duration }} menit
-                                    </td>
-                                </tr>
-
-                                <tr>
-                                    <td style="
-                                        padding:14px 0;
-                                        color:#6B6B6B;
-                                        font-size:14px;
-                                    ">
                                         Kendaraan
                                     </td>
 
@@ -159,20 +141,6 @@
                                 </tr>
 
                             </table>
-
-                            <div style="margin-top:30px;text-align:center;">
-                                <a href="{{ config('app.url') }}" style="
-                                        display:inline-block;
-                                        background:#E82C2C;
-                                        color:#ffffff;
-                                        text-decoration:none;
-                                        padding:14px 28px;
-                                        border-radius:12px;
-                                        font-weight:bold;
-                                    ">
-                                    Buka Dashboard Driver
-                                </a>
-                            </div>
 
                         </td>
                     </tr>
