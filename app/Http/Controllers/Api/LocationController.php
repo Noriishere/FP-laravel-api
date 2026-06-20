@@ -786,7 +786,137 @@ class LocationController extends Controller
             ],
         ]);
     }
+    // public function stop(Request $request, $id)
+    // {
+    //     $driver = auth('api')->user()?->driver;
 
+    //     if (! $driver) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Driver not found',
+    //         ], 403);
+    //     }
+
+    //     // Tambahkan 'route.stops' agar kita bisa mencari titik tujuan akhirnya
+    //     $schedule = Schedule::with([
+    //         'route.origin',
+    //         'route.destination',
+    //         'route.stops',
+    //         'vehicle',
+    //     ])
+    //         ->where('id', $id)
+    //         ->where('driver_id', $driver->id)
+    //         ->first();
+
+    //     if (! $schedule) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Unauthorized schedule',
+    //         ], 403);
+    //     }
+
+    //     if ($schedule->status === 'scheduled') {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Trip has not started yet',
+    //         ], 400);
+    //     }
+
+    //     if ($schedule->status === 'completed') {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Trip already completed',
+    //         ], 400);
+    //     }
+
+    //     // 1. Ambil koordinat saat ini (Prioritaskan dari Request jika HP driver mengirimnya saat klik Stop)
+    //     $currentLat = $request->latitude;
+    //     $currentLng = $request->longitude;
+
+    //     // 2. Jika Request tidak mengirim koordinat, ambil dari data lokasi terakhir di tabel Location
+    //     if (! $currentLat || ! $currentLng) {
+    //         $lastLocation = Location::where('schedule_id', $schedule->id)
+    //             ->latest('recorded_at')
+    //             ->first();
+
+    //         if (! $lastLocation) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Lokasi saat ini tidak diketahui, tidak dapat menyelesaikan perjalanan.',
+    //             ], 400);
+    //         }
+
+    //         $currentLat = $lastLocation->latitude;
+    //         $currentLng = $lastLocation->longitude;
+    //     }
+
+    //     // 3. Tentukan titik akhir (destinasi utama)
+    //     $destination = $schedule->route->stops->sortByDesc('order')->first();
+
+    //     // Fallback: jika relasi stops kosong, ambil dari titik destination rute utama
+    //     $destLat = $destination ? $destination->lat : $schedule->route->destination?->lat;
+    //     $destLng = $destination ? $destination->lng : $schedule->route->destination?->lng;
+
+    //     // 4. Hitung Jarak dan Blokir jika > 10 meter
+    //     if ($destLat && $destLng) {
+    //         $distance = $this->haversine($currentLat, $currentLng, $destLat, $destLng);
+
+    //         // Jarak dalam fungsi haversine Anda mengembalikan satuan METER
+    //         if ($distance > 50) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Anda harus berada dalam radius 10 meter dari titik tujuan untuk menyelesaikan perjalanan. Jarak saat ini: ' . round($distance) . ' meter.',
+    //             ], 400);
+    //         }
+    //     }
+
+    //     // Jika lolos validasi jarak, selesaikan perjalanan
+    //     $now = now();
+
+    //     $schedule->update([
+    //         'status' => 'completed',
+    //     ]);
+
+    //     return response()->json([
+
+    //         'success' => true,
+
+    //         'message' => 'Trip completed successfully',
+
+    //         'data' => [
+
+    //             'schedule_id' => $schedule->id,
+
+    //             'status' => $schedule->status,
+
+    //             'departure_time' => $schedule->departure_time,
+
+    //             'arrival_time' => $schedule->arrival_time,
+
+    //             'completed_at' => $now,
+
+    //             'vehicle' => [
+
+    //                 'id' => $schedule->vehicle?->id,
+
+    //                 'name' => $schedule->vehicle?->name,
+
+    //                 'plate_number' => $schedule->vehicle?->plate_number,
+    //             ],
+
+    //             'route' => [
+
+    //                 'id' => $schedule->route?->id,
+
+    //                 'name' => $schedule->route?->name,
+
+    //                 'origin' => $schedule->route?->origin?->name,
+
+    //                 'destination' => $schedule->route?->destination?->name,
+    //             ],
+    //         ],
+    //     ]);
+    // }
     private function haversine($lat1, $lng1, $lat2, $lng2)
     {
         $earth = 6371000;

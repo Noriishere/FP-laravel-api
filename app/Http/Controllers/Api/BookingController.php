@@ -418,7 +418,7 @@ class BookingController extends Controller
                     'id' => $booking->schedule?->id,
 
                     'departure_time' => $booking->schedule?->departure_time,
-
+                    'status' => $booking->schedule?->status,
                     'arrival_time' => $booking->schedule?->arrival_time,
 
                     'vehicle' => [
