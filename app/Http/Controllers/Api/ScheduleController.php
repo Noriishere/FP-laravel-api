@@ -442,8 +442,7 @@ class ScheduleController extends Controller
                 $q->select('id', 'name');
             },
             'route.stops' => function ($q) {
-                $q->orderBy('order', 'asc')
-                    ->select('stops.id', 'route_id', 'name', 'order', 'is_pickup', 'is_dropoff');
+                $q->orderBy('order', 'asc');
             },
             'vehicle:id,name,plate_number',
             'driver:id,user_id',
@@ -489,14 +488,12 @@ class ScheduleController extends Controller
             $query->whereBetween('departure_time', [$start, $end]);
         }
 
-        // --- BAGIAN YANG SUDAH DIPERBAIKI ---
         $dirInput = $request->input('direction', 'asc');
         $direction = is_string($dirInput) ? strtolower($dirInput) : 'asc';
 
         if (! in_array($direction, ['asc', 'desc'])) {
             $direction = 'asc';
         }
-        // ------------------------------------
 
         $schedules = $query->orderBy('departure_time', $direction)
             ->limit(20)
