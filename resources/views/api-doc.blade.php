@@ -80,7 +80,7 @@
                     "/schedules/{id}/check-seat": { "post": { "tags": ["Schedules & Seats"], "summary": "Check Seat Status", "security": [], "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }], "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "properties": { "seat_id": { "type": "integer" }, "pickup_stop_id": { "type": "integer" }, "dropoff_stop_id": { "type": "integer" } } } } } }, "responses": { "200": { "description": "Status" } } } },
                     "/schedules/{id}/map": { "get": { "tags": ["Schedules & Seats"], "summary": "Map Route Schedule", "security": [], "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }], "responses": { "200": { "description": "Data map" } } } },
 
-                    "/bookings": { "post": { "tags": ["Customer"], "summary": "Store Booking", "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "properties": { "schedule_id": { "type": "integer" }, "pickup_stop_id": { "type": "integer" }, "dropoff_stop_id": { "type": "integer" }, "seat_ids": { "type": "array", "items": { "type": "integer" } } } } } }, "responses": { "200": { "description": "Success" } } } },
+                    "/bookings": { "post": { "tags": ["Customer"], "summary": "Store Booking", "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "properties": { "schedule_id": { "type": "integer" }, "pickup_stop_id": { "type": "integer" }, "dropoff_stop_id": { "type": "integer" }, "seat_ids": { "type": "array", "items": { "type": "integer" } } } } } }, "responses": { "200": { "description": "Success" } } } }},
                     "/bookings/{id}": { "get": { "tags": ["Customer"], "summary": "Detail Booking", "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }], "responses": { "200": { "description": "Detail" } } } },
                     "/me/bookings": { "get": { "tags": ["Customer"], "summary": "My Bookings History", "responses": { "200": { "description": "List" } } } },
                     "/me/booking/detail/{id}": { "get": { "tags": ["Customer"], "summary": "My Booking Detail", "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }], "responses": { "200": { "description": "Detail" } } } },
@@ -119,7 +119,6 @@
             });
             window.ui = ui;
         }
-    }
     </script>
 </body>
 
