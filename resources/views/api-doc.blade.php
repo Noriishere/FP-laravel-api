@@ -107,20 +107,20 @@
                         "/driver/schedules/{id}/location": { "post": { "tags": ["Driver"], "summary": "Update Lokasi Driver (Throttle)", "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }], "requestBody": { "content": { "application/json": { "schema": { "type": "object", "properties": { "latitude": { "type": "number" }, "longitude": { "type": "number" }, "speed": { "type": "number" }, "heading": { "type": "number" }, "accuracy": { "type": "number" }, "is_mocked": { "type": "boolean" } } } } } }, "responses": { "200": { "description": "Updated" } } } },
                         "/driver/schedules/{id}/stop": { "post": { "tags": ["Driver"], "summary": "Selesaikan Perjalanan (Stop)", "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }], "responses": { "200": { "description": "Stopped" } } } }
                     }
-                };
-
-                const ui = SwaggerUIBundle({
-                    spec: spec,
-                    dom_id: '#swagger-ui',
-                    deepLinking: true,
-                    presets: [
-                        SwaggerUIBundle.presets.apis,
-                        SwaggerUIStandalonePreset
-                    ],
-                    layout: "BaseLayout"
-                });
-                window.ui = ui;
-            };
+                }
+            }
+            const ui = SwaggerUIBundle({
+                spec: spec,
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                ],
+                layout: "BaseLayout"
+            });
+            window.ui = ui;
+        }
     </script>
 </body>
 
