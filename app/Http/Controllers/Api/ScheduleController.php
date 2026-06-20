@@ -489,9 +489,14 @@ class ScheduleController extends Controller
             $query->whereBetween('departure_time', [$start, $end]);
         }
 
-        $direction = in_array($request->get('direction', 'asc'), ['asc', 'desc'])
-            ? $request->get('direction')
-            : 'asc';
+        // --- BAGIAN YANG SUDAH DIPERBAIKI ---
+        $dirInput = $request->input('direction', 'asc');
+        $direction = is_string($dirInput) ? strtolower($dirInput) : 'asc';
+
+        if (! in_array($direction, ['asc', 'desc'])) {
+            $direction = 'asc';
+        }
+        // ------------------------------------
 
         $schedules = $query->orderBy('departure_time', $direction)
             ->limit(20)
