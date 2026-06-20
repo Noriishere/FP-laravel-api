@@ -437,10 +437,9 @@ class ScheduleController extends Controller
 
     public function sortedByDay(Request $request)
     {
-        // 1. DIET KETAT: Pilih kolom yang perlu saja dan muat Bookings di awal!
         $query = Schedule::with([
             'route' => function ($q) {
-                $q->select('id', 'name'); // Hindari kolom polyline
+                $q->select('id', 'name');
             },
             'route.stops' => function ($q) {
                 $q->orderBy('order', 'asc')
@@ -451,7 +450,6 @@ class ScheduleController extends Controller
             'driver.user:id,name',
             'seats:id,schedule_id,seat_number',
 
-            // SOLUSI N+1: Muat relasi Booking di sini, jangan di dalam looping!
             'bookings' => function ($q) {
                 $q->whereIn('payment_status', ['paid', 'pending'])
                     ->select('id', 'schedule_id', 'pickup_stop_id', 'dropoff_stop_id');
@@ -461,49 +459,42 @@ class ScheduleController extends Controller
             'bookings.bookingSeats:id,booking_id,seat_id',
         ]);
 
-        // FILTER ORIGIN
         if ($request->origin) {
             $query->whereHas('route.stops', function ($q) use ($request) {
                 $q->where('name', 'like', '%'.$request->origin.'%')->where('is_pickup', true);
             });
         }
 
-        // FILTER DESTINATION
         if ($request->destination) {
             $query->whereHas('route.stops', function ($q) use ($request) {
                 $q->where('name', 'like', '%'.$request->destination.'%')->where('is_dropoff', true);
             });
         }
 
-        // FILTER TANGGAL ORIGIN
         if ($request->origin_date) {
             $start = Carbon::parse($request->origin_date)->startOfDay();
             $end = Carbon::parse($request->origin_date)->endOfDay();
             $query->whereBetween('departure_time', [$start, $end]);
         }
 
-        // FILTER TANGGAL DESTINATION
         if ($request->destination_date) {
             $start = Carbon::parse($request->destination_date)->startOfDay();
             $end = Carbon::parse($request->destination_date)->endOfDay();
             $query->whereBetween('arrival_time', [$start, $end]);
         }
 
-        // FILTER RENTANG TANGGAL UMUM
         if ($request->from_date && $request->to_date) {
             $start = Carbon::parse($request->from_date)->startOfDay();
             $end = Carbon::parse($request->to_date)->endOfDay();
             $query->whereBetween('departure_time', [$start, $end]);
         }
 
-        // DIRECTION
         $direction = in_array($request->get('direction', 'asc'), ['asc', 'desc'])
             ? $request->get('direction')
             : 'asc';
 
-        // 2. LIMITASI DATA: Jangan biarkan PHP memuat ribuan data
         $schedules = $query->orderBy('departure_time', $direction)
-            ->limit(20) // <-- WAJIB: Batasi maksimal 20 (atau gunakan paginate(20))
+            ->limit(20)
             ->get()
             ->map(function ($schedule) {
 
@@ -511,12 +502,10 @@ class ScheduleController extends Controller
                 $segmentAvailability = [];
                 $totalSeats = $schedule->seats->count();
 
-                // AMBIL BOOKING DARI MEMORI (Bukan query baru ke database)
                 $bookings = $schedule->bookings;
 
                 if (! $stops || $stops->count() < 2) {
                     $schedule->segment_availability = [];
-                    // Sembunyikan relasi mentah agar response API bersih
                     unset($schedule->bookings);
 
                     return $schedule;
@@ -535,7 +524,6 @@ class ScheduleController extends Controller
                         $bookingPickup = $booking->pickupStop->order;
                         $bookingDropoff = $booking->dropoffStop->order;
 
-                        // Logika kursi terpakai (overlap)
                         $segmentOverlap = $from->order < $bookingDropoff && $to->order > $bookingPickup;
 
                         if ($segmentOverlap) {
@@ -572,7 +560,6 @@ class ScheduleController extends Controller
 
                 $schedule->segment_availability = $segmentAvailability;
 
-                // Hapus atribut yang tidak perlu dikembalikan ke frontend
                 unset($schedule->bookings);
 
                 return $schedule;
