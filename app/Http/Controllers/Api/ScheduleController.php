@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\Schedule;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ScheduleController extends Controller
 {
@@ -496,7 +497,7 @@ class ScheduleController extends Controller
         }
 
         $schedules = $query->orderBy('departure_time', $direction)
-            ->limit(20)
+            ->limit(50)
             ->get()
             ->map(function ($schedule) {
 
@@ -606,7 +607,7 @@ class ScheduleController extends Controller
             })
             ->whereExists(function ($sqlQuery) use ($origin, $destination) {
                 // Pastikan urutan stop asal < stop tujuan di SQL
-                $sqlQuery->select(\DB::raw(1))
+                $sqlQuery->select(DB::raw(1))
                     ->from('stops as s1')
                     ->join('stops as s2', 's1.route_id', '=', 's2.route_id')
                     ->whereRaw('s1.route_id = schedules.route_id')
