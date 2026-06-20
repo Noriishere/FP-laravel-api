@@ -12,239 +12,128 @@ class ScheduleController extends Controller
 {
     public function index(Request $request)
     {
-        $origin = strtolower(
-            trim($request->origin ?? '')
-        );
+        $origin = strtolower(trim($request->origin ?? ''));
+        $destination = strtolower(trim($request->destination ?? ''));
 
-        $destination = strtolower(
-            trim($request->destination ?? '')
-        );
-
+        // 1. Inisialisasi query dasar beserta Eager Loading yang diperlukan saja
         $query = Schedule::with([
-            'route.stops',
+            'route.stops' => function ($q) {
+                $q->orderBy('order', 'asc'); // Pastikan urutan stop konsisten dari database
+            },
             'route.origin',
             'route.destination',
             'vehicle',
             'driver.user',
         ]);
 
-        if (
-            $request->origin &&
-            $request->destination
-        ) {
+        // 2. Jika user mencari BERDASARKAN ORIGIN DAN DESTINATION sekaligus
+        if ($request->origin && $request->destination) {
+            $query->whereHas('route', function ($routeQuery) use ($origin, $destination) {
+                // Pastikan rute memiliki stop origin (pickup)
+                $routeQuery->whereHas('stops', function ($q) use ($origin) {
+                    $q->where('name', 'like', "%{$origin}%")->where('is_pickup', true);
+                });
 
-            $query->whereHas('route', function ($routeQuery) use (
-                $origin,
-                $destination
-            ) {
-
-                $routeQuery
-                    ->whereHas('stops', function ($q) use ($origin) {
-
-                        $q->where(
-                            'name',
-                            'like',
-                            "%{$origin}%"
-                        )->where(
-                            'is_pickup',
-                            true
-                        );
-                    })
-                    ->whereHas('stops', function ($q) use ($destination) {
-
-                        $q->where(
-                            'name',
-                            'like',
-                            "%{$destination}%"
-                        )->where(
-                            'is_dropoff',
-                            true
-                        );
-                    });
+                // Pastikan rute memiliki stop destination (dropoff)
+                $routeQuery->whereHas('stops', function ($q) use ($destination) {
+                    $q->where('name', 'like', "%{$destination}%")->where('is_dropoff', true);
+                });
             });
 
+            /* PENTING: Logika urutan rute (origin.order < destination.order)
+              sekarang dipindah ke Query Database agar PHP tidak jebol memproses ribuan data.
+            */
+            $query->whereExists(function ($sqlQuery) use ($origin, $destination) {
+                $sqlQuery->select(\DB::raw(1))
+                    ->from('stops as s1')
+                    ->join('stops as s2', 's1.route_id', '=', 's2.route_id')
+                    ->whereRaw('s1.route_id = schedules.route_id')
+                    ->where('s1.name', 'like', "%{$origin}%")
+                    ->where('s1.is_pickup', true)
+                    ->where('s2.name', 'like', "%{$destination}%")
+                    ->where('s2.is_dropoff', true)
+                    ->whereRaw('s1.order < s2.order');
+            });
+
+            // 3. Jika hanya mencari Origin saja
         } elseif ($request->origin) {
-
-            $query->whereHas('route.stops', function ($q) use ($request) {
-
-                $q->where(
-                    'name',
-                    'like',
-                    '%'.$request->origin.'%'
-                )->where(
-                    'is_pickup',
-                    true
-                );
+            $query->whereHas('route.stops', function ($q) use ($origin) {
+                $q->where('name', 'like', "%{$origin}%")->where('is_pickup', true);
             });
 
+            // 4. Jika hanya mencari Destination saja
         } elseif ($request->destination) {
-
-            $query->whereHas('route.stops', function ($q) use ($request) {
-
-                $q->where(
-                    'name',
-                    'like',
-                    '%'.$request->destination.'%'
-                )->where(
-                    'is_dropoff',
-                    true
-                );
+            $query->whereHas('route.stops', function ($q) use ($destination) {
+                $q->where('name', 'like', "%{$destination}%")->where('is_dropoff', true);
             });
         }
 
+        // 5. Batasi jumlah data (Pagination/Limit) LANGSUNG DI DATABASE sebelum memanggil ->get()
         $schedules = $query
             ->latest()
-            ->limit(20)
+            ->limit(20) // Ini memastikan maksimal hanya 20 data yang diubah jadi Object PHP
             ->get();
 
-        if (
-            $request->origin &&
-            $request->destination
-        ) {
-
-            $schedules = $schedules->filter(function ($schedule) use (
-                $origin,
-                $destination
-            ) {
-
-                $originStop = $schedule->route->stops
-                    ->first(function ($stop) use ($origin) {
-
-                        return str_contains(
-                            strtolower($stop->name),
-                            $origin
-                        );
-                    });
-
-                $destinationStop = $schedule->route->stops
-                    ->first(function ($stop) use ($destination) {
-
-                        return str_contains(
-                            strtolower($stop->name),
-                            $destination
-                        );
-                    });
-
-                if (
-                    ! $originStop ||
-                    ! $destinationStop
-                ) {
-
-                    return false;
-                }
-
-                return
-                    $originStop->order <
-                    $destinationStop->order;
-
-            })->values();
-        }
-
+        // 6. Transformasi data untuk Response API
         $data = $schedules->map(function ($schedule) {
-
             $stops = $schedule->route?->stops
                 ->reject(function ($stop) use ($schedule) {
-
-                    return
-                        $stop->id === $schedule->route?->origin?->id ||
-                        $stop->id === $schedule->route?->destination?->id;
+                    return $stop->id === $schedule->route?->origin?->id ||
+                           $stop->id === $schedule->route?->destination?->id;
                 })
                 ->groupBy(function ($stop) {
-
-                    return preg_replace(
-                        '/\s+/',
-                        ' ',
-                        strtolower(trim($stop->name))
-                    );
+                    return preg_replace('/\s+/', ' ', strtolower(trim($stop->name)));
                 })
                 ->map(function ($group) {
-
                     return $group->first();
                 })
                 ->values()
                 ->map(function ($stop) {
-
                     return [
-
                         'id' => $stop->id,
-
                         'name' => $stop->name,
-
                         'address' => $stop->address,
-
                         'latitude' => $stop->lat,
-
                         'longitude' => $stop->lng,
-
                         'order' => $stop->order,
-
                         'is_pickup' => $stop->is_pickup,
-
                         'is_dropoff' => $stop->is_dropoff,
                     ];
                 });
 
             return [
-
                 'id' => $schedule->id,
-
                 'departure_time' => $schedule->departure_time,
-
                 'arrival_time' => $schedule->arrival_time,
-
                 'status' => $schedule->status,
-
                 'price' => $schedule->price,
-
                 'vehicle' => [
-
                     'id' => $schedule->vehicle?->id,
-
                     'name' => $schedule->vehicle?->name,
-
                     'plate_number' => $schedule->vehicle?->plate_number,
                 ],
-
                 'driver' => [
-
                     'id' => $schedule->driver?->id,
-
                     'name' => $schedule->driver?->user?->name,
                 ],
-
                 'route' => [
-
                     'id' => $schedule->route?->id,
-
                     'name' => $schedule->route?->name,
-
                     'origin' => [
-
                         'id' => $schedule->route?->origin?->id,
-
                         'name' => $schedule->route?->origin?->name,
                     ],
-
                     'destination' => [
-
                         'id' => $schedule->route?->destination?->id,
-
                         'name' => $schedule->route?->destination?->name,
                     ],
-
-                    // 'polyline' => json_decode(
-                    //     $schedule->route?->polyline
-                    // ),
-
                     'stops' => $stops,
                 ],
             ];
         });
 
         return response()->json([
-
             'success' => true,
-
             'data' => $data,
         ]);
     }
