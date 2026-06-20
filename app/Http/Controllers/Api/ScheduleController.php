@@ -437,249 +437,143 @@ class ScheduleController extends Controller
 
     public function sortedByDay(Request $request)
     {
+        // 1. DIET KETAT: Pilih kolom yang perlu saja dan muat Bookings di awal!
         $query = Schedule::with([
-            'route.stops',
-            'vehicle',
-            'driver.user',
-            'seats',
+            'route' => function ($q) {
+                $q->select('id', 'name'); // Hindari kolom polyline
+            },
+            'route.stops' => function ($q) {
+                $q->orderBy('order', 'asc')
+                    ->select('stops.id', 'route_id', 'name', 'order', 'is_pickup', 'is_dropoff');
+            },
+            'vehicle:id,name,plate_number',
+            'driver:id,user_id',
+            'driver.user:id,name',
+            'seats:id,schedule_id,seat_number',
+
+            // SOLUSI N+1: Muat relasi Booking di sini, jangan di dalam looping!
+            'bookings' => function ($q) {
+                $q->whereIn('payment_status', ['paid', 'pending'])
+                    ->select('id', 'schedule_id', 'pickup_stop_id', 'dropoff_stop_id');
+            },
+            'bookings.pickupStop:id,order',
+            'bookings.dropoffStop:id,order',
+            'bookings.bookingSeats:id,booking_id,seat_id',
         ]);
 
+        // FILTER ORIGIN
         if ($request->origin) {
-
             $query->whereHas('route.stops', function ($q) use ($request) {
-
-                $q->where(
-                    'name',
-                    'like',
-                    '%'.$request->origin.'%'
-                )->where('is_pickup', true);
+                $q->where('name', 'like', '%'.$request->origin.'%')->where('is_pickup', true);
             });
         }
 
+        // FILTER DESTINATION
         if ($request->destination) {
-
             $query->whereHas('route.stops', function ($q) use ($request) {
-
-                $q->where(
-                    'name',
-                    'like',
-                    '%'.$request->destination.'%'
-                )->where('is_dropoff', true);
+                $q->where('name', 'like', '%'.$request->destination.'%')->where('is_dropoff', true);
             });
         }
 
+        // FILTER TANGGAL ORIGIN
         if ($request->origin_date) {
-
-            $start = Carbon::parse(
-                $request->origin_date
-            )->startOfDay();
-
-            $end = Carbon::parse(
-                $request->origin_date
-            )->endOfDay();
-
-            $query->whereBetween(
-                'departure_time',
-                [$start, $end]
-            );
+            $start = Carbon::parse($request->origin_date)->startOfDay();
+            $end = Carbon::parse($request->origin_date)->endOfDay();
+            $query->whereBetween('departure_time', [$start, $end]);
         }
 
+        // FILTER TANGGAL DESTINATION
         if ($request->destination_date) {
-
-            $start = Carbon::parse(
-                $request->destination_date
-            )->startOfDay();
-
-            $end = Carbon::parse(
-                $request->destination_date
-            )->endOfDay();
-
-            $query->whereBetween(
-                'arrival_time',
-                [$start, $end]
-            );
+            $start = Carbon::parse($request->destination_date)->startOfDay();
+            $end = Carbon::parse($request->destination_date)->endOfDay();
+            $query->whereBetween('arrival_time', [$start, $end]);
         }
 
-        if (
-            $request->from_date
-            &&
-            $request->to_date
-        ) {
-
-            $start = Carbon::parse(
-                $request->from_date
-            )->startOfDay();
-
-            $end = Carbon::parse(
-                $request->to_date
-            )->endOfDay();
-
-            $query->whereBetween(
-                'departure_time',
-                [$start, $end]
-            );
+        // FILTER RENTANG TANGGAL UMUM
+        if ($request->from_date && $request->to_date) {
+            $start = Carbon::parse($request->from_date)->startOfDay();
+            $end = Carbon::parse($request->to_date)->endOfDay();
+            $query->whereBetween('departure_time', [$start, $end]);
         }
 
-        $direction = $request->get(
-            'direction',
-            'asc'
-        );
+        // DIRECTION
+        $direction = in_array($request->get('direction', 'asc'), ['asc', 'desc'])
+            ? $request->get('direction')
+            : 'asc';
 
-        if (
-            ! in_array(
-                $direction,
-                ['asc', 'desc']
-            )
-        ) {
-
-            $direction = 'asc';
-        }
-
-        $query->orderBy(
-            'departure_time',
-            $direction
-        );
-
-        $schedules = $query->get()
+        // 2. LIMITASI DATA: Jangan biarkan PHP memuat ribuan data
+        $schedules = $query->orderBy('departure_time', $direction)
+            ->limit(20) // <-- WAJIB: Batasi maksimal 20 (atau gunakan paginate(20))
+            ->get()
             ->map(function ($schedule) {
 
-                $stops = $schedule->route?->stops
-                    ?->sortBy('order')
-                    ?->values();
-
+                $stops = $schedule->route?->stops?->values();
                 $segmentAvailability = [];
+                $totalSeats = $schedule->seats->count();
 
-                $totalSeats = $schedule->seats
-                    ->count();
+                // AMBIL BOOKING DARI MEMORI (Bukan query baru ke database)
+                $bookings = $schedule->bookings;
 
-                $bookings = Booking::with([
-                    'pickupStop',
-                    'dropoffStop',
-                    'bookingSeats',
-                ])
-                    ->where(
-                        'schedule_id',
-                        $schedule->id
-                    )
-                    ->whereIn(
-                        'payment_status',
-                        [
-                            'paid',
-                            'pending',
-                        ]
-                    )
-                    ->get();
-
-                if (
-                    ! $stops
-                    ||
-                    $stops->count() < 2
-                ) {
-
+                if (! $stops || $stops->count() < 2) {
                     $schedule->segment_availability = [];
+                    // Sembunyikan relasi mentah agar response API bersih
+                    unset($schedule->bookings);
 
                     return $schedule;
                 }
 
-                for (
-                    $i = 0;
-                    $i < $stops->count() - 1;
-                    $i++
-                ) {
-
+                for ($i = 0; $i < $stops->count() - 1; $i++) {
                     $from = $stops[$i];
-
                     $to = $stops[$i + 1];
-
                     $usedSeatIds = [];
 
                     foreach ($bookings as $booking) {
-
-                        if (
-                            ! $booking->pickupStop
-                            ||
-                            ! $booking->dropoffStop
-                        ) {
+                        if (! $booking->pickupStop || ! $booking->dropoffStop) {
                             continue;
                         }
 
-                        $bookingPickup =
-                            $booking->pickupStop->order;
+                        $bookingPickup = $booking->pickupStop->order;
+                        $bookingDropoff = $booking->dropoffStop->order;
 
-                        $bookingDropoff =
-                            $booking->dropoffStop->order;
-
-                        $segmentOverlap =
-                            $from->order
-                            <
-                            $bookingDropoff
-                            &&
-                            $to->order
-                            >
-                            $bookingPickup;
+                        // Logika kursi terpakai (overlap)
+                        $segmentOverlap = $from->order < $bookingDropoff && $to->order > $bookingPickup;
 
                         if ($segmentOverlap) {
-
-                            foreach (
-                                $booking->bookingSeats as $bookingSeat
-                            ) {
-
-                                $usedSeatIds[] =
-                                    $bookingSeat->seat_id;
+                            foreach ($booking->bookingSeats as $bookingSeat) {
+                                $usedSeatIds[] = $bookingSeat->seat_id;
                             }
                         }
                     }
 
-                    $usedSeatIds = array_unique(
-                        $usedSeatIds
-                    );
+                    $usedSeatIds = array_unique($usedSeatIds);
 
-                    $segmentSeats = $schedule->seats
-                        ->map(function ($seat) use (
-                            $usedSeatIds
-                        ) {
-
-                            return [
-
-                                'id' => $seat->id,
-
-                                'seat_number' => $seat->seat_number,
-
-                                'status' => in_array(
-                                    $seat->id,
-                                    $usedSeatIds
-                                )
-                                        ? 'booked'
-                                        : 'available',
-                            ];
-                        });
+                    $segmentSeats = $schedule->seats->map(function ($seat) use ($usedSeatIds) {
+                        return [
+                            'id' => $seat->id,
+                            'seat_number' => $seat->seat_number,
+                            'status' => in_array($seat->id, $usedSeatIds) ? 'booked' : 'available',
+                        ];
+                    });
 
                     $segmentAvailability[] = [
-
                         'from_stop' => [
                             'id' => $from->id,
                             'name' => $from->name,
                         ],
-
                         'to_stop' => [
                             'id' => $to->id,
                             'name' => $to->name,
                         ],
-
-                        'used_seats' => count(
-                            $usedSeatIds
-                        ),
-
-                        'available_seats' => $totalSeats
-                            -
-                            count($usedSeatIds),
-
+                        'used_seats' => count($usedSeatIds),
+                        'available_seats' => $totalSeats - count($usedSeatIds),
                         'seats' => $segmentSeats,
                     ];
                 }
 
-                $schedule->segment_availability =
-                    $segmentAvailability;
+                $schedule->segment_availability = $segmentAvailability;
+
+                // Hapus atribut yang tidak perlu dikembalikan ke frontend
+                unset($schedule->bookings);
 
                 return $schedule;
             });
@@ -697,113 +591,47 @@ class ScheduleController extends Controller
             'destination' => 'required|string',
         ]);
 
-        $origin = strtolower(
-            trim($request->origin)
-        );
+        $origin = strtolower(trim($request->origin));
+        $destination = strtolower(trim($request->destination));
 
-        $destination = strtolower(
-            trim($request->destination)
-        );
-
+        // Gunakan Eager Loading yang sudah "Diet" di atas
         $schedules = Schedule::with([
-            'stopTimes.stop',
-            'route',
-            'vehicle',
-            'driver.user',
-            'seats',
-        ])->get();
-
-        $filtered = $schedules->filter(
-            function ($schedule) use ($origin, $destination) {
-
-                $stops = $schedule->stopTimes;
-
-                $originStop = $stops->first(
-                    function ($stopTime) use ($origin) {
-
-                        if (! $stopTime->stop) {
-                            return false;
-                        }
-
-                        return
-                            str_contains(
-                                strtolower(
-                                    $stopTime->stop->name
-                                ),
-                                $origin
-                            )
-
-                            ||
-
-                            str_contains(
-                                strtolower(
-                                    $stopTime->stop->address
-                                ),
-                                $origin
-                            );
-                    }
-                );
-
-                $destinationStop = $stops->first(
-                    function ($stopTime) use ($destination) {
-
-                        if (! $stopTime->stop) {
-                            return false;
-                        }
-
-                        return
-                            str_contains(
-                                strtolower(
-                                    $stopTime->stop->name
-                                ),
-                                $destination
-                            )
-
-                            ||
-
-                            str_contains(
-                                strtolower(
-                                    $stopTime->stop->address
-                                ),
-                                $destination
-                            );
-                    }
-                );
-
-                if (
-                    ! $originStop
-                    ||
-                    ! $destinationStop
-                ) {
-                    dd([
-                        'origin' => $origin,
-                        'destination' => $destination,
-                        'stops' => $stops->map(function ($s) {
-
-                            return [
-                                'name' => $s->stop?->name,
-                                'address' => $s->stop?->address,
-                                'order' => $s->stop_order,
-                            ];
-                        }),
-                        'originStop' => $originStop,
-                        'destinationStop' => $destinationStop,
-                    ]);
-
-                    return false;
-                }
-
-                return
-                    $originStop->stop_order
-                    <
-                    $destinationStop->stop_order;
-            }
-        )->values();
+            'route' => function ($q) {
+                $q->select('id', 'name', 'origin_id', 'destination_id');
+            },
+            'route.stops' => function ($q) {
+                $q->orderBy('order', 'asc')->select('stops.id', 'route_id', 'name', 'address', 'order');
+            },
+            'vehicle:id,name,plate_number',
+            'driver:id,user_id',
+            'driver.user:id,name',
+            'seats', // Jika relasi ini berat, batasi juga kolomnya
+        ])
+            ->whereHas('route', function ($routeQuery) use ($origin, $destination) {
+                // Cek nama stop asal dan tujuan di SQL
+                $routeQuery->whereHas('stops', function ($q) use ($origin) {
+                    $q->where('name', 'like', "%{$origin}%");
+                })->whereHas('stops', function ($q) use ($destination) {
+                    $q->where('name', 'like', "%{$destination}%");
+                });
+            })
+            ->whereExists(function ($sqlQuery) use ($origin, $destination) {
+                // Pastikan urutan stop asal < stop tujuan di SQL
+                $sqlQuery->select(\DB::raw(1))
+                    ->from('stops as s1')
+                    ->join('stops as s2', 's1.route_id', '=', 's2.route_id')
+                    ->whereRaw('s1.route_id = schedules.route_id')
+                    ->where('s1.name', 'like', "%{$origin}%")
+                    ->where('s2.name', 'like', "%{$destination}%")
+                    ->whereRaw('s1.order < s2.order');
+            })
+            ->limit(20) // Wajib ada batas limit jika data sudah ribuan
+            ->get();
 
         return response()->json([
             'success' => true,
-            'count' => $filtered->count(),
-            'data' => $filtered,
+            'count' => $schedules->count(),
+            'data' => $schedules,
         ]);
     }
 }
