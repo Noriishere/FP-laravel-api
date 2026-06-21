@@ -364,19 +364,12 @@ class BookingController extends Controller
     public function show($id)
     {
         $booking = Booking::with([
-
             'user',
-
             'schedule.route',
-
             'schedule.vehicle',
-
             'schedule.driver.user',
-
             'pickupStop',
-
             'dropoffStop',
-
             'bookingSeats.seat',
         ])
             ->where(
@@ -386,89 +379,60 @@ class BookingController extends Controller
             ->findOrFail($id);
 
         return response()->json([
-
             'success' => true,
-
             'data' => [
-
                 'id' => $booking->id,
-
                 'order_id' => $booking->order_id,
-
                 'status' => $booking->status,
-
                 'payment_status' => $booking->payment_status,
-
                 'payment_method' => $booking->payment_method,
-
                 'payment_provider' => $booking->payment_provider,
-
                 'total_seat' => $booking->total_seat,
-
                 'total_price' => $booking->total_price,
-
                 'expired_at' => $booking->expired_at,
-
                 'checked_at' => $booking->checked_at,
-
                 'created_at' => $booking->created_at,
-
                 'schedule' => [
-
                     'id' => $booking->schedule?->id,
-
                     'departure_time' => $booking->schedule?->departure_time,
                     'status' => $booking->schedule?->status,
                     'arrival_time' => $booking->schedule?->arrival_time,
-
                     'vehicle' => [
-
                         'name' => $booking->schedule
                             ?->vehicle
                             ?->name,
                     ],
-
                     'driver' => [
-
                         'name' => $booking->schedule
                             ?->driver
                             ?->user
                             ?->name,
                     ],
-
                     'route' => [
-
                         'name' => $booking->schedule
                             ?->route
                             ?->name,
+                        // Ini tambahan untuk mengirimkan data polyline ke frontend
+                        'polyline' => $booking->schedule
+                            ?->route
+                            ?->polyline,
                     ],
                 ],
-
                 'segment' => [
-
                     'pickup' => [
-
                         'id' => $booking->pickupStop?->id,
-
                         'name' => $booking->pickupStop?->name,
                     ],
-
                     'dropoff' => [
-
                         'id' => $booking->dropoffStop?->id,
-
                         'name' => $booking->dropoffStop?->name,
                     ],
                 ],
-
                 'seats' => $booking
                     ->bookingSeats
                     ->map(function ($bookingSeat) {
-
                         return [
-
                             'id' => $bookingSeat->seat?->id,
-
                             'seat_number' => $bookingSeat
                                 ->seat
                                 ?->seat_number,
