@@ -422,10 +422,14 @@ class BookingController extends Controller
                     'pickup' => [
                         'id' => $booking->pickupStop?->id,
                         'name' => $booking->pickupStop?->name,
+                        'lat' => $booking->pickupStop?->lat, // Tambahkan baris ini
+                        'lng' => $booking->pickupStop?->lng, // Tambahkan baris ini
                     ],
                     'dropoff' => [
                         'id' => $booking->dropoffStop?->id,
                         'name' => $booking->dropoffStop?->name,
+                        'lat' => $booking->dropoffStop?->lat, // Tambahkan baris ini
+                        'lng' => $booking->dropoffStop?->lng, // Tambahkan baris ini
                     ],
                 ],
                 'seats' => $booking
