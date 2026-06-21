@@ -388,12 +388,12 @@ class LocationController extends Controller
                 2
             );
 
-            if ($destinationDistance <= 0.1) {
+            // if ($destinationDistance <= 0.1) {
 
-                $schedule->update([
-                    'status' => 'completed',
-                ]);
-            }
+            //     $schedule->update([
+            //         'status' => 'on',
+            //     ]);
+            // }
         }
 
         $nextStop = $schedule->stopTimes
