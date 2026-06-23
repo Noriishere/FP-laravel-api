@@ -16,11 +16,11 @@ Route::get('/', function () {
     return view('api-doc');
 });
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/email/resend', [AuthController::class, 'resendVerification']);
-Route::post('/drivers/login', [DriverAuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
+Route::post('/email/resend', [AuthController::class, 'resendVerification'])->middleware('throttle:3,10');
+Route::post('/drivers/login', [DriverAuthController::class, 'login'])->middleware('throttle:5,1');
 Route::post('/payment/pakasir/webhook', [PaymentController::class, 'webhook']);
-Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:3,10');
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 Route::get('/schedules/search', [ScheduleController::class, 'search']);
@@ -71,4 +71,4 @@ Route::middleware(['auth:api'])->group(function () {
     Route::post('/bookings', [BookingController::class, 'store']);
 });
 
-Route::post('/refresh', [AuthController::class, 'refresh']);
+Route::post('/refresh', [AuthController::class, 'refresh'])->middleware('throttle:30,1');
