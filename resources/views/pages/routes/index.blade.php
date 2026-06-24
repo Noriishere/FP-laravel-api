@@ -149,7 +149,7 @@
                                         </svg>
                                     </div>
                                     <p class="text-gray-500 text-sm">Belum ada route yang dibuat.</p>
-                                    <a href="{{ route('admin.routes.create') }}"
+                                    <a href="{{ route('routes.create') }}"
                                         class="text-primary text-sm font-medium hover:underline">Buat route pertama →</a>
                                 </div>
                             </td>

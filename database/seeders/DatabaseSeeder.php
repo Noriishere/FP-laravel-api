@@ -229,6 +229,7 @@ class DatabaseSeeder extends Seeder
         DB::table('booking_seats')->truncate();
         DB::table('bookings')->truncate();
         DB::table('schedules')->truncate();
+        DB::table('schedules_stop')->truncate();
         DB::table('route_stops')->truncate();
         DB::table('routes')->truncate();
         DB::table('api_crash_logs')->truncate();
