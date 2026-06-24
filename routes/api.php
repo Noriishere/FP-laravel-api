@@ -17,7 +17,7 @@ Route::get('/', function () {
 });
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
-
+Route::post('/google/login', [AuthController::class, 'googleLogin']);
 Route::post('/email/resend', [AuthController::class, 'resendVerification'])->middleware('throttle:3,10');
 Route::post('/drivers/login', [DriverAuthController::class, 'login'])->middleware('throttle:5,1');
 Route::post('/payment/pakasir/webhook', [PaymentController::class, 'webhook']);
