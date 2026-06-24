@@ -21,9 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => RoleMiddleware::class,
             'driver.location.throttle' => DriverLocationThrottle::class,
         ]);
-        // $middleware->api(append: [
-        //     ApiActivityLogger::class,
-        // ]);
+        $middleware->api(append: [
+            ApiActivityLogger::class,
+        ]);
     })
     ->withExceptions(function ($exceptions) {
 
@@ -33,42 +33,42 @@ return Application::configure(basePath: dirname(__DIR__))
                 return;
             }
 
-            // try {
+            try {
 
-            //     ApiCrashLog::create([
+                ApiCrashLog::create([
 
-            //         'user_id' => auth('api')->id(),
+                    'user_id' => auth('api')->id(),
 
-            //         'request_id' => request()->header('X-Request-Id'),
+                    'request_id' => request()->header('X-Request-Id'),
 
-            //         'method' => request()?->method(),
+                    'method' => request()?->method(),
 
-            //         'url' => request()?->fullUrl(),
+                    'url' => request()?->fullUrl(),
 
-            //         'status_code' => method_exists($e, 'getStatusCode')
-            //             ? $e->getStatusCode()
-            //             : 500,
+                    'status_code' => method_exists($e, 'getStatusCode')
+                        ? $e->getStatusCode()
+                        : 500,
 
-            //         'message' => $e->getMessage(),
+                    'message' => $e->getMessage(),
 
-            //         'trace' => $e->getTraceAsString(),
+                    'trace' => $e->getTraceAsString(),
 
-            //         'request_body' => request()?->except([
-            //             'password',
-            //             'password_confirmation',
-            //             'token',
-            //             'signature',
-            //         ]),
+                    'request_body' => request()?->except([
+                        'password',
+                        'password_confirmation',
+                        'token',
+                        'signature',
+                    ]),
 
-            //         'ip' => request()?->ip(),
+                    'ip' => request()?->ip(),
 
-            //         'user_agent' => request()?->userAgent(),
-            //     ]);
+                    'user_agent' => request()?->userAgent(),
+                ]);
 
-            // } catch (Throwable $logException) {
+            } catch (Throwable $logException) {
 
-            //     report($logException);
-            // }
+                report($logException);
+            }
         });
 
     })->create();
