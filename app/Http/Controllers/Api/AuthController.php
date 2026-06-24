@@ -4,18 +4,76 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Google\Client;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\URL;
-use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenBlacklistedException;
 
 class AuthController extends Controller
 {
+    public function googleLogin(Request $request)
+    {
+        $request->validate([
+            'id_token' => 'required',
+        ]);
+
+        $client = new Client([
+            'client_id' => config('services.google.client_id'),
+        ]);
+
+        $payload = $client->verifyIdToken($request->id_token);
+
+        if (! $payload) {
+            return response()->json([
+                'message' => 'Invalid Google Token',
+            ], 401);
+        }
+
+        $user = User::where('email', $payload['email'])->first();
+
+        if ($user && $user->role !== 'customer') {
+            return response()->json([
+                'message' => 'Login ini khusus customer',
+            ], 403);
+        }
+
+        if (! $user) {
+
+            $user = User::create([
+                'name' => $payload['name'],
+                'email' => $payload['email'],
+                'google_id' => $payload['sub'],
+                'provider' => 'google',
+                'role' => 'customer',
+                'email_verified_at' => now(),
+                'password' => bcrypt(Str::random(32)),
+            ]);
+
+        } else {
+
+            if (! $user->google_id) {
+
+                $user->update([
+                    'google_id' => $payload['sub'],
+                    'provider' => 'google',
+                ]);
+            }
+        }
+
+        $token = auth('api')->login($user);
+
+        return response()->json([
+            'access_token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => auth('api')->factory()->getTTL() * 60,
+            'user' => $user,
+        ]);
+    }
+
     public function register(Request $request)
     {
         $request->validate([
@@ -79,7 +137,7 @@ class AuthController extends Controller
             'last_ip_address' => $request->ip(),
             'last_login_at' => now(),
         ]);
-        
+
         return $this->respondWithToken($token);
     }
 
@@ -161,7 +219,7 @@ class AuthController extends Controller
     {
         \Log::info('REFRESH HIT');
         \Log::info('REFRESH HEADER', [
-            'auth' => request()->header('Authorization')
+            'auth' => request()->header('Authorization'),
         ]);
         try {
             $token = auth('api')->refresh();
@@ -175,7 +233,7 @@ class AuthController extends Controller
             \Log::info('REFRESH BLACKLISTED');
 
             return response()->json([
-                'message' => 'Token has been blacklisted'
+                'message' => 'Token has been blacklisted',
             ], 401);
         }
     }
@@ -187,7 +245,7 @@ class AuthController extends Controller
         if (! $user) {
 
             return view('verify-status', [
-                'status' => 'not-found'
+                'status' => 'not-found',
             ]);
         }
 
@@ -197,14 +255,14 @@ class AuthController extends Controller
         )) {
 
             return view('verify-status', [
-                'status' => 'invalid'
+                'status' => 'invalid',
             ]);
         }
 
         if ($user->hasVerifiedEmail()) {
 
             return view('verify-status', [
-                'status' => 'already'
+                'status' => 'already',
             ]);
         }
 
@@ -213,7 +271,7 @@ class AuthController extends Controller
         event(new Verified($user));
 
         return view('verify-status', [
-            'status' => 'success'
+            'status' => 'success',
         ]);
     }
 
