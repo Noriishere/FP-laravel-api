@@ -26,7 +26,6 @@ class GenerateScheduleService
 
     public function generate(Carbon $date): void
     {
-        
         $routes = Route::with('stops')
             ->where('is_active', true)
             ->get();
@@ -74,12 +73,7 @@ class GenerateScheduleService
                     $departure,
                     $arrival
                 );
-                dd([
-    'route' => $route->id,
-    'departure' => $departure->toDateTimeString(),
-    'driver' => $driver?->id,
-    'vehicle' => $vehicle?->id,
-]);
+
                 if (! $driver || ! $vehicle) {
                     continue;
                 }
@@ -230,7 +224,10 @@ class GenerateScheduleService
 
                 })
                 ->exists();
-
+            dd([
+                'driver' => $driver->id,
+                'busy' => $busy,
+            ]);
             if (! $busy) {
                 return $driver;
             }
