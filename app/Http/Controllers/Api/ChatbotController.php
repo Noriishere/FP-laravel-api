@@ -53,6 +53,20 @@ class ChatbotController extends Controller
                 'message' => 'Silakan masukkan kota keberangkatan Anda.',
             ]);
         }
+        if ($conversation->state == 'ask_origin') {
+
+            $conversation->update([
+                'state' => 'ask_destination',
+                'data' => [
+                    'origin' => $request->message,
+                ],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Sekarang masukkan kota tujuan Anda.',
+            ]);
+        }
 
         return response()->json([
             'success' => true,
