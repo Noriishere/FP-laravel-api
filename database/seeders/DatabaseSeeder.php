@@ -230,8 +230,6 @@ class DatabaseSeeder extends Seeder
         DB::table('seats')->truncate();
         DB::table('bookings')->truncate();
         DB::table('schedules')->truncate();
-        DB::table('schedules_stop')->truncate();
-        DB::table('route_stops')->truncate();
         DB::table('api_crash_logs')->truncate();
         DB::table('api_activity_logs')->truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
