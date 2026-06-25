@@ -10,6 +10,7 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Tymon\JWTAuth\Exceptions\TokenBlacklistedException;
@@ -55,17 +56,10 @@ class AuthController extends Controller
                 ]
             );
         } catch (UniqueConstraintViolationException $e) {
+            Log::error($e);
             $user = User::where('email', $payload['email'])->firstOrFail();
         }
 
-        if (! $user->google_id) {
-            $user->update([
-                'google_id' => $payload['sub'],
-                'provider' => 'google',
-            ]);
-        }
-
-        // update google_id jika belum ada
         if (! $user->google_id) {
             $user->update([
                 'google_id' => $payload['sub'],
@@ -82,7 +76,6 @@ class AuthController extends Controller
             'user' => $user,
         ]);
     }
-
     public function register(Request $request)
     {
         $request->validate([
