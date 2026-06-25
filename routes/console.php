@@ -11,4 +11,5 @@ Artisan::command('inspire', function () {
 Schedule::command('bookings:expire')->everyMinute();
 Schedule::command('users:delete-unverified')->daily();
 // Schedule::command('schedules:update-status')->everyMinute();
-Schedule::command('logs:cleanup')->everyminute();
+Schedule::command('logs:cleanup')->everyMinute();
+Schedule::command('app:generate-daily-schedules')->dailyAt('00:05');
