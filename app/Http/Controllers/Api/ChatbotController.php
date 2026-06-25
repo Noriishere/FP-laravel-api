@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\ChatbotConversation;
 use App\Models\Schedule;
+use App\Services\TelegramService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -117,12 +118,12 @@ class ChatbotController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => "Halo 👋 Selamat datang di Chatbot GASSIN.\n\n".
-                    "Silakan pilih layanan:\n\n".
-                    "1. Cari Jadwal\n".
-                    "2. Status Booking\n".
-                    "3. Cara Booking\n".
-                    '4. Hubungi Admin',
+                'message' => "Halo 👋 Selamat datang di Chatbot GASSIN.\n\n"
+                    ."Silakan pilih layanan:\n\n"
+                    ."1. 🚐 Cari Jadwal\n"
+                    ."2. 📖 Cara Booking\n"
+                    ."3. 📄 Kebijakan Pembatalan\n"
+                    .'4. 💬 Hubungi Admin',
             ]);
         }
         if ($conversation->state == 'main_menu' && $message == '1') {
@@ -134,6 +135,89 @@ class ChatbotController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Silakan masukkan kota keberangkatan Anda.',
+            ]);
+        }
+        if ($conversation->state == 'main_menu' && $message == '2') {
+
+            return response()->json([
+                'success' => true,
+                'message' => "📖 Cara Booking Shuttle GASSIN\n\n".
+                    "1️⃣ Pilih menu Jadwal Shuttle.\n".
+                    "2️⃣ Tentukan lokasi penjemputan dan tujuan.\n".
+                    "3️⃣ Pilih jadwal keberangkatan.\n".
+                    "4️⃣ Pilih kursi yang tersedia.\n".
+                    "5️⃣ Lakukan pembayaran.\n".
+                    "6️⃣ Setelah pembayaran berhasil, E-Ticket akan otomatis tersedia pada menu Riwayat Booking.\n\n".
+                    'Ketik MENU untuk kembali ke menu utama.',
+            ]);
+
+        }
+        if ($conversation->state == 'main_menu' && $message == '3') {
+
+            return response()->json([
+                'success' => true,
+                'message' => "📄 Kebijakan Pembatalan GASSIN\n\n".
+                    "• Booking dapat dibatalkan sebelum jadwal keberangkatan sesuai ketentuan operator.\n".
+                    "• Pembayaran yang telah berhasil dilakukan tidak dapat dikembalikan (non-refundable).\n".
+                    "• Jika perjalanan dibatalkan oleh pihak GASSIN, pengguna akan dihubungi oleh admin untuk proses penanganan lebih lanjut.\n\n".
+                    "Jika membutuhkan bantuan, silakan pilih menu Hubungi Admin.\n\n".
+                    'Ketik MENU untuk kembali ke menu utama.',
+            ]);
+
+        }
+        if ($conversation->state == 'main_menu' && $message == '4') {
+
+            $conversation->update([
+                'state' => 'ask_admin_message',
+                'data' => [],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "💬 Hubungi Admin\n\n".
+                    "Silakan tuliskan kendala atau pertanyaan Anda.\n\n".
+                    "Contoh:\n".
+                    "• Saya salah memilih jadwal.\n".
+                    "• Pembayaran saya belum masuk.\n".
+                    "• Saya ingin menanyakan lokasi penjemputan.\n\n".
+                    'Pesan Anda akan diteruskan langsung ke admin.',
+            ]);
+        }
+        if ($conversation->state == 'ask_admin_message') {
+
+            $user = auth('api')->user();
+
+            $telegramMessage =
+                "🚨 *Pesan Baru dari Chatbot GASSIN*\n\n".
+                "👤 *Nama* : {$user->name}\n".
+                "📧 *Email* : {$user->email}\n";
+
+            if (! empty($user->phone)) {
+                $telegramMessage .= "📱 *No. HP* : {$user->phone}\n";
+            }
+
+            $telegramMessage .=
+                "🆔 *User ID* : {$user->id}\n\n".
+                "━━━━━━━━━━━━━━\n".
+                "💬 *Pesan*\n\n".
+                "{$request->message}\n\n".
+                "━━━━━━━━━━━━━━\n".
+                '🕒 '.now()->format('d-m-Y H:i');
+
+            app(TelegramService::class)
+                ->send($telegramMessage);
+
+            $conversation->update([
+                'state' => 'main_menu',
+                'data' => [],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "✅ Pesan berhasil dikirim ke admin.\n\n".
+                    "Terima kasih telah menghubungi GASSIN.\n".
+                    "Admin akan menindaklanjuti pesan Anda sesegera mungkin.\n\n".
+                    'Ketik *MENU* untuk kembali ke menu utama.',
             ]);
         }
         if ($conversation->state == 'ask_origin') {
