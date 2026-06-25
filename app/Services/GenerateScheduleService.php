@@ -27,44 +27,56 @@ class GenerateScheduleService
 
     protected int $price = 25000;
 
-    public function generate(Carbon $date): void
+public function generate(Carbon $date): void
     {
-        $routes = Route::with('stops')
-            ->where('is_active', true)
-            ->get();
+        dump("Mulai proses generate untuk tanggal: " . $date->format('Y-m-d'));
+
+        $routes = Route::with('stops')->where('is_active', true)->get();
+        dump("Jumlah rute aktif ditemukan: " . $routes->count());
 
         if ($routes->isEmpty()) {
+            dump("BERHENTI TOTAL: Tidak ada rute aktif di database.");
             return;
         }
 
         foreach ($routes as $route) {
-            
+            dump("Mengecek Rute ID: " . $route->id . " | Jumlah Titik Pemberhentian (Stops): " . $route->stops->count());
+
             if ($route->stops->count() < 2) {
+                dump("  -> SKIP Rute ID " . $route->id . ": Jumlah stop kurang dari 2.");
                 continue;
             }
 
             foreach ($this->times as $time) {
-
-                $start = Carbon::parse(
-                    $date->format('Y-m-d') . ' ' . $time
-                );
-
+                $start = Carbon::parse($date->format('Y-m-d') . ' ' . $time);
                 $end = $start->copy()->addMinutes($this->duration);
+
+                dump("  Mengecek jadwal jam keberangkatan: " . $time);
 
                 $scheduleExists = Schedule::where('route_id', $route->id)
                     ->where('departure_time', $start)
                     ->exists();
 
                 if ($scheduleExists) {
+                    dump("    -> SKIP Jam " . $time . ": Jadwal untuk rute dan jam ini sudah ada.");
                     continue;
                 }
 
                 $driver = $this->findAvailableDriver($start, $end);
+                if (!$driver) {
+                    dump("    -> SKIP Jam " . $time . ": Tidak ada sopir dengan status 'verified' yang sedang menganggur.");
+                }
+
                 $vehicle = $this->findAvailableVehicle($start, $end);
+                if (!$vehicle) {
+                    dump("    -> SKIP Jam " . $time . ": Tidak ada kendaraan yang sedang menganggur.");
+                }
 
                 if (! $driver || ! $vehicle) {
                     continue;
                 }
+
+                dump("    -> BERHASIL! Membuat jadwal untuk Jam " . $time . " (Sopir ID: " . $driver->id . ", Kendaraan ID: " . $vehicle->id . ")");
 
                 $this->createSchedule(
                     $route,
@@ -75,6 +87,8 @@ class GenerateScheduleService
                 );
             }
         }
+        
+        dump("Proses loop generate selesai.");
     }
 
     protected function createSchedule(
