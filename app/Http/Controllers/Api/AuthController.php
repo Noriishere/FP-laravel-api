@@ -7,8 +7,8 @@ use App\Models\User;
 use Google\Client;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -34,7 +34,8 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $user = User::where('email', $payload['email'])->first();
+        // Tambahkan withTrashed() jika kebetulan model User menggunakan SoftDeletes
+        $user = User::withTrashed()->where('email', $payload['email'])->first();
 
         if ($user && $user->role !== 'customer') {
             return response()->json([
@@ -43,14 +44,23 @@ class AuthController extends Controller
         }
 
         if (! $user) {
-            DB::statement("INSERT IGNORE INTO users (name, email, google_id, provider, role, email_verified_at, password, created_at, updated_at) VALUES (?, ?, ?, 'google', 'customer', NOW(), ?, NOW(), NOW())", [
-                $payload['name'],
-                $payload['email'],
-                $payload['sub'],
-                bcrypt(Str::random(32)),
-            ]);
-
-            $user = User::where('email', $payload['email'])->firstOrFail();
+            try {
+                $user = User::create([
+                    'name' => $payload['name'],
+                    'email' => $payload['email'],
+                    'google_id' => $payload['sub'],
+                    'provider' => 'google',
+                    'role' => 'customer',
+                    'email_verified_at' => now(),
+                    'password' => bcrypt(Str::random(32)),
+                ]);
+            } catch (UniqueConstraintViolationException $e) {
+                // Jika terjadi race condition (klik ganda), ambil data yang baru saja terbuat
+                $user = User::where('email', $payload['email'])->first();
+            }
+        } elseif (method_exists($user, 'trashed') && $user->trashed()) {
+            // Opsional: Kembalikan akun yang sebelumnya di-soft delete
+            $user->restore();
         }
 
         if (! $user->google_id) {
