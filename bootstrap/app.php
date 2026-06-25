@@ -22,10 +22,17 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => RoleMiddleware::class,
             'driver.location.throttle' => DriverLocationThrottle::class,
         ]);
+
         // $middleware->api(append: [
         //     ApiActivityLogger::class,
         // ]);
     })
+    ->withBroadcasting(
+        __DIR__.'/../routes/channels.php',
+        attributes: [
+            'middleware' => ['auth:api'],
+        ]
+    )
     ->withExceptions(function ($exceptions) {
 
         $exceptions->report(function (Throwable $e) {
