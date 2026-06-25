@@ -35,10 +35,7 @@ class GenerateScheduleService
         }
 
         $drivers = Driver::where('verification_status', 'verified')
-            ->where('status', 'active')
             ->get();
-
-        $vehicles = Vehicle::all();
 
         $vehicles = Vehicle::all();
 
