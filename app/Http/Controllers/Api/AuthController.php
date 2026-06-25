@@ -7,10 +7,8 @@ use App\Models\User;
 use Google\Client;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Tymon\JWTAuth\Exceptions\TokenBlacklistedException;
@@ -55,9 +53,12 @@ class AuthController extends Controller
                     'password' => bcrypt(Str::random(32)),
                 ]
             );
-        } catch (UniqueConstraintViolationException $e) {
-            Log::error($e);
-            $user = User::where('email', $payload['email'])->firstOrFail();
+        } catch (\Exception $e) {
+            if (str_contains($e->getMessage(), '1062')) {
+                $user = User::where('email', $payload['email'])->firstOrFail();
+            } else {
+                throw $e;
+            }
         }
 
         if (! $user->google_id) {
@@ -76,6 +77,7 @@ class AuthController extends Controller
             'user' => $user,
         ]);
     }
+
     public function register(Request $request)
     {
         $request->validate([
