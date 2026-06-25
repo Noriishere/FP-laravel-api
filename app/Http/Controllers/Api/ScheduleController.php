@@ -449,7 +449,7 @@ class ScheduleController extends Controller
                 $q->orderBy('stop_order', 'asc');
             },
 
-            'stopTimes.routeStop:id,route_id,name,order',
+            'stopTimes.stop:id,route_id,name,order',
 
             'vehicle:id,name,plate_number',
             'driver:id,user_id',

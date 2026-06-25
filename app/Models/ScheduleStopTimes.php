@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use DateTimeInterface;
+use Illuminate\Database\Eloquent\Model;
+
 class ScheduleStopTimes extends Model
 {
     protected $fillable = [
@@ -35,6 +36,7 @@ class ScheduleStopTimes extends Model
     {
         return $this->belongsTo(RouteStop::class, 'route_stop_id');
     }
+
     protected function serializeDate(DateTimeInterface $date)
     {
         return $date
