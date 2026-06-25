@@ -1,5 +1,6 @@
 <?php
 
+use App\Events\AdminReplyReceived;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\Driver\AuthController as DriverAuthController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ChatbotController;
 use App\Http\Controllers\Api\TelegramWebhookController;
+use App\Models\ChatMessage;
 
 Route::get('/', function () {
     return view('api-doc');
@@ -75,6 +77,16 @@ Route::middleware(['auth:api'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::post('/bookings', [BookingController::class, 'store']);
+});
+
+Route::get('/test-chat', function () {
+
+    $message = ChatMessage::latest()->first();
+
+    event(new AdminReplyReceived($message));
+
+    return 'OK';
+
 });
 
 Route::post('/refresh', [AuthController::class, 'refresh'])->middleware('throttle:30,1');

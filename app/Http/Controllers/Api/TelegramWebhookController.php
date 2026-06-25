@@ -6,7 +6,6 @@ use App\Events\AdminReplyReceived;
 use App\Http\Controllers\Controller;
 use App\Models\ChatMessage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 class TelegramWebhookController extends Controller
 {
@@ -18,8 +17,11 @@ class TelegramWebhookController extends Controller
             return response()->json(['success' => true]);
         }
 
-        // Hanya proses jika admin melakukan Reply
         if (! isset($message['reply_to_message'])) {
+            return response()->json(['success' => true]);
+        }
+
+        if (! isset($message['text'])) {
             return response()->json(['success' => true]);
         }
 
@@ -31,10 +33,7 @@ class TelegramWebhookController extends Controller
         )->first();
 
         if (! $customerMessage) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Customer tidak ditemukan.',
-            ]);
+            return response()->json(['success' => true]);
         }
 
         $chatMessage = ChatMessage::create([
@@ -43,13 +42,7 @@ class TelegramWebhookController extends Controller
             'message' => $message['text'],
         ]);
 
-        broadcast(
-            new AdminReplyReceived($chatMessage)
-        );
-        Log::info('Broadcast AdminReplyReceived', [
-            'chat_message_id' => $chatMessage->id,
-            'user_id' => $chatMessage->user_id,
-        ]);
+        event(new AdminReplyReceived($chatMessage));
 
         return response()->json([
             'success' => true,

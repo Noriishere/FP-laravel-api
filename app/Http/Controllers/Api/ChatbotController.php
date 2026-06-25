@@ -230,7 +230,7 @@ class ChatbotController extends Controller
                 'telegram_message_id' => $response['result']['message_id'],
             ]);
             $conversation->update([
-                'state' => 'main_menu',
+                'state' => 'chat_with_admin',
                 'data' => [],
             ]);
 
@@ -240,6 +240,43 @@ class ChatbotController extends Controller
                     "Terima kasih telah menghubungi GASSIN.\n".
                     "Admin akan menindaklanjuti pesan Anda sesegera mungkin.\n\n".
                     'Ketik *MENU* untuk kembali ke menu utama.',
+            ]);
+        }
+        if ($conversation->state == 'chat_with_admin') {
+
+            if (in_array($message, ['menu', 'selesai', 'exit'])) {
+
+                $conversation->update([
+                    'state' => 'main_menu',
+                    'data' => [],
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Percakapan dengan admin telah diakhiri. Ketik MENU untuk melihat layanan.',
+                ]);
+            }
+
+            $user = auth('api')->user();
+
+            $telegramMessage =
+                "💬 *Balasan Customer*\n\n".
+                "👤 {$user->name}\n".
+                "🆔 User ID : {$user->id}\n\n".
+                $request->message;
+
+            $response = $this->telegramService->send($telegramMessage);
+
+            ChatMessage::create([
+                'user_id' => $user->id,
+                'sender' => 'customer',
+                'message' => $request->message,
+                'telegram_message_id' => $response['result']['message_id'],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pesan berhasil dikirim ke admin.',
             ]);
         }
         if ($conversation->state == 'ask_origin') {
