@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\AdminReplyReceived;
 use App\Http\Controllers\Controller;
 use App\Models\ChatMessage;
 use Illuminate\Http\Request;
@@ -31,18 +32,22 @@ class TelegramWebhookController extends Controller
         if (! $customerMessage) {
             return response()->json([
                 'success' => false,
-                'message' => 'Customer tidak ditemukan.'
+                'message' => 'Customer tidak ditemukan.',
             ]);
         }
 
-        ChatMessage::create([
+        $chatMessage = ChatMessage::create([
             'user_id' => $customerMessage->user_id,
             'sender' => 'admin',
             'message' => $message['text'],
         ]);
 
+        broadcast(
+            new AdminReplyReceived($chatMessage)
+        );
+
         return response()->json([
-            'success' => true
+            'success' => true,
         ]);
     }
 }
