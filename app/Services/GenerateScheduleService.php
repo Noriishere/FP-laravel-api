@@ -93,7 +93,7 @@ class GenerateScheduleService
         Carbon $departure,
         Carbon $arrival
     ): void {
-
+        dd('create schedule');
         DB::transaction(function () use (
             $route,
             $driver,
