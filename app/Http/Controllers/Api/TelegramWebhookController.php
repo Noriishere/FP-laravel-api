@@ -6,6 +6,7 @@ use App\Events\AdminReplyReceived;
 use App\Http\Controllers\Controller;
 use App\Models\ChatMessage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class TelegramWebhookController extends Controller
 {
@@ -45,6 +46,10 @@ class TelegramWebhookController extends Controller
         broadcast(
             new AdminReplyReceived($chatMessage)
         );
+        Log::info('Broadcast AdminReplyReceived', [
+            'chat_message_id' => $chatMessage->id,
+            'user_id' => $chatMessage->user_id,
+        ]);
 
         return response()->json([
             'success' => true,
