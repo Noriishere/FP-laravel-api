@@ -145,9 +145,9 @@ class GenerateScheduleService
 
         if ($schedule) {
             try {
-                Mail::to($driver->user->email)->send(new DriverAssignmentMail($schedule));
+                Mail::to($driver->user->email)->queue(new DriverAssignmentMail($schedule));
             } catch (\Throwable $e) {
-                Log::error('Driver assignment email failed during auto-generation', [
+                Log::error('Gagal memasukkan email penugasan sopir ke dalam antrean', [
                     'schedule_id' => $schedule->id,
                     'message' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),
