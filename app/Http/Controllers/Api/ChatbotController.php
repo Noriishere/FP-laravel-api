@@ -12,26 +12,83 @@ class ChatbotController extends Controller
 {
     private function searchNearestSchedule($origin, $destination)
     {
-        return Schedule::with([
-            'route',
-            'route.stops',
-            'seats',
-            'bookings.bookingSeats',
-            'bookings.pickupStop',
-            'bookings.dropoffStop',
-        ])
-            ->where('departure_time', '>=', now()->addHours(2))
-            ->whereHas('route.stops', function ($q) use ($origin) {
-                $q->where('name', 'like', "%{$origin}%")
-                    ->where('is_pickup', true);
-            })
-            ->whereHas('route.stops', function ($q) use ($destination) {
-                $q->where('name', 'like', "%{$destination}%")
-                    ->where('is_dropoff', true);
-            })
+        $query = Schedule::with([
+            'route:id,name',
+            'route.stops' => function ($q) {
+                $q->orderBy('order');
+            },
+            'vehicle:id,name,plate_number',
+            'driver:id,user_id',
+            'driver.user:id,name',
+            'seats:id,schedule_id,seat_number',
+
+            'bookings' => function ($q) {
+                $q->whereIn('payment_status', ['paid', 'pending'])
+                    ->select('id', 'schedule_id', 'pickup_stop_id', 'dropoff_stop_id');
+            },
+
+            'bookings.pickupStop:id,order',
+            'bookings.dropoffStop:id,order',
+            'bookings.bookingSeats:id,booking_id,seat_id',
+        ]);
+
+        $query->whereHas('route.stops', function ($q) use ($origin) {
+            $q->where('name', 'like', "%{$origin}%")
+                ->where('is_pickup', true);
+        });
+
+        $query->whereHas('route.stops', function ($q) use ($destination) {
+            $q->where('name', 'like', "%{$destination}%")
+                ->where('is_dropoff', true);
+        });
+
+        // Minimal berangkat 2 jam dari sekarang
+        $query->where('departure_time', '>=', now()->addHours(2));
+
+        return $query
             ->orderBy('departure_time')
             ->limit(3)
-            ->get();
+            ->get()
+            ->map(function ($schedule) {
+
+                $stops = $schedule->route?->stops?->values();
+
+                $pickup = $stops
+                    ?->first(fn ($s) => str_contains(strtolower($s->name), strtolower(request('origin'))));
+
+                $dropoff = $stops
+                    ?->first(fn ($s) => str_contains(strtolower($s->name), strtolower(request('destination'))));
+
+                $availableSeats = $schedule->seats->count();
+
+                if ($pickup && $dropoff) {
+
+                    foreach ($schedule->segment_availability ?? [] as $segment) {
+
+                        if (
+                            $segment['from_stop']['id'] == $pickup->id &&
+                            $segment['to_stop']['id'] == $dropoff->id
+                        ) {
+
+                            $availableSeats = $segment['available_seats'];
+                            break;
+                        }
+                    }
+                }
+
+                return [
+                    'route' => $schedule->route->name,
+                    'vehicle' => $schedule->vehicle->name,
+                    'plate' => $schedule->vehicle->plate_number,
+                    'driver' => $schedule->driver?->user?->name,
+                    'departure' => Carbon::parse($schedule->departure_time)
+                        ->translatedFormat('l, d F Y H:i'),
+                    'arrival' => Carbon::parse($schedule->arrival_time)
+                        ->translatedFormat('H:i'),
+                    'price' => number_format($schedule->price, 0, ',', '.'),
+                    'available_seats' => $availableSeats,
+                ];
+            });
     }
 
     public function message(Request $request)
@@ -117,12 +174,33 @@ class ChatbotController extends Controller
 
             foreach ($schedules as $schedule) {
 
-                $text .=
-                    '🕒 '.Carbon::parse($schedule->departure_time)->format('d M Y H:i')."\n";
+                $text .= "━━━━━━━━━━━━━━━━━━\n";
 
-                $text .=
-                    '🚌 Kendaraan : '.$schedule->vehicle?->name."\n\n";
+                $text .= "📍 Rute\n";
+                $text .= $schedule['route']."\n\n";
+
+                $text .= "🕒 Berangkat\n";
+                $text .= $schedule['departure']."\n\n";
+
+                $text .= "🕔 Tiba\n";
+                $text .= $schedule['arrival']."\n\n";
+
+                $text .= "💰 Harga\n";
+                $text .= 'Rp '.$schedule['price']."\n\n";
+
+                $text .= "💺 Kursi tersedia\n";
+                $text .= $schedule['available_seats']." kursi\n\n";
+
+                $text .= "🚌 Kendaraan\n";
+                $text .= $schedule['vehicle']."\n";
+                $text .= $schedule['plate']."\n\n";
+
+                $text .= "👨‍✈️ Driver\n";
+                $text .= ($schedule['driver'] ?? '-')."\n\n";
             }
+
+            $text .= "━━━━━━━━━━━━━━━━━━\n";
+            $text .= 'Ketik MENU untuk kembali.';
 
             $conversation->update([
                 'state' => 'main_menu',
