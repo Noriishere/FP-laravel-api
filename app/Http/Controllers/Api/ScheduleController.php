@@ -45,7 +45,7 @@ class ScheduleController extends Controller
               sekarang dipindah ke Query Database agar PHP tidak jebol memproses ribuan data.
             */
             $query->whereExists(function ($sqlQuery) use ($origin, $destination) {
-                $sqlQuery->select(\DB::raw(1))
+                $sqlQuery->select(DB::raw(1))
                     ->from('stops as s1')
                     ->join('stops as s2', 's1.route_id', '=', 's2.route_id')
                     ->whereRaw('s1.route_id = schedules.route_id')
@@ -439,18 +439,12 @@ class ScheduleController extends Controller
     public function sortedByDay(Request $request)
     {
         $query = Schedule::with([
-            'route:id,name',
-
+            'route' => function ($q) {
+                $q->select('id', 'name');
+            },
             'route.stops' => function ($q) {
                 $q->orderBy('order', 'asc');
             },
-
-            'stopTimes' => function ($q) {
-                $q->orderBy('stop_order', 'asc');
-            },
-
-            'stopTimes.stop:id,route_id,name,order',
-
             'vehicle:id,name,plate_number',
             'driver:id,user_id',
             'driver.user:id,name',
@@ -460,7 +454,6 @@ class ScheduleController extends Controller
                 $q->whereIn('payment_status', ['paid', 'pending'])
                     ->select('id', 'schedule_id', 'pickup_stop_id', 'dropoff_stop_id');
             },
-
             'bookings.pickupStop:id,order',
             'bookings.dropoffStop:id,order',
             'bookings.bookingSeats:id,booking_id,seat_id',

@@ -11,7 +11,7 @@ use App\Http\Controllers\Api\SeatController;
 use App\Http\Controllers\Api\VehicleController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\Api\ChatbotController;
 Route::get('/', function () {
     return view('api-doc');
 });
@@ -38,6 +38,7 @@ Route::get('/schedules/{id}/map', [ScheduleController::class, 'map']);
 
 Route::middleware(['auth:api', 'role:customer'])
     ->group(function () {
+        Route::post('/chatbot/message', [ChatbotController::class, 'message']);
         Route::post('/payment/create', [PaymentController::class, 'create']);
         Route::post('/payment/callback', [PaymentController::class, 'callback']);
         Route::post('/payment/cancel', [PaymentController::class, 'cancel']);
