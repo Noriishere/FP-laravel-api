@@ -439,12 +439,18 @@ class ScheduleController extends Controller
     public function sortedByDay(Request $request)
     {
         $query = Schedule::with([
-            'route' => function ($q) {
-                $q->select('id', 'name');
-            },
+            'route:id,name',
+
             'route.stops' => function ($q) {
                 $q->orderBy('order', 'asc');
             },
+
+            'stopTimes' => function ($q) {
+                $q->orderBy('stop_order', 'asc');
+            },
+
+            'stopTimes.routeStop:id,route_id,name,order',
+
             'vehicle:id,name,plate_number',
             'driver:id,user_id',
             'driver.user:id,name',
@@ -454,6 +460,7 @@ class ScheduleController extends Controller
                 $q->whereIn('payment_status', ['paid', 'pending'])
                     ->select('id', 'schedule_id', 'pickup_stop_id', 'dropoff_stop_id');
             },
+
             'bookings.pickupStop:id,order',
             'bookings.dropoffStop:id,order',
             'bookings.bookingSeats:id,booking_id,seat_id',
