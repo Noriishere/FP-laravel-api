@@ -12,4 +12,4 @@ Schedule::command('bookings:expire')->everyMinute();
 Schedule::command('users:delete-unverified')->daily();
 // Schedule::command('schedules:update-status')->everyMinute();
 Schedule::command('logs:cleanup')->everyMinute();
-Schedule::command('app:generate-daily-schedules')->dailyAt('16.40');
+Schedule::command('app:generate-daily-schedules')->everyMinute();

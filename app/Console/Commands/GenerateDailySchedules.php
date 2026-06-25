@@ -19,9 +19,7 @@ class GenerateDailySchedules extends Command
 
     public function handle(): int
     {
-        $this->service->generate(
-            now()->addDay()
-        );
+        $this->service->generate(now()->addDay());
 
         $this->info('Schedule generated successfully.');
 

@@ -30,7 +30,15 @@ class GenerateScheduleService
             ->where('is_active', true)
             ->get();
 
-        $drivers = Driver::all();
+        if ($routes->isEmpty()) {
+            return;
+        }
+
+        $drivers = Driver::where('verification_status', 'verified')
+            ->where('status', 'active')
+            ->get();
+
+        $vehicles = Vehicle::all();
 
         $vehicles = Vehicle::all();
 
@@ -39,12 +47,9 @@ class GenerateScheduleService
             foreach ($this->times as $time) {
 
                 $departure = Carbon::parse(
-                    $date->format('Y-m-d') . ' ' . $time
+                    $date->format('Y-m-d').' '.$time
                 );
 
-                $arrival = $departure->copy()->addMinutes($this->duration);
-
-                // skip kalau schedule route ini sudah ada
                 if (
                     Schedule::where('route_id', $route->id)
                         ->where('departure_time', $departure)
@@ -52,6 +57,10 @@ class GenerateScheduleService
                 ) {
                     continue;
                 }
+
+                $arrival = $departure
+                    ->copy()
+                    ->addMinutes($this->duration);
 
                 $driver = $this->findAvailableDriver(
                     $drivers,
@@ -65,104 +74,133 @@ class GenerateScheduleService
                     $arrival
                 );
 
-                if (!$driver || !$vehicle) {
+                if (! $driver || ! $vehicle) {
                     continue;
                 }
 
-                DB::transaction(function () use (
+                $this->createSchedule(
                     $route,
                     $driver,
                     $vehicle,
                     $departure,
                     $arrival
-                ) {
-
-                    $schedule = Schedule::create([
-                        'route_id' => $route->id,
-                        'driver_id' => $driver->id,
-                        'vehicle_id' => $vehicle->id,
-                        'departure_time' => $departure,
-                        'arrival_time' => $arrival,
-                        'estimated_duration' => $this->duration,
-                        'price' => $this->price,
-                        'status' => 'scheduled',
-                    ]);
-
-                    $seats = [];
-
-                    for ($i = 1; $i <= $vehicle->capacity; $i++) {
-
-                        $seats[] = [
-                            'schedule_id' => $schedule->id,
-                            'seat_number' => $i,
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ];
-                    }
-
-                    Seat::insert($seats);
-
-                    $stopCount = $route->stops->count();
-
-                    $durationPerSegment =
-                        $this->duration /
-                        max(1, ($stopCount - 1));
-
-                    foreach ($route->stops as $index => $stop) {
-
-                        $arrivalTime =
-                            $departure
-                                ->copy()
-                                ->addMinutes(
-                                    floor(
-                                        $durationPerSegment * $index
-                                    )
-                                );
-
-                        $departureTime =
-                            $arrivalTime
-                                ->copy()
-                                ->addMinutes(5);
-
-                        if ($index == 0) {
-                            $arrivalTime = null;
-                        }
-
-                        if ($index == ($stopCount - 1)) {
-                            $departureTime = null;
-                        }
-
-                        ScheduleStopTimes::create([
-                            'schedule_id' => $schedule->id,
-                            'route_stop_id' => $stop->id,
-                            'arrival_time' => $arrivalTime,
-                            'departure_time' => $departureTime,
-                            'status' => 'pending',
-                            'stop_order' => $stop->order,
-                            'delay_minutes' => 0,
-                        ]);
-                    }
-                });
+                );
             }
         }
+    }
+
+    protected function createSchedule(
+        Route $route,
+        Driver $driver,
+        Vehicle $vehicle,
+        Carbon $departure,
+        Carbon $arrival
+    ): void {
+
+        DB::transaction(function () use (
+            $route,
+            $driver,
+            $vehicle,
+            $departure,
+            $arrival
+        ) {
+
+            $schedule = Schedule::create([
+                'route_id' => $route->id,
+                'driver_id' => $driver->id,
+                'vehicle_id' => $vehicle->id,
+                'departure_time' => $departure,
+                'arrival_time' => $arrival,
+                'estimated_duration' => $this->duration,
+                'price' => $this->price,
+                'status' => 'scheduled',
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Generate Seats
+            |--------------------------------------------------------------------------
+            */
+
+            $seats = [];
+
+            for ($i = 1; $i <= $vehicle->capacity; $i++) {
+
+                $seats[] = [
+                    'schedule_id' => $schedule->id,
+                    'seat_number' => $i,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+
+            Seat::insert($seats);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Generate Stop Times
+            |--------------------------------------------------------------------------
+            */
+
+            $stops = $route->stops;
+
+            $stopCount = $stops->count();
+
+            $segmentDuration =
+                $this->duration /
+                max(1, ($stopCount - 1));
+
+            foreach ($stops as $index => $stop) {
+
+                $arrivalTime = $departure
+                    ->copy()
+                    ->addMinutes(
+                        floor(
+                            $segmentDuration * $index
+                        )
+                    );
+
+                $departureTime = $arrivalTime
+                    ->copy()
+                    ->addMinutes(5);
+
+                if ($index === 0) {
+                    $arrivalTime = null;
+                }
+
+                if ($index === ($stopCount - 1)) {
+                    $departureTime = null;
+                }
+
+                ScheduleStopTimes::create([
+                    'schedule_id' => $schedule->id,
+                    'route_stop_id' => $stop->id,
+                    'arrival_time' => $arrivalTime,
+                    'departure_time' => $departureTime,
+                    'status' => 'pending',
+                    'stop_order' => $stop->order,
+                    'delay_minutes' => 0,
+                ]);
+            }
+        });
     }
 
     protected function findAvailableDriver(
         $drivers,
         Carbon $start,
         Carbon $end
-    ) {
+    ): ?Driver {
 
         foreach ($drivers as $driver) {
 
             $busy = Schedule::where('driver_id', $driver->id)
                 ->whereIn('status', [
                     'scheduled',
-                    'on-going'
+                    'on-going',
                 ])
-                ->where(function ($q) use ($start, $end) {
+                ->where(function ($query) use ($start, $end) {
 
-                    $q->whereBetween(
+                    $query->whereBetween(
                         'departure_time',
                         [$start, $end]
                     )
@@ -170,12 +208,9 @@ class GenerateScheduleService
                             'arrival_time',
                             [$start, $end]
                         )
-                        ->orWhere(function ($q2) use (
-                            $start,
-                            $end
-                        ) {
+                        ->orWhere(function ($q) use ($start, $end) {
 
-                            $q2->where(
+                            $q->where(
                                 'departure_time',
                                 '<=',
                                 $start
@@ -186,10 +221,11 @@ class GenerateScheduleService
                                     $end
                                 );
                         });
+
                 })
                 ->exists();
 
-            if (!$busy) {
+            if (! $busy) {
                 return $driver;
             }
         }
@@ -201,18 +237,18 @@ class GenerateScheduleService
         $vehicles,
         Carbon $start,
         Carbon $end
-    ) {
+    ): ?Vehicle {
 
         foreach ($vehicles as $vehicle) {
 
             $busy = Schedule::where('vehicle_id', $vehicle->id)
                 ->whereIn('status', [
                     'scheduled',
-                    'on-going'
+                    'on-going',
                 ])
-                ->where(function ($q) use ($start, $end) {
+                ->where(function ($query) use ($start, $end) {
 
-                    $q->whereBetween(
+                    $query->whereBetween(
                         'departure_time',
                         [$start, $end]
                     )
@@ -220,12 +256,9 @@ class GenerateScheduleService
                             'arrival_time',
                             [$start, $end]
                         )
-                        ->orWhere(function ($q2) use (
-                            $start,
-                            $end
-                        ) {
+                        ->orWhere(function ($q) use ($start, $end) {
 
-                            $q2->where(
+                            $q->where(
                                 'departure_time',
                                 '<=',
                                 $start
@@ -236,10 +269,11 @@ class GenerateScheduleService
                                     $end
                                 );
                         });
+
                 })
                 ->exists();
 
-            if (!$busy) {
+            if (! $busy) {
                 return $vehicle;
             }
         }
