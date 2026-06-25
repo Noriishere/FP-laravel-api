@@ -1,11 +1,14 @@
 <?php
 
 use Illuminate\Support\Facades\Broadcast;
-
-Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
-    return (int) $user->id === (int) $id;
-});
+use Illuminate\Support\Facades\Log;
 
 Broadcast::channel('chat.{userId}', function ($user, $userId) {
-    return $user->id == $userId;
+
+    Log::info('Broadcast Auth', [
+        'user' => $user,
+        'userId' => $userId,
+    ]);
+
+    return $user && $user->id == $userId;
 });
