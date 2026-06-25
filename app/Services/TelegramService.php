@@ -6,9 +6,9 @@ use Illuminate\Support\Facades\Http;
 
 class TelegramService
 {
-    public function send(string $message)
+    public function send($message): array
     {
-        Http::post(
+        $response = Http::post(
             "https://api.telegram.org/bot".config('services.telegram.bot_token')."/sendMessage",
             [
                 'chat_id' => config('services.telegram.chat_id'),
@@ -16,5 +16,11 @@ class TelegramService
                 'parse_mode' => 'Markdown',
             ]
         );
+
+        if (! $response->successful()) {
+            throw new \Exception('Gagal mengirim pesan ke Telegram.');
+        }
+
+        return $response->json();
     }
 }

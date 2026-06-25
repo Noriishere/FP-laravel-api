@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ChatbotConversation;
+use App\Models\ChatMessage;
 use App\Models\Schedule;
 use App\Services\TelegramService;
 use Carbon\Carbon;
@@ -11,6 +12,7 @@ use Illuminate\Http\Request;
 
 class ChatbotController extends Controller
 {
+    private TelegramService $telegramService;
     private function searchNearestSchedule($origin, $destination)
     {
         $query = Schedule::with([
@@ -204,9 +206,14 @@ class ChatbotController extends Controller
                 "━━━━━━━━━━━━━━\n".
                 '🕒 '.now()->format('d-m-Y H:i');
 
-            app(TelegramService::class)
-                ->send($telegramMessage);
+            $response = $this->telegramService->send($telegramMessage);
 
+            ChatMessage::create([
+                'user_id' => $user->id,
+                'sender' => 'customer',
+                'message' => $request->message,
+                'telegram_message_id' => $response['result']['message_id'],
+            ]);
             $conversation->update([
                 'state' => 'main_menu',
                 'data' => [],
