@@ -41,6 +41,7 @@ Route::get('/schedules/{id}/map', [ScheduleController::class, 'map']);
 
 Route::middleware(['auth:api', 'role:customer'])
     ->group(function () {
+        Route::get('/chatbot/history', [ChatbotController::class, 'history']);
         Route::post('/chatbot/message', [ChatbotController::class, 'message']);
         Route::post('/payment/create', [PaymentController::class, 'create']);
         Route::post('/payment/callback', [PaymentController::class, 'callback']);

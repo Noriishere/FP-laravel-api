@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 class ChatbotController extends Controller
 {
     private TelegramService $telegramService;
+
     private function searchNearestSchedule($origin, $destination)
     {
         $query = Schedule::with([
@@ -171,7 +172,6 @@ class ChatbotController extends Controller
 
             $conversation->update([
                 'state' => 'ask_admin_message',
-                'data' => [],
             ]);
 
             return response()->json([
@@ -183,6 +183,21 @@ class ChatbotController extends Controller
                     "• Pembayaran saya belum masuk.\n".
                     "• Saya ingin menanyakan lokasi penjemputan.\n\n".
                     'Pesan Anda akan diteruskan langsung ke admin.',
+            ]);
+        }
+        if (
+            $conversation->state == 'ask_admin_message' &&
+            in_array($message, ['menu', 'selesai', 'exit'])
+        ) {
+
+            $conversation->update([
+                'state' => 'main_menu',
+                'data' => [],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Anda telah keluar dari percakapan dengan admin.\n\nKetik MENU untuk melihat layanan.",
             ]);
         }
         if ($conversation->state == 'ask_admin_message') {
@@ -307,6 +322,19 @@ class ChatbotController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Ketik "menu" untuk melihat daftar layanan.',
+        ]);
+    }
+
+    public function history()
+    {
+        return response()->json([
+            'success' => true,
+            'data' => ChatMessage::where(
+                'user_id',
+                auth('api')->id()
+            )
+                ->orderBy('created_at')
+                ->get(),
         ]);
     }
 }
