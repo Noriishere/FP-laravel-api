@@ -42,6 +42,17 @@ class ChatbotController extends Controller
                     '4. Hubungi Admin',
             ]);
         }
+        if ($conversation->state == 'main_menu' && $message == '1') {
+
+            $conversation->update([
+                'state' => 'ask_origin',
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Silakan masukkan kota keberangkatan Anda.',
+            ]);
+        }
 
         return response()->json([
             'success' => true,
