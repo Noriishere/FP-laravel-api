@@ -79,14 +79,4 @@ Route::middleware(['auth:api'])->group(function () {
     Route::post('/bookings', [BookingController::class, 'store']);
 });
 
-Route::get('/test-chat', function () {
-
-    $message = ChatMessage::latest()->first();
-
-    event(new AdminReplyReceived($message));
-
-    return 'OK';
-
-});
-
 Route::post('/refresh', [AuthController::class, 'refresh'])->middleware('throttle:30,1');
