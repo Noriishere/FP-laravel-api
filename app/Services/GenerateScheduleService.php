@@ -66,6 +66,9 @@ class GenerateScheduleService
                     continue;
                 }
 
+                $route = Route::with('stops')
+                    ->findOrFail($route->id);
+
                 $this->createSchedule(
                     $route,
                     $driver,
