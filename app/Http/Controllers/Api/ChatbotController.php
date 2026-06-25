@@ -13,7 +13,11 @@ use Illuminate\Http\Request;
 class ChatbotController extends Controller
 {
     private TelegramService $telegramService;
-
+    
+    public function __construct(TelegramService $telegramService)
+    {
+        $this->telegramService = $telegramService;
+    }
     private function searchNearestSchedule($origin, $destination)
     {
         $query = Schedule::with([
