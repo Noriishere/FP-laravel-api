@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\ChatMessage;
 use Illuminate\Http\Request;
-use Resend\Log;
+use Illuminate\Support\Facades\Log;
 
 class TelegramWebhookController extends Controller
 {
