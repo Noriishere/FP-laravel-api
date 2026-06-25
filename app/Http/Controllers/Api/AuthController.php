@@ -7,6 +7,7 @@ use App\Models\User;
 use Google\Client;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
@@ -41,17 +42,28 @@ class AuthController extends Controller
             ], 403);
         }
 
-        $user = User::firstOrCreate(
-            ['email' => $payload['email']],
-            [
-                'name' => $payload['name'],
+        try {
+            $user = User::firstOrCreate(
+                ['email' => $payload['email']],
+                [
+                    'name' => $payload['name'],
+                    'google_id' => $payload['sub'],
+                    'provider' => 'google',
+                    'role' => 'customer',
+                    'email_verified_at' => now(),
+                    'password' => bcrypt(Str::random(32)),
+                ]
+            );
+        } catch (UniqueConstraintViolationException $e) {
+            $user = User::where('email', $payload['email'])->firstOrFail();
+        }
+
+        if (! $user->google_id) {
+            $user->update([
                 'google_id' => $payload['sub'],
                 'provider' => 'google',
-                'role' => 'customer',
-                'email_verified_at' => now(),
-                'password' => bcrypt(Str::random(32)),
-            ]
-        );
+            ]);
+        }
 
         // update google_id jika belum ada
         if (! $user->google_id) {
