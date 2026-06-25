@@ -27,12 +27,12 @@ return Application::configure(basePath: dirname(__DIR__))
         //     ApiActivityLogger::class,
         // ]);
     })
-    ->withBroadcasting(
-        __DIR__.'/../routes/channels.php',
-        attributes: [
-            'middleware' => ['auth:api'],
-        ]
-    )
+    // ->withBroadcasting(
+    //     __DIR__.'/../routes/channels.php',
+    //     attributes: [
+    //         'middleware' => ['auth:api'],
+    //     ]
+    // )
     ->withExceptions(function ($exceptions) {
 
         $exceptions->report(function (Throwable $e) {
