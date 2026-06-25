@@ -4,10 +4,36 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ChatbotConversation;
+use App\Models\Schedule;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class ChatbotController extends Controller
 {
+    private function searchNearestSchedule($origin, $destination)
+    {
+        return Schedule::with([
+            'route',
+            'route.stops',
+            'seats',
+            'bookings.bookingSeats',
+            'bookings.pickupStop',
+            'bookings.dropoffStop',
+        ])
+            ->where('departure_time', '>=', now()->addHours(2))
+            ->whereHas('route.stops', function ($q) use ($origin) {
+                $q->where('name', 'like', "%{$origin}%")
+                    ->where('is_pickup', true);
+            })
+            ->whereHas('route.stops', function ($q) use ($destination) {
+                $q->where('name', 'like', "%{$destination}%")
+                    ->where('is_dropoff', true);
+            })
+            ->orderBy('departure_time')
+            ->limit(3)
+            ->get();
+    }
+
     public function message(Request $request)
     {
         $request->validate([
@@ -65,6 +91,47 @@ class ChatbotController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Sekarang masukkan kota tujuan Anda.',
+            ]);
+        }
+        if ($conversation->state == 'ask_destination') {
+
+            $origin = $conversation->data['origin'];
+            $destination = $request->message;
+
+            $schedules = $this->searchNearestSchedule($origin, $destination);
+
+            if ($schedules->isEmpty()) {
+
+                $conversation->update([
+                    'state' => 'main_menu',
+                    'data' => [],
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Maaf, tidak ada jadwal yang tersedia dalam 2 jam ke depan.',
+                ]);
+            }
+
+            $text = "🚐 Jadwal ditemukan\n\n";
+
+            foreach ($schedules as $schedule) {
+
+                $text .=
+                    '🕒 '.Carbon::parse($schedule->departure_time)->format('d M Y H:i')."\n";
+
+                $text .=
+                    '🚌 Kendaraan : '.$schedule->vehicle?->name."\n\n";
+            }
+
+            $conversation->update([
+                'state' => 'main_menu',
+                'data' => [],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => $text,
             ]);
         }
 
