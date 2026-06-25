@@ -45,7 +45,7 @@ class ScheduleController extends Controller
               sekarang dipindah ke Query Database agar PHP tidak jebol memproses ribuan data.
             */
             $query->whereExists(function ($sqlQuery) use ($origin, $destination) {
-                $sqlQuery->select(\DB::raw(1))
+                $sqlQuery->select(DB::raw(1))
                     ->from('stops as s1')
                     ->join('stops as s2', 's1.route_id', '=', 's2.route_id')
                     ->whereRaw('s1.route_id = schedules.route_id')
@@ -488,6 +488,9 @@ class ScheduleController extends Controller
             $end = Carbon::parse($request->to_date)->endOfDay();
             $query->whereBetween('departure_time', [$start, $end]);
         }
+
+        // TAMPILKAN JADWAL YANG MINIMAL 2 JAM DARI SEKARANG
+        $query->where('departure_time', '>=', now()->addHours(2));
 
         $dirInput = $request->input('direction', 'asc');
         $direction = is_string($dirInput) ? strtolower($dirInput) : 'asc';

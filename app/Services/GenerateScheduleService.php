@@ -25,7 +25,7 @@ class GenerateScheduleService
 
     protected int $duration = 120;
 
-    protected int $price = 25000;
+    protected int $price = 75000;
 
     public function generate(Carbon $date): void
     {
