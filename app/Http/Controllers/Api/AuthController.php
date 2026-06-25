@@ -43,23 +43,14 @@ class AuthController extends Controller
         }
 
         if (! $user) {
-            $user = DB::transaction(function () use ($payload) {
-                $existing = User::where('email', $payload['email'])->lockForUpdate()->first();
+            DB::statement("INSERT IGNORE INTO users (name, email, google_id, provider, role, email_verified_at, password, created_at, updated_at) VALUES (?, ?, ?, 'google', 'customer', NOW(), ?, NOW(), NOW())", [
+                $payload['name'],
+                $payload['email'],
+                $payload['sub'],
+                bcrypt(Str::random(32)),
+            ]);
 
-                if ($existing) {
-                    return $existing;
-                }
-
-                return User::create([
-                    'name' => $payload['name'],
-                    'email' => $payload['email'],
-                    'google_id' => $payload['sub'],
-                    'provider' => 'google',
-                    'role' => 'customer',
-                    'email_verified_at' => now(),
-                    'password' => bcrypt(Str::random(32)),
-                ]);
-            });
+            $user = User::where('email', $payload['email'])->firstOrFail();
         }
 
         if (! $user->google_id) {
