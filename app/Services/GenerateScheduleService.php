@@ -26,6 +26,11 @@ class GenerateScheduleService
 
     public function generate(Carbon $date): void
     {
+        dd(
+            Route::count(),
+            Driver::count(),
+            Vehicle::count()
+        );
         $routes = Route::with('stops')
             ->where('is_active', true)
             ->get();
