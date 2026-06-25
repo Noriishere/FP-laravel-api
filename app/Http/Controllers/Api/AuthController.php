@@ -7,8 +7,8 @@ use App\Models\User;
 use Google\Client;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -43,8 +43,14 @@ class AuthController extends Controller
         }
 
         if (! $user) {
-            try {
-                $user = User::create([
+            $user = DB::transaction(function () use ($payload) {
+                $existing = User::where('email', $payload['email'])->lockForUpdate()->first();
+
+                if ($existing) {
+                    return $existing;
+                }
+
+                return User::create([
                     'name' => $payload['name'],
                     'email' => $payload['email'],
                     'google_id' => $payload['sub'],
@@ -53,9 +59,7 @@ class AuthController extends Controller
                     'email_verified_at' => now(),
                     'password' => bcrypt(Str::random(32)),
                 ]);
-            } catch (UniqueConstraintViolationException $e) {
-                $user = User::where('email', $payload['email'])->firstOrFail();
-            }
+            });
         }
 
         if (! $user->google_id) {
