@@ -41,27 +41,24 @@ class AuthController extends Controller
             ], 403);
         }
 
-        if (! $user) {
-
-            $user = User::create([
+        $user = User::firstOrCreate(
+            ['email' => $payload['email']],
+            [
                 'name' => $payload['name'],
-                'email' => $payload['email'],
                 'google_id' => $payload['sub'],
                 'provider' => 'google',
                 'role' => 'customer',
                 'email_verified_at' => now(),
                 'password' => bcrypt(Str::random(32)),
+            ]
+        );
+
+        // update google_id jika belum ada
+        if (! $user->google_id) {
+            $user->update([
+                'google_id' => $payload['sub'],
+                'provider' => 'google',
             ]);
-
-        } else {
-
-            if (! $user->google_id) {
-
-                $user->update([
-                    'google_id' => $payload['sub'],
-                    'provider' => 'google',
-                ]);
-            }
         }
 
         $token = auth('api')->login($user);
