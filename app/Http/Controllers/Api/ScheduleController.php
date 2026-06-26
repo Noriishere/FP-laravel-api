@@ -495,10 +495,8 @@ class ScheduleController extends Controller
         if (! in_array($direction, ['asc', 'desc'])) {
             $direction = 'asc';
         }
-        $now = Carbon::now();
-        $schedules = $query->whereBetween('departure_time', [$now,
-            $now->copy()->addHours(2)])
-            ->orderBy('departure_time', $direction)
+        
+        $schedules = $query->orderBy('departure_time', $direction)
             ->limit(50)
             ->get()
             ->map(function ($schedule) {
