@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class BookingController extends Controller
@@ -49,8 +50,41 @@ class BookingController extends Controller
 
     public function refund(Booking $booking)
     {
-        if ($booking->status == 'cancelled') {
-            return back()->with('error', 'Booking sudah direfund.');
+        // Sudah direfund
+        if ($booking->status === 'cancelled') {
+            return back()->with(
+                'error',
+                'Booking sudah direfund.'
+            );
+        }
+
+        // Harus sudah dibayar
+        if ($booking->payment_status !== 'paid') {
+            return back()->with(
+                'error',
+                'Booking belum dibayar.'
+            );
+        }
+
+        // Maksimal 1 x 24 jam setelah pembayaran
+        if (
+            $booking->paid_at &&
+            Carbon::parse($booking->paid_at)->addDay()->isPast()
+        ) {
+            return back()->with(
+                'error',
+                'Refund hanya dapat dilakukan maksimal 1 x 24 jam setelah pembayaran.'
+            );
+        }
+
+        // Jadwal sudah dimulai
+        if (
+            Carbon::parse($booking->schedule->departure_time)->isPast()
+        ) {
+            return back()->with(
+                'error',
+                'Refund tidak dapat diproses karena perjalanan telah dimulai.'
+            );
         }
 
         $booking->update([

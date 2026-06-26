@@ -41,6 +41,7 @@ class PaymentController extends Controller
                 'payment_status' => 'paid',
                 'payment_provider' => 'reviewer',
                 'payment_method' => 'reviewer',
+                'paid_at' => now(),
             ]);
 
             return response()->json([
@@ -303,6 +304,7 @@ class PaymentController extends Controller
                     'payment_status' => 'paid',
 
                     'payment_method' => $request->payment_method,
+                    'paid_at' => now(),
                 ]);
                 try {
                     Mail::to($booking->user->email)
@@ -332,6 +334,7 @@ class PaymentController extends Controller
         if ($status === 'PAID') {
             $booking->status = 'paid';
             $booking->save();
+            
         }
 
         return response()->json(['message' => 'OK']);

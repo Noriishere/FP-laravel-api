@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use App\Models\ChatbotConversation;
 use App\Models\ChatMessage;
 use App\Models\Schedule;
@@ -488,9 +489,50 @@ class ChatbotController extends Controller
             if (! preg_match('/^INV-\d+$/', $invoice)) {
                 return response()->json([
                     'success' => false,
-                    'message' => "❌ Format kode booking tidak valid.\n\n".
-                        "Contoh:\n".
-                        'INV-202606260001',
+                    'message' => "❌ Format kode booking tidak valid.\n\nContoh:\nINV-202606260001",
+                ]);
+            }
+
+            $booking = Booking::with('schedule')
+                ->where('order_id', $invoice)
+                ->where('user_id', auth('api')->id())
+                ->first();
+
+            if (! $booking) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '❌ Invoice tidak ditemukan atau bukan milik Anda.',
+                ]);
+            }
+
+            if ($booking->payment_status !== 'paid') {
+                return response()->json([
+                    'success' => false,
+                    'message' => '❌ Booking belum berhasil dibayar sehingga tidak dapat direfund.',
+                ]);
+            }
+
+            if ($booking->status === 'cancelled') {
+                return response()->json([
+                    'success' => false,
+                    'message' => '❌ Booking ini sudah direfund.',
+                ]);
+            }
+
+            if (Carbon::parse($booking->schedule->departure_time)->isPast()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '❌ Refund tidak dapat diajukan karena perjalanan telah dimulai.',
+                ]);
+            }
+
+            if (
+                $booking->paid_at &&
+                Carbon::parse($booking->paid_at)->addDay()->isPast()
+            ) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '❌ Refund hanya dapat diajukan maksimal 1 x 24 jam setelah pembayaran.',
                 ]);
             }
 
@@ -498,14 +540,13 @@ class ChatbotController extends Controller
                 'state' => 'ask_refund_account_name',
                 'data' => [
                     'invoice' => $invoice,
+                    'booking_id' => $booking->id,
                 ],
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => "Masukkan nama pemilik rekening / E-Wallet.\n\n".
-                    "Contoh:\n".
-                    'Bagas Nurdiansyah',
+                'message' => "Masukkan nama pemilik rekening / E-Wallet.\n\nContoh:\nBagas Nurdiansyah",
             ]);
         }
         if ($conversation->state == 'ask_refund_account_name') {
