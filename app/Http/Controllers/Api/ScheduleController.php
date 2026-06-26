@@ -496,8 +496,8 @@ class ScheduleController extends Controller
             $direction = 'asc';
         }
         $now = Carbon::now();
-        $twoHoursLater = Carbon::now()->addHours(2);
-        $schedules = $query->whereBetween('departure_time', [$now, $twoHoursLater])
+        $schedules = $query->whereBetween('departure_time', [$now,
+            $now->copy()->addHours(2)])
             ->orderBy('departure_time', $direction)
             ->limit(50)
             ->get()
