@@ -377,10 +377,19 @@ class ChatbotController extends Controller
         }
         if ($conversation->state == 'ask_refund_invoice') {
 
+            $invoice = strtoupper(trim($request->message));
+
+            if (! str_starts_with($invoice, 'INV')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "❌ Format kode booking tidak valid.\n\nSilakan masukkan kode booking yang diawali dengan 'INV'.\n\nContoh:\nINV-202606260001",
+                ]);
+            }
+
             $conversation->update([
                 'state' => 'ask_refund_reason',
                 'data' => [
-                    'invoice' => $request->message,
+                    'invoice' => $invoice,
                 ],
             ]);
 
