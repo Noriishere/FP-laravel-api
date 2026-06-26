@@ -500,32 +500,32 @@ class ChatbotController extends Controller
                 ->where('order_id', $orderId)
                 ->where('user_id', auth('api')->id())
                 ->first();
-
+            $exitmessage = '\nKetik "MENU" untuk keluar dari menu refund';
             if (! $booking) {
                 return response()->json([
                     'success' => false,
-                    'message' => '❌ Order ID tidak ditemukan atau bukan milik Anda.',
+                    'message' => '❌ Order ID tidak ditemukan atau bukan milik Anda.'.$exitmessage ,
                 ]);
             }
 
             if ($booking->payment_status !== 'paid') {
                 return response()->json([
                     'success' => false,
-                    'message' => '❌ Booking belum berhasil dibayar sehingga tidak dapat direfund.',
+                    'message' => '❌ Booking belum berhasil dibayar sehingga tidak dapat direfund.'.$exitmessage ,
                 ]);
             }
 
             if ($booking->status === 'cancelled') {
                 return response()->json([
                     'success' => false,
-                    'message' => '❌ Booking ini sudah direfund sebelumnya.',
+                    'message' => '❌ Booking ini sudah direfund sebelumnya.'.$exitmessage ,
                 ]);
             }
 
             if (Carbon::parse($booking->schedule->departure_time)->isPast()) {
                 return response()->json([
                     'success' => false,
-                    'message' => '❌ Refund tidak dapat diajukan karena perjalanan telah dimulai.',
+                    'message' => '❌ Refund tidak dapat diajukan karena perjalanan telah dimulai.'.$exitmessage ,
                 ]);
             }
 
@@ -535,7 +535,7 @@ class ChatbotController extends Controller
             ) {
                 return response()->json([
                     'success' => false,
-                    'message' => '❌ Refund hanya dapat diajukan maksimal 1 x 24 jam setelah pembayaran.',
+                    'message' => '❌ Refund hanya dapat diajukan maksimal 1 x 24 jam setelah pembayaran.'.$exitmessage ,
                 ]);
             }
 
