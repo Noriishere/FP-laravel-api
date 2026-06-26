@@ -10,9 +10,11 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Tymon\JWTAuth\Exceptions\TokenBlacklistedException;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 
 class AuthController extends Controller
 {
@@ -223,24 +225,41 @@ class AuthController extends Controller
 
     public function refresh()
     {
-        \Log::info('REFRESH HIT');
-        \Log::info('REFRESH HEADER', [
+        Log::info('REFRESH HIT');
+        Log::info('REFRESH HEADER', [
             'auth' => request()->header('Authorization'),
         ]);
+
         try {
             $token = auth('api')->refresh();
 
-            \Log::info('REFRESH SUCCESS');
+            Log::info('REFRESH SUCCESS');
 
             return $this->respondWithToken($token);
 
+        } catch (TokenExpiredException $e) {
+
+            Log::info('REFRESH EXPIRED');
+
+            return response()->json([
+                'message' => 'Token has completely expired and cannot be refreshed. Please login again.',
+            ], 401);
+
         } catch (TokenBlacklistedException $e) {
 
-            \Log::info('REFRESH BLACKLISTED');
+            Log::info('REFRESH BLACKLISTED');
 
             return response()->json([
                 'message' => 'Token has been blacklisted',
             ], 401);
+
+        } catch (\Exception $e) {
+
+            Log::info('REFRESH ERROR: '.$e->getMessage());
+
+            return response()->json([
+                'message' => 'An error occurred while refreshing the token',
+            ], 500);
         }
     }
 
