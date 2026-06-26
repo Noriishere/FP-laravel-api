@@ -500,7 +500,7 @@ class ChatbotController extends Controller
                 ->where('order_id', $orderId)
                 ->where('user_id', auth('api')->id())
                 ->first();
-            $exitmessage = '\nKetik "MENU" untuk keluar dari menu refund';
+            $exitmessage = "\nKetik 'MENU' untuk keluar dari menu refund";
             if (! $booking) {
                 return response()->json([
                     'success' => false,
