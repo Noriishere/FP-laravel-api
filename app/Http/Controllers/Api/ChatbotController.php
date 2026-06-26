@@ -484,24 +484,27 @@ class ChatbotController extends Controller
         }
         if ($conversation->state == 'ask_refund_invoice') {
 
-            $invoice = strtoupper(trim($request->message));
+            $orderId = strtoupper(trim($request->message));
 
-            if (! preg_match('/^INV-\d+$/', $invoice)) {
+            // Validasi format Order ID
+            if (! preg_match('/^INV-[A-Z0-9-]+$/', $orderId)) {
                 return response()->json([
                     'success' => false,
-                    'message' => "❌ Format kode booking tidak valid.\n\nContoh:\nINV-202606260001",
+                    'message' => "❌ Format Order ID tidak valid.\n\n".
+                        "Contoh:\n".
+                        'INV-ABC123-XYZ789',
                 ]);
             }
 
             $booking = Booking::with('schedule')
-                ->where('order_id', $invoice)
+                ->where('order_id', $orderId)
                 ->where('user_id', auth('api')->id())
                 ->first();
 
             if (! $booking) {
                 return response()->json([
                     'success' => false,
-                    'message' => '❌ Invoice tidak ditemukan atau bukan milik Anda.',
+                    'message' => '❌ Order ID tidak ditemukan atau bukan milik Anda.',
                 ]);
             }
 
@@ -515,7 +518,7 @@ class ChatbotController extends Controller
             if ($booking->status === 'cancelled') {
                 return response()->json([
                     'success' => false,
-                    'message' => '❌ Booking ini sudah direfund.',
+                    'message' => '❌ Booking ini sudah direfund sebelumnya.',
                 ]);
             }
 
@@ -539,14 +542,17 @@ class ChatbotController extends Controller
             $conversation->update([
                 'state' => 'ask_refund_account_name',
                 'data' => [
-                    'invoice' => $invoice,
                     'booking_id' => $booking->id,
+                    'invoice' => $booking->order_id,
                 ],
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => "Masukkan nama pemilik rekening / E-Wallet.\n\nContoh:\nBagas Nurdiansyah",
+                'message' => "✅ Order ID ditemukan.\n\n".
+                    "Masukkan nama pemilik rekening / E-Wallet.\n\n".
+                    "Contoh:\n".
+                    'Bagas Nurdiansyah',
             ]);
         }
         if ($conversation->state == 'ask_refund_account_name') {
