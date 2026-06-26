@@ -1,154 +1,176 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="bg-white p-5 rounded-xl shadow">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
 
-        <div class="flex justify-between items-center mb-4">
+        {{-- Header --}}
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-6 border-b">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800">Daftar Booking</h2>
+                <p class="text-sm text-gray-500 mt-1">Kelola seluruh data booking pelanggan GASSIN.</p>
+            </div>
 
-            <h2 class="text-lg font-semibold">
-                Daftar Booking
-            </h2>
-
-            <form method="GET" class="flex gap-2">
-
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari user / invoice..."
-                    class="border rounded-lg px-3 py-2 text-sm w-64">
-
-                <button class="bg-blue-600 text-white px-4 rounded-lg">
-
+            {{-- Search --}}
+            <form method="GET" class="flex items-center gap-2">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari user atau Order ID..."
+                    class="w-72 rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button type="submit"
+                    class="px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition">
                     Search
-
                 </button>
-
+                @if(request('search'))
+                    <a href="{{ route('bookings.index') }}"
+                        class="px-5 py-2.5 rounded-xl bg-gray-100 text-gray-700 text-sm hover:bg-gray-200 transition">
+                        Reset
+                    </a>
+                @endif
             </form>
-
         </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
 
-                <thead>
-                    <tr class="text-left text-gray-500 border-b">
-                        <th class="pb-2">User</th>
-                        <th class="pb-2">Route</th>
-                        <th class="pb-2">Driver</th>
-                        <th class="pb-2">Kendaraan</th>
-                        <th class="pb-2">Seat</th>
-                        <th class="pb-2">Total</th>
-                        <th class="pb-2">Status</th>
-                        <th class="pb-2">Payment</th>
-                        <th class="pb-2">Aksi</th>
+        {{-- Table --}}
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead class="bg-gray-50">
+                    <tr class="text-gray-600 uppercase text-xs tracking-wider">
+                        <th class="px-6 py-4 text-left">User</th>
+                        <th class="px-6 py-4 text-left">Route</th>
+                        <th class="px-6 py-4 text-left">Driver</th>
+                        <th class="px-6 py-4 text-left">Vehicle</th>
+                        <th class="px-6 py-4 text-center">Seat</th>
+                        <th class="px-6 py-4 text-right">Total</th>
+                        <th class="px-6 py-4 text-center">Status</th>
+                        <th class="px-6 py-4 text-center">Payment</th>
+                        <th class="px-6 py-4 text-center">Action</th>
                     </tr>
                 </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @forelse($bookings as $booking)
+                        <tr class="hover:bg-gray-50 transition">
 
-                <tbody>
-                    @forelse ($bookings as $booking)
-                        <tr class="border-b hover:bg-gray-50">
-
-                            {{-- USER --}}
-                            <td class="py-3">
-                                {{ $booking->user->name ?? '-' }}
+                            {{-- User --}}
+                            <td class="px-6 py-4">
+                                <p class="font-semibold text-gray-800">{{ $booking->user->name ?? '-' }}</p>
+                                <p class="text-xs text-gray-500">{{ $booking->order_id }}</p>
                             </td>
 
-                            {{-- ROUTE --}}
-                            <td class="py-3 max-w-[100px]">
-                                <div class="truncate">
+                            {{-- Route --}}
+                            <td class="px-6 py-4">
+                                <p class="font-medium text-gray-700 truncate max-w-[220px]">
                                     {{ $booking->schedule->route->origin?->name ?? '-' }}
                                     →
                                     {{ $booking->schedule->route->destination?->name ?? '-' }}
-                                </div>
+                                </p>
                             </td>
 
-                            {{-- DRIVER --}}
-                            <td class="py-3">
+                            {{-- Driver --}}
+                            <td class="px-6 py-4">
                                 {{ $booking->schedule->driver->user->name ?? '-' }}
                             </td>
 
-                            {{-- VEHICLE --}}
-                            <td class="py-3">
-                                {{ $booking->schedule->vehicle->name ?? '-' }}
+                            {{-- Vehicle --}}
+                            <td class="px-6 py-4">
+                                <p class="font-medium">{{ $booking->schedule->vehicle->name ?? '-' }}</p>
+                                <p class="text-xs text-gray-500">{{ $booking->schedule->vehicle->plate_number ?? '-' }}</p>
                             </td>
 
-                            {{-- TOTAL SEAT --}}
-                            <td class="py-3">
-                                {{ $booking->total_seat }}
+                            {{-- Seat --}}
+                            <td class="px-6 py-4 text-center">
+                                <span
+                                    class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-blue-100 text-blue-700 font-semibold">
+                                    {{ $booking->total_seat }}
+                                </span>
                             </td>
 
-                            {{-- TOTAL PRICE --}}
-                            <td class="py-3">
+                            {{-- Total --}}
+                            <td class="px-6 py-4 text-right font-semibold text-gray-700">
                                 Rp {{ number_format($booking->total_price, 0, ',', '.') }}
                             </td>
 
-                            {{-- STATUS --}}
-                            <td class="py-3">
-                                @if ($booking->status == 'paid')
-                                    <span class="text-green-600 text-xs">● Paid</span>
-                                @elseif($booking->status == 'pending')
-                                    <span class="text-yellow-600 text-xs">● Pending</span>
-                                @else
-                                    <span class="text-red-600 text-xs">● Cancelled</span>
-                                @endif
+                            {{-- Booking Status --}}
+                            <td class="px-6 py-4 text-center">
+                                @php
+                                    $statusMap = [
+                                        'paid' => 'bg-green-100 text-green-700',
+                                        'pending' => 'bg-yellow-100 text-yellow-700',
+                                        'completed' => 'bg-blue-100 text-blue-700',
+                                    ];
+                                    $statusClass = $statusMap[$booking->status] ?? 'bg-red-100 text-red-700';
+                                    $statusLabel = ucfirst($booking->status);
+                                @endphp
+                                <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold {{ $statusClass }}">
+                                    {{ $statusLabel }}
+                                </span>
                             </td>
 
-                            {{-- PAYMENT --}}
-                            <td class="py-3">
-                                @if ($booking->payment_status == 'paid')
-                                    <span class="text-green-600 text-xs">● Paid</span>
-
-                                @elseif($booking->payment_status == 'pending')
-                                    <span class="text-yellow-600 text-xs">● Pending</span>
-
-                                @elseif($booking->payment_status == 'cancelled')
-                                    <span class="text-red-600 text-xs">● Cancelled</span>
-
-                                @elseif($booking->payment_status == 'expired')
-                                    <span class="text-gray-600 text-xs">● Expired</span>
-
-                                @else
-                                    <span class="text-red-600 text-xs">● Failed</span>
-                                @endif
+                            {{-- Payment Status --}}
+                            <td class="px-6 py-4 text-center">
+                                @php
+                                    $paymentMap = [
+                                        'paid' => 'bg-green-100 text-green-700',
+                                        'pending' => 'bg-yellow-100 text-yellow-700',
+                                        'expired' => 'bg-gray-100 text-gray-700',
+                                        'failed' => 'bg-red-100 text-red-700',
+                                    ];
+                                    $paymentClass = $paymentMap[$booking->payment_status] ?? 'bg-red-100 text-red-700';
+                                    $paymentLabel = ucfirst($booking->payment_status);
+                                @endphp
+                                <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold {{ $paymentClass }}">
+                                    {{ $paymentLabel }}
+                                </span>
                             </td>
 
-                            {{-- AKSI --}}
-                            <td class="py-3 flex gap-2">
+                            {{-- Action --}}
+                            <td class="px-6 py-4">
+                                <div class="flex justify-center gap-2">
+                                    <a href="{{ route('bookings.show', $booking->id) }}"
+                                        class="inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 transition">
+                                        Detail
+                                    </a>
 
-                                <a href="{{ route('bookings.show', $booking->id) }}" class="text-blue-600 text-xs">
-
-                                    Detail
-
-                                </a>
-
-                                @if($booking->status != 'cancelled')
-
-                                    <form action="{{ route('bookings.refund', $booking) }}" method="POST"
-                                        onsubmit="return confirm('Refund booking ini?')">
-
-                                        @csrf
-                                        @method('PATCH')
-
-                                        <button class="text-red-600 text-xs">
-
-                                            Refund
-
-                                        </button>
-
-                                    </form>
-
-                                @endif
-
+                                    @if($booking->status !== 'cancelled' && $booking->payment_status === 'paid')
+                                        <form action="{{ route('bookings.refund', $booking) }}" method="POST"
+                                            onsubmit="return confirm('Yakin ingin melakukan refund booking ini?')">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit"
+                                                class="inline-flex items-center px-4 py-2 rounded-lg bg-red-600 text-white text-xs font-medium hover:bg-red-700 transition">
+                                                Refund
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
                             </td>
 
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="text-center py-6 text-gray-400">
-                                Tidak ada booking
+                            <td colspan="9" class="py-16">
+                                <div class="flex flex-col items-center justify-center text-center">
+                                    <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-gray-400" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 17v-2a4 4 0 014-4h6" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M3 7h18M5 7V5a2 2 0 012-2h10a2 2 0 012 2v2" />
+                                        </svg>
+                                    </div>
+                                    <h3 class="text-lg font-semibold text-gray-700">Tidak ada data booking</h3>
+                                    <p class="text-sm text-gray-500 mt-1">Belum ada booking yang dapat ditampilkan.</p>
+                                </div>
                             </td>
                         </tr>
                     @endforelse
                 </tbody>
-
             </table>
         </div>
+
+        {{-- Pagination --}}
+        @if($bookings->hasPages())
+            <div class="border-t px-6 py-4">
+                {{ $bookings->links() }}
+            </div>
+        @endif
 
     </div>
 @endsection
