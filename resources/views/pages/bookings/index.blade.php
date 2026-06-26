@@ -90,18 +90,23 @@
                             </td>
 
                             {{-- PAYMENT --}}
-                            @if ($booking->status == 'paid')
-                                <span class="text-green-600 text-xs">● Paid</span>
+                            <td class="py-3">
+                                @if ($booking->payment_status == 'paid')
+                                    <span class="text-green-600 text-xs">● Paid</span>
 
-                            @elseif($booking->status == 'pending')
-                                <span class="text-yellow-600 text-xs">● Pending</span>
+                                @elseif($booking->payment_status == 'pending')
+                                    <span class="text-yellow-600 text-xs">● Pending</span>
 
-                            @elseif($booking->status == 'cancelled')
-                                <span class="text-red-600 text-xs">● Refunded</span>
+                                @elseif($booking->payment_status == 'cancelled')
+                                    <span class="text-red-600 text-xs">● Cancelled</span>
 
-                            @else
-                                <span class="text-gray-600 text-xs">● Completed</span>
-                            @endif
+                                @elseif($booking->payment_status == 'expired')
+                                    <span class="text-gray-600 text-xs">● Expired</span>
+
+                                @else
+                                    <span class="text-red-600 text-xs">● Failed</span>
+                                @endif
+                            </td>
 
                             {{-- AKSI --}}
                             <td class="py-3 flex gap-2">
