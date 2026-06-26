@@ -50,6 +50,8 @@ Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
 
 Route::middleware(['auth', 'role:admin'])->prefix('/admin')->group(function () {
     Route::resource('/bookings', BookingController::class);
+    Route::patch('/bookings/{booking}/refund', [BookingController::class, 'refund'])
+    ->name('bookings.refund');
     Route::resource('/routes', RouteController::class);
     Route::resource('/schedules', ScheduleController::class);
 
