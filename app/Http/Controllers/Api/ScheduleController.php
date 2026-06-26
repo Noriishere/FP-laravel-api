@@ -8,7 +8,6 @@ use App\Models\Schedule;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class ScheduleController extends Controller
 {
@@ -497,7 +496,6 @@ class ScheduleController extends Controller
             $direction = 'asc';
         }
         $now = Carbon::now();
-        Log::info($now);
         $twoHoursLater = Carbon::now()->addHours(2);
         $schedules = $query->whereBetween('departure_time', [$now, $twoHoursLater])
             ->orderBy('departure_time', $direction)
