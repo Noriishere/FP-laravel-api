@@ -485,15 +485,17 @@ class ChatbotController extends Controller
 
             $invoice = strtoupper(trim($request->message));
 
-            if (! str_starts_with($invoice, 'INV')) {
+            if (! preg_match('/^INV-\d+$/', $invoice)) {
                 return response()->json([
                     'success' => false,
-                    'message' => "❌ Format kode booking tidak valid.\n\nSilakan masukkan kode booking yang diawali dengan 'INV'.\n\nContoh:\nINV-202606260001",
+                    'message' => "❌ Format kode booking tidak valid.\n\n".
+                        "Contoh:\n".
+                        'INV-202606260001',
                 ]);
             }
 
             $conversation->update([
-                'state' => 'ask_refund_reason',
+                'state' => 'ask_refund_account_name',
                 'data' => [
                     'invoice' => $invoice,
                 ],
@@ -501,8 +503,90 @@ class ChatbotController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => "Baik.\n\n".
-                    "Sekarang tuliskan alasan pengajuan refund Anda.\n\n".
+                'message' => "Masukkan nama pemilik rekening / E-Wallet.\n\n".
+                    "Contoh:\n".
+                    'Bagas Nurdiansyah',
+            ]);
+        }
+        if ($conversation->state == 'ask_refund_account_name') {
+
+            $name = trim($request->message);
+
+            if (strlen($name) < 3 || is_numeric($name)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Nama pemilik tidak valid.',
+                ]);
+            }
+
+            $data = $conversation->data;
+            $data['account_name'] = $name;
+
+            $conversation->update([
+                'state' => 'ask_refund_account_type',
+                'data' => $data,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Masukkan Bank atau E-Wallet.\n\n".
+                    "Contoh:\n".
+                    "BCA\n".
+                    "BRI\n".
+                    "BNI\n".
+                    "Mandiri\n".
+                    "DANA\n".
+                    "GoPay\n".
+                    "OVO\n".
+                    'ShopeePay',
+            ]);
+        }
+        if ($conversation->state == 'ask_refund_account_type') {
+
+            $type = trim($request->message);
+
+            if (strlen($type) < 2) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bank / E-Wallet tidak valid.',
+                ]);
+            }
+
+            $data = $conversation->data;
+            $data['account_type'] = strtoupper($type);
+
+            $conversation->update([
+                'state' => 'ask_refund_account_number',
+                'data' => $data,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Masukkan nomor rekening / nomor E-Wallet tujuan refund.',
+            ]);
+        }
+        if ($conversation->state == 'ask_refund_account_number') {
+
+            $number = preg_replace('/\s+/', '', $request->message);
+
+            if (! preg_match('/^[0-9]{8,20}$/', $number)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Nomor rekening / E-Wallet tidak valid.',
+                ]);
+            }
+
+            $data = $conversation->data;
+            $data['account_number'] = $number;
+
+            $conversation->update([
+                'state' => 'ask_refund_reason',
+                'data' => $data,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Tuliskan alasan pengajuan refund.\n\n".
                     "Contoh:\n".
                     "• Salah memilih jadwal\n".
                     "• Tidak bisa berangkat\n".
@@ -512,22 +596,39 @@ class ChatbotController extends Controller
         }
         if ($conversation->state == 'ask_refund_reason') {
 
+            $reason = trim($request->message);
+
+            if (strlen($reason) < 10) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Mohon tuliskan alasan refund yang lebih lengkap.',
+                ]);
+            }
+
             $user = auth('api')->user();
 
-            $invoice = $conversation->data['invoice'];
-
-            $reason = $request->message;
+            $data = $conversation->data;
 
             $telegramMessage =
                 "🎟️ *Pengajuan Refund Ticket*\n\n".
-                "👤 *Nama* : {$user->name}\n".
+                "👤 *Nama User* : {$user->name}\n".
                 "📧 *Email* : {$user->email}\n";
+
+            if (! empty($user->phone)) {
+                $telegramMessage .= "📱 *No. HP* : {$user->phone}\n";
+            }
 
             $telegramMessage .=
                 "🆔 *User ID* : {$user->id}\n\n".
                 "━━━━━━━━━━━━━━\n".
                 "🧾 *Invoice*\n".
-                "{$invoice}\n\n".
+                "{$data['invoice']}\n\n".
+                "👤 *Nama Pemilik*\n".
+                "{$data['account_name']}\n\n".
+                "🏦 *Bank / E-Wallet*\n".
+                "{$data['account_type']}\n\n".
+                "💳 *Nomor Rekening / E-Wallet*\n".
+                "{$data['account_number']}\n\n".
                 "📝 *Alasan Refund*\n".
                 "{$reason}\n\n".
                 "━━━━━━━━━━━━━━\n".
@@ -538,7 +639,12 @@ class ChatbotController extends Controller
             ChatMessage::create([
                 'user_id' => $user->id,
                 'sender' => 'customer',
-                'message' => "Refund Ticket\nInvoice: {$invoice}\nAlasan: {$reason}",
+                'message' => "Refund Ticket\n".
+                    "Invoice: {$data['invoice']}\n".
+                    "Nama: {$data['account_name']}\n".
+                    "Bank/E-Wallet: {$data['account_type']}\n".
+                    "Nomor: {$data['account_number']}\n".
+                    "Alasan: {$reason}",
                 'telegram_message_id' => $response['result']['message_id'],
             ]);
 
@@ -550,7 +656,7 @@ class ChatbotController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => "✅ Pengajuan refund berhasil dikirim.\n\n".
-                    "Admin akan melakukan verifikasi terhadap invoice dan menghubungi Anda apabila diperlukan.\n\n".
+                    "Admin akan melakukan verifikasi dan menghubungi Anda apabila diperlukan.\n\n".
                     'Ketik MENU untuk kembali ke menu utama.',
             ]);
         }
