@@ -489,6 +489,9 @@ class ScheduleController extends Controller
             $query->whereBetween('departure_time', [$start, $end]);
         }
 
+        // Minimal berangkat 2 jam dari sekarang
+        $query->where('departure_time', '>=', now()->addHours(2));
+
         $dirInput = $request->input('direction', 'asc');
         $direction = is_string($dirInput) ? strtolower($dirInput) : 'asc';
 
