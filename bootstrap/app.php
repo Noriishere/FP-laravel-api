@@ -23,9 +23,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'driver.location.throttle' => DriverLocationThrottle::class,
         ]);
 
-        $middleware->api(append: [
-            ApiActivityLogger::class,
-        ]);
+        // $middleware->api(append: [
+        //     ApiActivityLogger::class,
+        // ]);
     })
     // ->withBroadcasting(
     //     __DIR__.'/../routes/channels.php',

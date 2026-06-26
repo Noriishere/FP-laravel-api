@@ -461,13 +461,15 @@ class ScheduleController extends Controller
 
         if ($request->origin) {
             $query->whereHas('route.stops', function ($q) use ($request) {
-                $q->where('name', 'like', '%'.$request->origin.'%')->where('is_pickup', true);
+                $q->where('name', 'like', '%'.$request->origin.'%')
+                    ->where('is_pickup', true);
             });
         }
 
         if ($request->destination) {
             $query->whereHas('route.stops', function ($q) use ($request) {
-                $q->where('name', 'like', '%'.$request->destination.'%')->where('is_dropoff', true);
+                $q->where('name', 'like', '%'.$request->destination.'%')
+                    ->where('is_dropoff', true);
             });
         }
 
@@ -489,14 +491,30 @@ class ScheduleController extends Controller
             $query->whereBetween('departure_time', [$start, $end]);
         }
 
+        // Default hanya tampilkan jadwal 2 jam ke depan
+        if (
+            ! $request->origin_date &&
+            ! $request->destination_date &&
+            ! $request->from_date &&
+            ! $request->to_date
+        ) {
+            $now = Carbon::now();
+
+            $query->whereBetween('departure_time', [
+                $now,
+                $now->copy()->addHours(2),
+            ]);
+        }
+
         $dirInput = $request->input('direction', 'asc');
         $direction = is_string($dirInput) ? strtolower($dirInput) : 'asc';
 
         if (! in_array($direction, ['asc', 'desc'])) {
             $direction = 'asc';
         }
-        
-        $schedules = $query->orderBy('departure_time', $direction)
+
+        $schedules = $query
+            ->orderBy('departure_time', $direction)
             ->limit(50)
             ->get()
             ->map(function ($schedule) {
@@ -527,7 +545,9 @@ class ScheduleController extends Controller
                         $bookingPickup = $booking->pickupStop->order;
                         $bookingDropoff = $booking->dropoffStop->order;
 
-                        $segmentOverlap = $from->order < $bookingDropoff && $to->order > $bookingPickup;
+                        $segmentOverlap =
+                            $from->order < $bookingDropoff &&
+                            $to->order > $bookingPickup;
 
                         if ($segmentOverlap) {
                             foreach ($booking->bookingSeats as $bookingSeat) {
@@ -542,7 +562,9 @@ class ScheduleController extends Controller
                         return [
                             'id' => $seat->id,
                             'seat_number' => $seat->seat_number,
-                            'status' => in_array($seat->id, $usedSeatIds) ? 'booked' : 'available',
+                            'status' => in_array($seat->id, $usedSeatIds)
+                                ? 'booked'
+                                : 'available',
                         ];
                     });
 
