@@ -489,17 +489,16 @@ class ScheduleController extends Controller
             $query->whereBetween('departure_time', [$start, $end]);
         }
 
-        // Minimal berangkat 2 jam dari sekarang
-        $query->where('departure_time', '>=', now()->addHours(2));
-
         $dirInput = $request->input('direction', 'asc');
         $direction = is_string($dirInput) ? strtolower($dirInput) : 'asc';
 
         if (! in_array($direction, ['asc', 'desc'])) {
             $direction = 'asc';
         }
-
-        $schedules = $query->orderBy('departure_time', $direction)
+        $now = Carbon::now();
+        $twoHoursLater = Carbon::now()->addHours(2);
+        $schedules = $query->whereBetween('departure_time', [$now, $twoHoursLater])
+            ->orderBy('departure_time', $direction)
             ->limit(50)
             ->get()
             ->map(function ($schedule) {
