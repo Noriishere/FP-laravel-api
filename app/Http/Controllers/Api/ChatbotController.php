@@ -13,11 +13,12 @@ use Illuminate\Http\Request;
 class ChatbotController extends Controller
 {
     private TelegramService $telegramService;
-    
+
     public function __construct(TelegramService $telegramService)
     {
         $this->telegramService = $telegramService;
     }
+
     private function searchNearestSchedule($origin, $destination)
     {
         $query = Schedule::with([
@@ -130,7 +131,8 @@ class ChatbotController extends Controller
                     ."1. 🚐 Cari Jadwal\n"
                     ."2. 📖 Cara Booking\n"
                     ."3. 📄 Kebijakan Pembatalan\n"
-                    .'4. 💬 Hubungi Admin',
+                    ."4. 💬 Hubungi Admin\n"
+                    .'5. 🎟️ Refund Ticket',
             ]);
         }
         if ($conversation->state == 'main_menu' && $message == '1') {
@@ -187,6 +189,21 @@ class ChatbotController extends Controller
                     "• Pembayaran saya belum masuk.\n".
                     "• Saya ingin menanyakan lokasi penjemputan.\n\n".
                     'Pesan Anda akan diteruskan langsung ke admin.',
+            ]);
+        }
+        if ($conversation->state == 'main_menu' && $message == '5') {
+
+            $conversation->update([
+                'state' => 'ask_refund_invoice',
+                'data' => [],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "🎟️ Pengajuan Refund Ticket\n\n".
+                    "Silakan masukkan Kode Booking / Invoice Anda.\n\n".
+                    "Contoh:\n".
+                    'INV-202606260001',
             ]);
         }
         if (
@@ -345,7 +362,6 @@ class ChatbotController extends Controller
                 $text .= "👨‍✈️ Driver\n";
                 $text .= ($schedule['driver'] ?? '-')."\n\n";
             }
-
             $text .= "━━━━━━━━━━━━━━━━━━\n";
             $text .= 'Ketik MENU untuk kembali.';
 
@@ -357,6 +373,70 @@ class ChatbotController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => $text,
+            ]);
+        }
+        if ($conversation->state == 'ask_refund_invoice') {
+
+            $conversation->update([
+                'state' => 'ask_refund_reason',
+                'data' => [
+                    'invoice' => $request->message,
+                ],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Baik.\n\n".
+                    "Sekarang tuliskan alasan pengajuan refund Anda.\n\n".
+                    "Contoh:\n".
+                    "• Salah memilih jadwal\n".
+                    "• Tidak bisa berangkat\n".
+                    "• Kendaraan dibatalkan\n".
+                    '• Alasan lainnya',
+            ]);
+        }
+        if ($conversation->state == 'ask_refund_reason') {
+
+            $user = auth('api')->user();
+
+            $invoice = $conversation->data['invoice'];
+
+            $reason = $request->message;
+
+            $telegramMessage =
+                "🎟️ *Pengajuan Refund Ticket*\n\n".
+                "👤 *Nama* : {$user->name}\n".
+                "📧 *Email* : {$user->email}\n";
+
+            $telegramMessage .=
+                "🆔 *User ID* : {$user->id}\n\n".
+                "━━━━━━━━━━━━━━\n".
+                "🧾 *Invoice*\n".
+                "{$invoice}\n\n".
+                "📝 *Alasan Refund*\n".
+                "{$reason}\n\n".
+                "━━━━━━━━━━━━━━\n".
+                '🕒 '.now()->format('d-m-Y H:i');
+
+            $response = $this->telegramService->send($telegramMessage);
+
+            ChatMessage::create([
+                'user_id' => $user->id,
+                'sender' => 'customer',
+                'message' => "Refund Ticket\nInvoice: {$invoice}\nAlasan: {$reason}",
+                'telegram_message_id' => $response['result']['message_id'],
+            ]);
+
+            $conversation->update([
+                'state' => 'main_menu',
+                'data' => [],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "✅ Pengajuan refund berhasil dikirim.\n\n".
+                    "Admin akan melakukan verifikasi terhadap invoice dan menghubungi Anda apabila diperlukan.\n\n".
+                    'Ketik MENU untuk kembali ke menu utama.',
             ]);
         }
 
