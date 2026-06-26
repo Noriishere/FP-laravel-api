@@ -14,6 +14,104 @@ class ChatbotController extends Controller
 {
     private TelegramService $telegramService;
 
+    private array $badwords = [
+
+        // Indonesia
+        'anjing',
+        'bangsat',
+        'bajingan',
+        'tolol',
+        'goblok',
+        'idiot',
+        'kampret',
+        'brengsek',
+        'keparat',
+        'setan',
+        'sialan',
+        'asu',
+        'jancok',
+        'cuk',
+        'cok',
+        'tai',
+        'bego',
+
+        // Inggris
+        'fuck',
+        'fucking',
+        'motherf',
+        'bitch',
+        'asshole',
+        'bastard',
+        'dick',
+        'cock',
+        'pussy',
+        'slut',
+        'whore',
+        'damn',
+        'crap',
+
+        // Malaysia
+        'bodoh',
+        'babi',
+        'celaka',
+        'sial',
+
+        // Filipina
+        'putang',
+        'gago',
+        'ulol',
+        'tanga',
+
+        // Thailand
+        'kwai',
+        'hia',
+
+        // Jepang (romaji)
+        'baka',
+        'kuso',
+        'aho',
+        'shine',
+
+        // Korea (romanized)
+        'ssibal',
+        'gaesaekki',
+        'byeongsin',
+
+        // Mandarin (pinyin)
+        'shabi',
+        'caonima',
+        'tamade',
+
+        // Spanyol
+        'puta',
+        'mierda',
+        'cabron',
+
+        // Portugis
+        'caralho',
+        'porra',
+
+        // Prancis
+        'merde',
+        'putain',
+
+        // Jerman
+        'scheisse',
+        'arschloch',
+
+        // Rusia (romanized)
+        'blyat',
+        'suka',
+
+        // Turki
+        'amk',
+        'orospu',
+
+        // Arab (romanized)
+        'kalb',
+        'ibnkalb',
+    ];
+
     public function __construct(TelegramService $telegramService)
     {
         $this->telegramService = $telegramService;
@@ -105,20 +203,11 @@ class ChatbotController extends Controller
         $request->validate([
             'message' => 'required|string',
         ]);
-        $badwords = [
-            'anjing',
-            'bangsat',
-            'kontol',
-            'memek',
-            'tai',
-            'goblok',
-            'tolol',
-            'bajingan',
-        ];
+
         $message = strtolower(trim($request->message));
 
-        foreach ($badwords as $badword) {
-            if (str_contains($message, $badword)) {
+        foreach ($this->badwords as $word) {
+            if (str_contains($message, $word)) {
                 return response()->json([
                     'success' => false,
                     'message' => '⚠️ Pesan mengandung kata yang tidak pantas. Silakan gunakan bahasa yang sopan.',
