@@ -11,7 +11,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
-        channels: __DIR__.'/../routes/channels.php',
+        // channels: __DIR__.'/../routes/channels.php',
         health: '/up',
         api: __DIR__.'/../routes/api.php',
         apiPrefix: 'api',
@@ -27,12 +27,12 @@ return Application::configure(basePath: dirname(__DIR__))
         //     ApiActivityLogger::class,
         // ]);
     })
-    // ->withBroadcasting(
-    //     __DIR__.'/../routes/channels.php',
-    //     attributes: [
-    //         'middleware' => ['auth:api'],
-    //     ]
-    // )
+    ->withBroadcasting(
+        __DIR__.'/../routes/channels.php',
+        attributes: [
+            'middleware' => ['auth:api'],
+        ]
+    )
     ->withExceptions(function ($exceptions) {
 
         $exceptions->report(function (Throwable $e) {
