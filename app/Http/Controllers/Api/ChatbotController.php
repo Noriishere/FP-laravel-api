@@ -105,9 +105,26 @@ class ChatbotController extends Controller
         $request->validate([
             'message' => 'required|string',
         ]);
-
+        $badwords = [
+            'anjing',
+            'bangsat',
+            'kontol',
+            'memek',
+            'tai',
+            'goblok',
+            'tolol',
+            'bajingan',
+        ];
         $message = strtolower(trim($request->message));
 
+        foreach ($badwords as $badword) {
+            if (str_contains($message, $badword)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '⚠️ Pesan mengandung kata yang tidak pantas. Silakan gunakan bahasa yang sopan.',
+                ]);
+            }
+        }
         $conversation = ChatbotConversation::firstOrCreate(
             [
                 'user_id' => auth('api')->id(),
