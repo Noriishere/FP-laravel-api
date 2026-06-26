@@ -26,7 +26,7 @@ class BookingController extends Controller
         ])
             ->when($search, function ($q) use ($search) {
 
-                $q->where('invoice', 'like', "%{$search}%")
+                $q->where('order_id', 'like', "%{$search}%")
                     ->orWhereHas('user', function ($user) use ($search) {
                         $user->where('name', 'like', "%{$search}%");
                     });
