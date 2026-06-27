@@ -496,7 +496,6 @@ class ScheduleController extends Controller
         }
         
         $schedules = $query->orderBy('departure_time', $direction)
-            ->limit(50)
             ->get()
             ->map(function ($schedule) {
 
