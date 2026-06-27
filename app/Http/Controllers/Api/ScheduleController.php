@@ -473,13 +473,12 @@ class ScheduleController extends Controller
 
         if ($request->origin_date) {
             $date = Carbon::parse($request->origin_date);
-            $isToday = $date->isToday();
 
-            $start = $isToday
-                ? now()->addHours(2)          // kalau hari ini, minimal 2 jam dari sekarang
-                : $date->startOfDay();         // kalau hari lain, dari awal hari
+            $start = $date->isToday()
+                ? now()->addHours(2)
+                : $date->copy()->startOfDay();
 
-            $end = Carbon::parse($request->origin_date)->endOfDay();
+            $end = $date->copy()->endOfDay();
 
             $query->whereBetween('departure_time', [$start, $end]);
         }
