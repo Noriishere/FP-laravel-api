@@ -435,6 +435,7 @@ class ScheduleController extends Controller
             'data' => $schedules,
         ]);
     }
+
     public function sortedByDay(Request $request)
     {
         $query = Schedule::with([
@@ -471,8 +472,15 @@ class ScheduleController extends Controller
         }
 
         if ($request->origin_date) {
-            $start = Carbon::parse($request->origin_date)->startOfDay();
+            $date = Carbon::parse($request->origin_date);
+            $isToday = $date->isToday();
+
+            $start = $isToday
+                ? now()->addHours(2)          // kalau hari ini, minimal 2 jam dari sekarang
+                : $date->startOfDay();         // kalau hari lain, dari awal hari
+
             $end = Carbon::parse($request->origin_date)->endOfDay();
+
             $query->whereBetween('departure_time', [$start, $end]);
         }
 
@@ -494,7 +502,7 @@ class ScheduleController extends Controller
         if (! in_array($direction, ['asc', 'desc'])) {
             $direction = 'asc';
         }
-        
+
         $schedules = $query->orderBy('departure_time', $direction)
             ->get()
             ->map(function ($schedule) {
