@@ -435,7 +435,6 @@ class ScheduleController extends Controller
             'data' => $schedules,
         ]);
     }
-
     public function sortedByDay(Request $request)
     {
         $query = Schedule::with([
@@ -471,42 +470,16 @@ class ScheduleController extends Controller
             });
         }
 
-        if ($request->origin_date && $request->destination_date) {
+        if ($request->origin_date) {
+            $start = Carbon::parse($request->origin_date)->startOfDay();
+            $end = Carbon::parse($request->origin_date)->endOfDay();
+            $query->whereBetween('departure_time', [$start, $end]);
+        }
 
-            // Filter hanya 2 jam dari origin_date
-            $departureStart = Carbon::parse($request->origin_date);
-            $departureEnd = $departureStart->copy()->addHours(2);
-
-            $arrivalStart = Carbon::parse($request->destination_date);
-            $arrivalEnd = $arrivalStart->copy()->addHours(2);
-
-            $query->whereBetween('departure_time', [
-                $departureStart,
-                $departureEnd,
-            ]);
-
-            $query->whereBetween('arrival_time', [
-                $arrivalStart,
-                $arrivalEnd,
-            ]);
-
-        } else {
-            if ($request->origin_date) {
-                // Jadwal keberangkatan maksimal 2 jam dari origin_date
-                $start = Carbon::parse($request->origin_date);
-                $end = $start->copy()->addHours(2);
-
-                $query->whereBetween('departure_time', [$start, $end]);
-            }
-
-            if ($request->destination_date) {
-                // Tetap filter berdasarkan tanggal tujuan (1 hari penuh)
-                $start = Carbon::parse($request->destination_date)->startOfDay();
-                $end = Carbon::parse($request->destination_date)->endOfDay();
-
-                $query->whereBetween('arrival_time', [$start, $end]);
-            }
-
+        if ($request->destination_date) {
+            $start = Carbon::parse($request->destination_date)->startOfDay();
+            $end = Carbon::parse($request->destination_date)->endOfDay();
+            $query->whereBetween('arrival_time', [$start, $end]);
         }
 
         if ($request->from_date && $request->to_date) {
@@ -521,7 +494,7 @@ class ScheduleController extends Controller
         if (! in_array($direction, ['asc', 'desc'])) {
             $direction = 'asc';
         }
-
+        
         $schedules = $query->orderBy('departure_time', $direction)
             ->get()
             ->map(function ($schedule) {
