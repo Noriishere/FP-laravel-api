@@ -491,15 +491,16 @@ class ScheduleController extends Controller
             ]);
 
         } else {
-
             if ($request->origin_date) {
-                $start = Carbon::parse($request->origin_date)->startOfDay();
-                $end = Carbon::parse($request->origin_date)->endOfDay();
+                // Jadwal keberangkatan maksimal 2 jam dari origin_date
+                $start = Carbon::parse($request->origin_date);
+                $end = $start->copy()->addHours(2);
 
                 $query->whereBetween('departure_time', [$start, $end]);
             }
 
             if ($request->destination_date) {
+                // Tetap filter berdasarkan tanggal tujuan (1 hari penuh)
                 $start = Carbon::parse($request->destination_date)->startOfDay();
                 $end = Carbon::parse($request->destination_date)->endOfDay();
 
